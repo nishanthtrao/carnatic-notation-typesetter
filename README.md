@@ -60,13 +60,17 @@ npm run app          # build and run the desktop app
 
 The site is a static build in `dist/`.
 
-- **Render (set up):** the repository includes a `Dockerfile` (Node builds the site, nginx serves it) and a `render.yaml` Blueprint. On [render.com](https://render.com), choose **New → Blueprint** and pick this repository. Render builds the container and redeploys on every push to `main`. On the free plan the service sleeps after 15 minutes without visitors, so the first visit after that takes about a minute to wake it.
-- **Docker anywhere:** `docker build -t cmnt .` then `docker run --rm -p 8080:10000 cmnt`, and open http://localhost:8080. The container listens on `$PORT` (default 10000) and answers `/healthz` for health checks.
+- **Render (set up):** `render.yaml` is a Blueprint for a free **static site** on Render's CDN: always on, no cold starts, rebuilt (tests included) on every push to `main`. On [render.com](https://render.com), choose **New → Blueprint** and pick this repository.
+- **Docker anywhere** (the site in an nginx container, for hosts that run containers): `docker build -t cmnt .` then `docker run --rm -p 8080:10000 cmnt`, and open http://localhost:8080. The container listens on `$PORT` (default 10000) and answers `/healthz` for health checks.
 - **GitHub Pages:** go to **Settings → Pages**, set **Source** to **GitHub Actions**, then run **Actions → Website → Run workflow** (`.github/workflows/pages.yml`).
 - **Netlify / Cloudflare Pages:** build command `npm run build`, output directory `dist`.
 - **Any other host (e.g. freepgs):** run `npm run build` and upload the contents of `dist/`. To keep the old address working, upload into `cmntv15b/cmnt/` and add a `newsong.html` containing `<meta http-equiv="refresh" content="0; url=index.html">`.
 
 The build uses relative paths, so it works in any folder.
+
+## Install and offline
+
+On the website the typesetter is an installable web app: Chrome and Edge show an **Install** button, iPhone/iPad use **Share → Add to Home Screen**. A service worker (`src/sw-template.js`, filled in by `vite.config.ts` at build time) keeps the app and its default fonts on the device, so it works offline; the optional Sans/Rounded fonts are cached when first used. Pages are fetched network-first, so a new deploy shows up on the next visit.
 
 ## Desktop app
 

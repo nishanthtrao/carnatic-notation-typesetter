@@ -1,0 +1,16 @@
+{
+  "name": "Carnatic Notation Typesetter",
+  "short_name": "Notation",
+  "description": "Typeset Carnatic music notation in English, Sanskrit, Telugu, Kannada, Malayalam and Tamil. An unofficial rebuild of Arun K's Carnatic Music Notation Typesetter.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f5f7",
+  "theme_color": "#7a1f1f",
+  "categories": ["music", "education", "productivity"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

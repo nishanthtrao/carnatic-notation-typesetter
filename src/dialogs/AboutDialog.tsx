@@ -57,6 +57,15 @@ export function AboutDialog({ open, onClose }: { open: boolean; onClose: () => v
           </ul>
         </section>
 
+        <section>
+          <h4>Install and use offline</h4>
+          <p>
+            Once opened, the typesetter works without internet. To keep it on your home screen or dock: in Chrome or Edge use the{' '}
+            <b>Install</b> button (or the install icon in the address bar); on an iPhone or iPad tap <b>Share → Add to Home Screen</b>; in
+            Safari on a Mac choose <b>File → Add to Dock</b>.
+          </p>
+        </section>
+
         <p className="about-small">
           Free software under the GNU General Public License, version 2. Fonts: Noto Serif, Anek, Nunito and Baloo (SIL Open Font License).
         </p>

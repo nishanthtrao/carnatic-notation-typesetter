@@ -1,12 +1,47 @@
 # Render Blueprint: Render -> New -> Blueprint -> pick this repository.
-# Free web service built from the Dockerfile. Free services sleep after
-# 15 minutes without visitors; the first visit after that takes ~1 minute.
+#
+# A free static site on Render's CDN: always on (no sleeping, no cold start),
+# rebuilt and redeployed on every push to main.
+#
+# The Dockerfile is kept for hosting the site as a container elsewhere
+# (docker build -t cmnt . && docker run -p 8080:10000 cmnt). Render cannot turn
+# an existing Docker service into a static site, so this is a new service; the
+# older Docker service (carnatic-notation-typesetter) can be deleted in the
+# Render dashboard once this one is live.
 services:
   - type: web
-    name: carnatic-notation-typesetter
-    runtime: docker
-    plan: free
-    region: singapore
-    dockerfilePath: ./Dockerfile
-    healthCheckPath: /healthz
-    autoDeploy: true
+    name: carnatic-typesetter
+    runtime: static
+    buildCommand: npm ci --ignore-scripts --no-audit --no-fund && npm test && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: ELECTRON_SKIP_BINARY_DOWNLOAD
+        value: "1"
+    routes:
+      # old address of the v1.5 site
+      - type: redirect
+        source: /newsong.html
+        destination: /
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+      - path: /*
+        name: X-Frame-Options
+        value: SAMEORIGIN
+      - path: /*
+        name: Permissions-Policy
+        value: camera=(), microphone=(), geolocation=()
+      # built assets have content hashes in their names
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+      # the offline service worker must always be checked for updates
+      - path: /sw.js
+        name: Cache-Control
+        value: no-cache

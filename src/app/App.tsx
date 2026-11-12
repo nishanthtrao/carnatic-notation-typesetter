@@ -16,6 +16,7 @@ import { useConfirm } from '../dialogs/ConfirmDialog';
 import { CopyTextDialog } from '../dialogs/CopyTextDialog';
 import { LettersDialog, type LettersContext } from '../dialogs/LettersDialog';
 import { lettersContext } from '../lib/letters-context';
+import { useInstallPrompt } from '../lib/install';
 import { AboutDialog } from '../dialogs/AboutDialog';
 import { ExamplesDialog } from '../dialogs/ExamplesDialog';
 import { NewSongDialog } from '../dialogs/NewSongDialog';
@@ -77,6 +78,7 @@ function Editor({ initial }: { initial: Initial }) {
   const { confirm, element: confirmElement } = useConfirm();
   const editor = useRef<EditorHandle>(null);
   const [lettersCtx, setLettersCtx] = useState<LettersContext | null>(null);
+  const installPrompt = useInstallPrompt();
   // Run an editor action once the current dialog has closed (a closing <dialog>
   // moves focus, so the editor must be focused after that, not before).
   const afterClose = useRef<(() => void) | null>(null);
@@ -443,9 +445,15 @@ function Editor({ initial }: { initial: Initial }) {
           <button type="button" role="tab" aria-selected={view === 'text'} onClick={() => setView('text')}>Text</button>
         </div>
         <Toolbar desktop={!!desk} onCommand={(c: Command) => {
-          if (c === 'assist' || c === 'align') setView('text'); // phones: show the text being edited
+          if (c === 'assist' || c === 'align' || c === 'letters') setView('text'); // phones: show the text being edited
           commands[c]?.();
         }} />
+        {installPrompt.canInstall && !desk && (
+          <button type="button" className="tb-btn install-btn" title="Install as an app: opens from your home screen or dock and works offline" onClick={() => installPrompt.install()}>
+            <Icon name="install" />
+            <span className="tb-label">Install</span>
+          </button>
+        )}
         <button
           type="button"
           className="tb-btn layout-toggle"

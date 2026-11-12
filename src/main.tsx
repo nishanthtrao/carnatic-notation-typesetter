@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-only
  */
 import { StrictMode } from 'react';
+import { setupOffline } from './lib/install';
 import { createRoot } from 'react-dom/client';
 import { App } from './app/App';
 import { ToastProvider } from './components/Toast';
@@ -12,6 +13,7 @@ import './styles/notation.css';
 import './styles/app.css';
 
 if (desk) document.documentElement.classList.add('is-desktop', 'platform-' + desk.platform);
+setupOffline(!!desk);
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
