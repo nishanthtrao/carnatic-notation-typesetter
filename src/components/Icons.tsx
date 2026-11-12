@@ -6,6 +6,7 @@ const P: Record<string, string> = {
   assist: 'M3 3h14v14H3z M7.5 8a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .8-1 1.7 M10 14.5v.5',
   update: 'M16 10a6 6 0 1 1-2-4.5 M16 3v4h-4',
   align: 'M3 5h14 M3 9h10 M3 13h14 M3 17h10',
+  letters: 'M2.5 16l4.5-12 4.5 12 M4.2 11.5h5.6 M13.5 8.5h4 M13.5 12h4 M13.5 15.5h4',
   photo: 'M2.5 6h3l1.5-2h6l1.5 2h3v10h-15z M10 13.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
   examples: 'M4 3h9l3 3v11H4z M7 8h6 M7 11h6 M7 14h4',
   share: 'M8 12l4-4 M7 9L5 11a3 3 0 0 0 4 4l2-2 M13 11l2-2a3 3 0 0 0-4-4L9 7',

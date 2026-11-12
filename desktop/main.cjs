@@ -484,6 +484,7 @@ function buildMenu() {
         { label: 'Update', accelerator: 'CmdOrCtrl+Enter', click: () => send('update') },
         { label: 'Assist…', accelerator: 'CmdOrCtrl+I', click: () => send('assist') },
         { label: 'Align Lyrics', accelerator: 'CmdOrCtrl+L', click: () => send('align') },
+        { label: 'Letters…', click: () => send('letters') },
         { label: 'Read from Photo…', accelerator: 'CmdOrCtrl+Shift+I', click: () => send('photo') },
         { type: 'separator' },
         {

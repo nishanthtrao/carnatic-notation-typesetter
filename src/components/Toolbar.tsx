@@ -1,7 +1,7 @@
 import { Icon } from './Icons';
 
 export type Command =
-  | 'new' | 'open' | 'save' | 'saveAs' | 'assist' | 'update' | 'align' | 'photo'
+  | 'new' | 'open' | 'save' | 'saveAs' | 'assist' | 'letters' | 'update' | 'align' | 'photo'
   | 'examples' | 'share' | 'exportPdf' | 'print';
 
 interface Item {
@@ -22,6 +22,7 @@ const GROUPS: Item[][] = [
   ],
   [
     { cmd: 'assist', label: 'Assist', title: 'Help with the directive on this line', icon: 'assist' },
+    { cmd: 'letters', label: 'Letters', title: 'Similar-sounding letters and how to type them (ര or റ?)', icon: 'letters' },
     { cmd: 'align', label: 'Align', title: 'Line up lyrics under their swaras', icon: 'align' },
     { cmd: 'examples', label: 'Examples', title: 'Open an example', icon: 'examples' },
   ],

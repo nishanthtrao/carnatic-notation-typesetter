@@ -1,5 +1,5 @@
 /*
- * Letters kit: groups of similar-sounding letters, how to type each in the
+ * Letters kit (toolbar button): groups of similar-sounding letters, how to type each in the
  * Unified Transliteration Scheme, and spelling variants of a word.
  * SPDX-License-Identifier: GPL-2.0-only
  */

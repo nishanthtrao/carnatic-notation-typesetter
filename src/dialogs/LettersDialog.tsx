@@ -1,5 +1,5 @@
 /*
- * Letters kit (Ctrl+K): similar-sounding letters in the song's script, how to
+ * Letters kit (toolbar button): similar-sounding letters in the song's script, how to
  * type them, and spelling variants of the word at the cursor.
  * SPDX-License-Identifier: GPL-2.0-only
  */
@@ -104,7 +104,7 @@ export function LettersDialog({
         ))}
         {!groups.length && <p className="hint">No sound matches “{query}”.</p>}
       </div>
-      <p className="hint">Tap a letter to type its code at the cursor. Open this kit any time with Ctrl+K (⌘K on a Mac) or the Letters button.</p>
+      <p className="hint">Tap a letter to type its code at the cursor. Open this kit any time with the Letters button in the toolbar.</p>
     </Modal>
   );
 }

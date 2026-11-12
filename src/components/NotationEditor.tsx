@@ -124,7 +124,7 @@ export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationE
         <button
           type="button"
           className="wide letters-key"
-          title="Similar-sounding letters and how to type them (Ctrl+K)"
+          title="Similar-sounding letters and how to type them"
           onPointerDown={(e) => e.preventDefault()}
           onClick={() => onShortcut('letters')}
         >
@@ -152,9 +152,6 @@ export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationE
             const c = toggleLineComments(el.value, el.selectionStart, el.selectionEnd);
             replaceRange(c.start, c.end, c.text);
             el.setSelectionRange(c.selStart, c.selEnd);
-          } else if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'k') {
-            e.preventDefault();
-            onShortcut('letters');
           } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
             e.preventDefault();
             onShortcut('save');

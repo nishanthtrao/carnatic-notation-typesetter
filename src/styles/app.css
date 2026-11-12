@@ -699,7 +699,7 @@ select optgroup {
 }
 .form-grid input[aria-invalid='true'] { border-color: #d70015; box-shadow: 0 0 0 1px #d70015; }
 
-/* ---- Letters kit (Ctrl+K) ---- */
+/* ---- Letters kit (toolbar button) ---- */
 .letters-key { font-weight: 600; }
 .letters-top {
   display: grid;
