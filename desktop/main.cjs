@@ -9,7 +9,7 @@
  * encrypted storage of the photo reader's API key.
  */
 'use strict';
-const { app, BrowserWindow, Menu, dialog, ipcMain, safeStorage, shell } = require('electron');
+const { app, BrowserWindow, Menu, dialog, ipcMain, safeStorage, session, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -545,6 +545,12 @@ if (!app.requestSingleInstanceLock()) {
   });
 
   app.whenReady().then(() => {
+    // Electron grants permission requests (camera, microphone, location,
+    // notifications…) unless told otherwise. The app needs none of them except
+    // copying share links to the clipboard, so refuse everything else.
+    const ALLOWED_PERMISSIONS = new Set(['clipboard-sanitized-write']);
+    session.defaultSession.setPermissionRequestHandler((_wc, permission, callback) => callback(ALLOWED_PERMISSIONS.has(permission)));
+    session.defaultSession.setPermissionCheckHandler((_wc, permission) => ALLOWED_PERMISSIONS.has(permission));
     loadSettings();
     app.setAboutPanelOptions({
       applicationName: PRODUCT,

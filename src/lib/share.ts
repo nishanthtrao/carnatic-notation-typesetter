@@ -29,12 +29,49 @@ export async function shareUrl(text: string): Promise<string> {
   return base + '#t=' + b64urlFromBytes(bytes);
 }
 
-/** The notation in the current URL hash, or null. Throws if it is corrupt. */
+/**
+ * Largest notation a link may hold once unpacked. Real songs are a few KB; the
+ * limit stops a small crafted link from expanding into gigabytes and freezing
+ * the page of whoever opens it (a "decompression bomb").
+ */
+export const MAX_SHARED_BYTES = 1024 * 1024;
+
+export class SharedLinkTooLarge extends Error {
+  constructor() {
+    super('This link holds more notation than a song needs, so it was not opened.');
+  }
+}
+
+/** The notation in the current URL hash, or null. Throws if it is corrupt or too large. */
 export async function readShareHash(hash = location.hash): Promise<string | null> {
   if (hash.startsWith('#z=') && typeof DecompressionStream === 'function') {
     const stream = new Blob([bytesFromB64url(hash.slice(3)) as BlobPart]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
-    return await new Response(stream).text();
+    // read piece by piece and stop as soon as it grows past the limit
+    const reader = stream.getReader();
+    const parts: Uint8Array[] = [];
+    let size = 0;
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > MAX_SHARED_BYTES) {
+        await reader.cancel().catch(() => undefined);
+        throw new SharedLinkTooLarge();
+      }
+      parts.push(value);
+    }
+    const all = new Uint8Array(size);
+    let at = 0;
+    for (const p of parts) {
+      all.set(p, at);
+      at += p.byteLength;
+    }
+    return new TextDecoder().decode(all);
   }
-  if (hash.startsWith('#t=')) return new TextDecoder().decode(bytesFromB64url(hash.slice(3)));
+  if (hash.startsWith('#t=')) {
+    const bytes = bytesFromB64url(hash.slice(3));
+    if (bytes.byteLength > MAX_SHARED_BYTES) throw new SharedLinkTooLarge();
+    return new TextDecoder().decode(bytes);
+  }
   return null;
 }
