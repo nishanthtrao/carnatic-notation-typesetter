@@ -15,8 +15,11 @@ export interface Example {
   text: string;
 }
 
-const NEW_SONG = `# Lines starting with # are comments.
-# Press Assist for help with directives, or Help for the full manual.
+const NEW_SONG = `# A new song. Replace the sample lines below with your own.
+# Fill in the title, raga, tala and composer, then write swaras on S: lines
+# and lyrics on L: lines. Assist helps with the line you are on; Examples
+# and Help (the manual) are in the toolbar. Lines starting with # are notes
+# to yourself and are not printed. Save keeps the song as a file.
 Title: "Song name"
 Tala: Adi
 SmartLyricMode
