@@ -20,10 +20,14 @@ test('scale lines: swaras with octave and variant', () => {
 
 test('scale labels and raga name follow an Indian-script language', () => {
   const items = metaOf("Language: Kannada\nRaga: kAnaDa\nArohana: s r2 g2 m1 d2 n2 s'\nAvarohana: s' n2 p m1 g2 m1 r2 s");
-  expect(items.map((i) => i.label)).toEqual(['ರಾಗಂ', 'ಆರೋಹಣಂ', 'ಅವರೋಹಣಂ']);
+  expect(items.map((i) => i.label)).toEqual(['ರಾಗ', 'ಆರೋಹಣ', 'ಅವರೋಹಣ']);
   expect(items[0].text).toBe('ಕಾನಡ');
-  // Tamil labels without qualifier digits; English unchanged
-  expect(metaOf('Language: Tamil\nRaga: mOhanam')[0].label).toBe('ராகம்');
+  const labels = (lang: string) => metaOf(`Language: ${lang}\nRaga: x\nArohana: s\nAvarohana: s`).map((i) => i.label);
+  expect(labels('Telugu')).toEqual(['రాగం', 'ఆరోహణ', 'అవరోహణ']);
+  expect(labels('Tamil')).toEqual(['ராகம்', 'ஆரோகணம்', 'அவரோகணம்']);
+  expect(labels('Malayalam')).toEqual(['രാഗം', 'ആരോഹണം', 'അവരോഹണം']);
+  expect(labels('Sanskrit')).toEqual(['राग', 'आरोहण', 'अवरोहण']);
+  expect(labels('Diacritics')).toEqual(['Rāgam', 'Ārōhaṇam', 'Avarōhaṇam']);
   expect(metaOf('Raga: mOhanam')[0]).toMatchObject({ label: 'Rāgam', value: 'mOhanam' });
 });
 

@@ -25,10 +25,18 @@ const META_LABELS: Record<string, string> = {
   arohana: 'Ārōhaṇam', arohanam: 'Ārōhaṇam', avarohana: 'Avarōhaṇam', avarohanam: 'Avarōhaṇam',
 };
 const SWARA_META = new Set(['arohana', 'arohanam', 'avarohana', 'avarohanam']);
-// the same labels in the Unified Transliteration Scheme, for Indian scripts
-const META_NATIVE: Record<string, string> = {
-  raga: 'rAgaM', ragam: 'rAgaM',
-  arohana: 'ArOhaNaM', arohanam: 'ArOhaNaM', avarohana: 'avarOhaNaM', avarohanam: 'avarOhaNaM',
+// The labels as Carnatic books write them in each script: Kannada drops the
+// final -m (ರಾಗ, ಆರೋಹಣ), Telugu writes రాగం but ఆరోహణ/అవరోహణ, Tamil spells
+// ஆரோகணம் with க, Malayalam keeps -ം, Devanagari uses the plain stems.
+const META_NATIVE: Partial<Record<Lang, Record<'raga' | 'aro' | 'ava', string>>> = {
+  kannada: { raga: 'ರಾಗ', aro: 'ಆರೋಹಣ', ava: 'ಅವರೋಹಣ' },
+  telugu: { raga: 'రాగం', aro: 'ఆరోహణ', ava: 'అవరోహణ' },
+  tamil: { raga: 'ராகம்', aro: 'ஆரோகணம்', ava: 'அவரோகணம்' },
+  malayalam: { raga: 'രാഗം', aro: 'ആരോഹണം', ava: 'അവരോഹണം' },
+  devanagari: { raga: 'राग', aro: 'आरोहण', ava: 'अवरोहण' },
+};
+const META_KIND: Record<string, 'raga' | 'aro' | 'ava'> = {
+  raga: 'raga', ragam: 'raga', arohana: 'aro', arohanam: 'aro', avarohana: 'ava', avarohanam: 'ava',
 };
 
 /** Swaras per akshara for a default speed (0–2) and gati. */
@@ -238,11 +246,8 @@ export function parse(input: string): NotationDoc {
     const item: MetaItem = { label: META_LABELS[key] || key, value: val };
     // In an Indian script the labels are written in that script, and names
     // (raga, composer) are transliterated like headings.
-    const indic = st.lang.lang !== 'english' && st.lang.lang !== 'iast';
-    if (indic && META_NATIVE[key]) {
-      const plain = st.lang.lang === 'tamil' ? { ...st.lang, opts: { ...st.lang.opts, qual: false } } : st.lang;
-      item.label = transliterate(META_NATIVE[key], plain);
-    }
+    const native = META_NATIVE[st.lang.lang];
+    if (native && META_KIND[key]) item.label = native[META_KIND[key]];
     if (st.lang.lang !== 'english' && !SWARA_META.has(key)) item.text = transliterate(val, st.lang);
     if (SWARA_META.has(key)) {
       item.swaras = [];
