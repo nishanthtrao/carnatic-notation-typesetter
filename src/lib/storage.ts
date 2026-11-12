@@ -26,6 +26,8 @@ export const store = {
 export const KEYS = {
   draft: 'cmnt.v2.draft',
   draftMeta: 'cmnt.v2.draftmeta',
+  /** unsaved work from an earlier visit, offered for restoring */
+  recover: 'cmnt.v3.recover',
   split: 'cmnt.v2.split',
   splitX: 'cmnt.v3.splitx',
   layout: 'cmnt.v3.layout',

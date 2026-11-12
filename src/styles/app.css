@@ -816,3 +816,29 @@ select optgroup {
   .letter-groups { max-height: none; }
 }
 
+
+/* ---- Unsaved work from last time ---- */
+.recover-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: var(--accent-soft);
+  border-bottom: 0.5px solid var(--separator);
+  font-size: 13px;
+  color: var(--label);
+}
+.recover-bar span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.recover-bar button {
+  flex: none;
+  padding: 4px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--fill-2);
+  color: var(--label);
+  font: 600 12px var(--font);
+  cursor: pointer;
+}
+.recover-bar button.primary { background: var(--accent); color: #fff; }
+@media (max-width: 760px) { .recover-bar span { white-space: normal; } }
+@media print { .recover-bar { display: none !important; } }

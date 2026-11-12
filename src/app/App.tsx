@@ -37,19 +37,23 @@ interface Initial {
   file: { path: string; name: string } | null;
   dirty: boolean;
   message: string;
+  /** unsaved work from last time, offered in a bar rather than opened */
+  recover?: { text: string; name: string; file: { path: string; name: string } | null } | null;
 }
+
+/** Song title for the restore bar. */
+const titleOf = (t: string) => t.match(/^\s*Title\s*:\s*"?([^"\n]*)"?/im)?.[1].trim() || 'Untitled';
 
 /** Decide what the editor starts with (shared link, file, recovered work, draft, example). */
 async function loadInitial(): Promise<Initial> {
   if (desk) {
     const st = await desk.startup();
+    // A file opened from the system opens; otherwise every window starts the same: a new song.
     if (st.file) return { text: st.file.text, file: st.file, dirty: false, message: 'Opened ' + st.file.name };
-    if (st.recovered) {
-      const f = st.recovered.path ? { path: st.recovered.path, name: st.recovered.name || 'Untitled' } : null;
-      return { text: st.recovered.text, file: f, dirty: true, message: 'Recovered your unsaved changes' };
-    }
-    if (st.lastFile) return { text: st.lastFile.text, file: st.lastFile, dirty: false, message: '' };
-    return { text: st.additional ? newSongTemplate : examples[0].text, file: null, dirty: false, message: '' };
+    const rec = st.recovered
+      ? { text: st.recovered.text, name: st.recovered.name || titleOf(st.recovered.text), file: st.recovered.path ? { path: st.recovered.path, name: st.recovered.name || 'Untitled' } : null }
+      : null;
+    return { text: newSongTemplate, file: null, dirty: false, message: '', recover: rec };
   }
   try {
     const shared = await readShareHash();
@@ -60,9 +64,19 @@ async function loadInitial(): Promise<Initial> {
   } catch {
     /* corrupt link: fall through */
   }
-  const draft = store.get(KEYS.draft);
-  if (draft && draft.trim()) return { text: draft, file: null, dirty: false, message: 'Restored your last draft' };
-  return { text: examples[0].text, file: null, dirty: false, message: '' };
+  // Every visit starts the same: a new song. Unsaved work from last time is
+  // kept aside and offered in a bar (it is not opened automatically).
+  const draft = store.get(KEYS.draft) || '';
+  let meta: { dirty?: boolean } = {};
+  try {
+    meta = JSON.parse(store.get(KEYS.draftMeta) || '{}');
+  } catch {
+    /* ignore */
+  }
+  if (meta.dirty && draft.trim() && draft !== newSongTemplate) store.set(KEYS.recover, draft);
+  const kept = store.get(KEYS.recover) || '';
+  const recover = kept.trim() && kept !== newSongTemplate ? { text: kept, name: titleOf(kept), file: null } : null;
+  return { text: newSongTemplate, file: null, dirty: false, message: '', recover };
 }
 
 export function App() {
@@ -130,6 +144,7 @@ function Editor({ initial }: { initial: Initial }) {
   const dirty = useRef(initial.dirty);
   const file = useRef(initial.file);
   const textRef = useRef(initial.text);
+  const [recover, setRecover] = useState(initial.recover ?? null);
   // web: the file Save writes to (Chrome/Edge file pickers)
   const webHandle = useRef<FileHandle | null>(null);
 
@@ -490,6 +505,36 @@ function Editor({ initial }: { initial: Initial }) {
         </button>
       </header>
 
+      {recover && (
+        <div className="recover-bar" role="status">
+          <span>
+            You have unsaved work from your last visit: <b>{recover.name}</b>
+          </span>
+          <button
+            type="button"
+            className="primary"
+            onClick={() => {
+              const r = recover;
+              setRecover(null);
+              store.remove(KEYS.recover);
+              setAll(r.text, 'Restored your unsaved work', r.file);
+              dirty.current = true; // still not saved to a file
+              notifyState();
+            }}
+          >
+            Restore
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setRecover(null);
+              store.remove(KEYS.recover);
+            }}
+          >
+            Discard
+          </button>
+        </div>
+      )}
       <main
         className={'workspace layout-' + layout + ' view-' + view}
         ref={appRef}
