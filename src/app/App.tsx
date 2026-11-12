@@ -250,10 +250,11 @@ function Editor({ initial }: { initial: Initial }) {
     const name = (current.title || 'notation').replace(/[\\/:*?"<>|]+/g, '').trim() || 'notation';
     if (canPickFiles()) {
       // Chrome/Edge: Save writes back to the same file; the first Save (or Save As) asks where
+      let savedBytes = 0;
       try {
         const handle = (!saveAs && webHandle.current) || (await pickFileToSave(name + '.txt'));
         if (!handle) return false;
-        await writeFile(handle, textRef.current);
+        savedBytes = await writeFile(handle, textRef.current);
         webHandle.current = handle;
         file.current = { path: '', name: handle.name };
       } catch (e) {
@@ -262,7 +263,7 @@ function Editor({ initial }: { initial: Initial }) {
       }
       dirty.current = false;
       notifyState();
-      say('Saved ' + file.current.name);
+      say('Saved ' + file.current.name + ' (' + (savedBytes < 1024 ? savedBytes + ' bytes' : (savedBytes / 1024).toFixed(1) + ' KB') + ')');
       return true;
     }
     const saved = downloadText(name + '.txt', textRef.current);

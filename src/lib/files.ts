@@ -57,10 +57,23 @@ export async function pickFileToSave(suggestedName: string): Promise<FileHandle 
   }
 }
 
-export async function writeFile(handle: FileHandle, text: string): Promise<void> {
+/**
+ * Write the text, then read the file back to make sure it really is on disk
+ * with the same size. Returns the size in bytes.
+ */
+export async function writeFile(handle: FileHandle, text: string): Promise<number> {
   const w = await handle.createWritable(); // asks for permission the first time if needed
   await w.write(text);
   await w.close();
+  const expected = new Blob([text]).size;
+  let onDisk: File;
+  try {
+    onDisk = await handle.getFile();
+  } catch {
+    throw new Error('the browser said it saved, but the file could not be found afterwards');
+  }
+  if (onDisk.size !== expected) throw new Error('the file on disk has ' + onDisk.size + ' bytes, expected ' + expected);
+  return expected;
 }
 
 /** Browsers without pickers: save by downloading. Returns the file name used. */
