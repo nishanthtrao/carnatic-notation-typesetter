@@ -4,9 +4,9 @@
  */
 export * from './types';
 export { parse, alignmentMap, tokenizeSwaraLine, perAkshara, SWARA_RE } from './parser';
-export { render, swaraGlyph, swaraSample, type RenderHandle } from './render';
+export { render, swaraGlyph, swaraSample, SWARA_TEXT, type RenderHandle } from './render';
 export { parseTala, listTalas, parseGati, isTalaError, JATIS } from './talas';
-export { scanUnits, transliterate, parseLangSpec, normaliseLang, tokenize, LANGS } from './translit';
+export { detectScript, fromScript, scanUnits, scriptOf, transliterate, parseLangSpec, normaliseLang, tokenize, LANGS } from './translit';
 export { parseHeading, formatText, splitAttrs, esc } from './heading';
 export { FONT_STYLES, parseFontStyle, styleFamilies, type FontStyle } from './fonts';
 export { examples, newSongTemplate, type Example } from './examples';

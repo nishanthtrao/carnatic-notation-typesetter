@@ -33,7 +33,7 @@ const SP = {
 };
 
 type IndicSwara = 'devanagari' | 'telugu' | 'kannada' | 'malayalam' | 'tamil';
-const SWARA_TEXT: Record<IndicSwara, Record<string, [string, string]>> = {
+export const SWARA_TEXT: Record<IndicSwara, Record<string, [string, string]>> = {
   devanagari: { s: ['स', 'सा'], r: ['रि', 'री'], g: ['ग', 'गा'], m: ['म', 'मा'], p: ['प', 'पा'], d: ['ध', 'धा'], n: ['नि', 'नी'] },
   telugu: { s: ['స', 'సా'], r: ['రి', 'రీ'], g: ['గ', 'గా'], m: ['మ', 'మా'], p: ['ప', 'పా'], d: ['ద', 'దా'], n: ['ని', 'నీ'] },
   kannada: { s: ['ಸ', 'ಸಾ'], r: ['ರಿ', 'ರೀ'], g: ['ಗ', 'ಗಾ'], m: ['ಮ', 'ಮಾ'], p: ['ಪ', 'ಪಾ'], d: ['ದ', 'ದಾ'], n: ['ನಿ', 'ನೀ'] },

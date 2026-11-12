@@ -205,6 +205,180 @@ const TAMIL_QUAL: Record<string, string> = {
   th: '²', d: '³', dh: '⁴', ph: '²', b: '³', bh: '⁴',
 };
 
+// ---- the other way: Indian scripts -> the typing scheme -------------------------
+
+/** How each consonant key is typed (keys that differ from their typed form). */
+const TYPED: Record<string, string> = { rr: '_r', nn: '_n', sh: 'Sh', n2: 'n' };
+// When several keys share one letter (Tamil க = k, kh, g, gh), the first here wins.
+const CONS_PRIORITY = ['k', 'g', 'c', 'j', 'T', 'D', 't', 'd', 'p', 'b', 'n', 'N', 'm', 'y', 'r', 'l', 'v', 's', 'S', 'sh', 'h', 'L', 'zh', 'rr', 'nn', 'G', 'J', 'kh', 'gh', 'ch', 'jh', 'Th', 'Dh', 'th', 'dh', 'ph', 'bh', 'n2'];
+const VOWEL_PRIORITY = ['a', 'A', 'i', 'I', 'u', 'U', 'R', 'RR', 'e', 'E', 'ai', 'o', 'O', 'au'];
+const SUPERSCRIPT_QUAL = '²³⁴';
+
+interface Reverse {
+  cons: Map<string, string>;
+  vowels: Map<string, string>;
+  signs: Map<string, string>;
+  virama: string;
+  M: string;
+  H: string;
+  qual: Map<string, string>; // Tamil: letter + ² ³ ⁴ -> key
+}
+
+const REVERSE: Record<IndicScript, Reverse> = (() => {
+  const out = {} as Record<IndicScript, Reverse>;
+  for (const name of Object.keys(SCRIPTS) as IndicScript[]) {
+    const sc = SCRIPTS[name];
+    const pick = (table: Record<string, string>, order: string[]) => {
+      const m = new Map<string, string>();
+      for (const k of order) {
+        const g = table[k];
+        if (g && !m.has(g)) m.set(g, k);
+      }
+      return m;
+    };
+    // Sanskrit e and o are long: Devanagari ए ओ read as E O
+    const vOrder = name === 'devanagari' ? VOWEL_PRIORITY.map((k) => (k === 'e' ? 'E' : k === 'o' ? 'O' : k)) : VOWEL_PRIORITY;
+    const vowels = pick(sc.vowels as Record<string, string>, vOrder);
+    const signs = pick(sc.signs as Record<string, string>, vOrder);
+    signs.delete('');
+    if (name === 'tamil') {
+      // Tamil writes ṛ as ரு, which is also r + u: read it as r + u
+      for (const m of [vowels, signs]) for (const [g, k] of m) if (k === 'R' || k === 'RR') m.delete(g);
+    }
+    const qual = new Map<string, string>();
+    if (name === 'tamil') for (const [k, q] of Object.entries(TAMIL_QUAL)) qual.set(sc.cons[k] + q, k);
+    out[name] = { cons: pick(sc.cons, CONS_PRIORITY), vowels, signs, virama: sc.virama, M: sc.M, H: sc.H, qual };
+  }
+  out.malayalam.signs.set('ൗ', 'au'); // the modern way of writing the au sign
+  return out;
+})();
+
+const MALAYALAM_CHILLU: Record<string, string> = { 'ൻ': 'n', 'ൺ': 'N', 'ർ': 'r', 'ൽ': 'l', 'ൾ': 'L', 'ൿ': 'k' };
+
+/** Which Indian script a character belongs to. */
+export function scriptOf(ch: string): IndicScript | null {
+  const c = ch.codePointAt(0) || 0;
+  if (c >= 0x0900 && c <= 0x097f) return 'devanagari';
+  if (c >= 0x0b80 && c <= 0x0bff) return 'tamil';
+  if (c >= 0x0c00 && c <= 0x0c7f) return 'telugu';
+  if (c >= 0x0c80 && c <= 0x0cff) return 'kannada';
+  if (c >= 0x0d00 && c <= 0x0d7f) return 'malayalam';
+  return null;
+}
+
+/** The script most of the Indian-script letters in a text are written in. */
+export function detectScript(text: string): IndicScript | null {
+  const n = new Map<IndicScript, number>();
+  for (const ch of text) {
+    const s = scriptOf(ch);
+    if (s) n.set(s, (n.get(s) || 0) + 1);
+  }
+  let best: IndicScript | null = null;
+  for (const [s, c] of n) if (!best || c > (n.get(best) || 0)) best = s;
+  return best;
+}
+
+/**
+ * Convert text in Devanagari, Telugu, Kannada, Malayalam or Tamil into the
+ * typing scheme (रामा -> rAmA, റ -> _ra). Other characters are kept. Where two
+ * letters would run together (क्ह would read as kh) a "." keeps them apart.
+ * Letters a script does not tell apart (Tamil க for k/kh/g/gh) come out plain
+ * unless marked with ² ³ ⁴.
+ */
+export function fromScript(text: string): string {
+  const units: string[] = [];
+  const src = text.normalize('NFC').replace(/[‌‍]/g, '');
+  let i = 0;
+  // the letter at i in script s: returns [key, length]
+  const letterAt = (s: IndicScript): [string, number] | null => {
+    const R = REVERSE[s];
+    for (const len of [2, 1]) {
+      const g = src.slice(i, i + len);
+      if (len === 2 && R.qual.has(g)) return [R.qual.get(g)!, 2];
+    }
+    const g = src[i];
+    if (R.cons.has(g)) return [R.cons.get(g)!, 1]; // a following nukta (क़) is skipped below
+    return null;
+  };
+  while (i < src.length) {
+    const ch = src[i];
+    const s = scriptOf(ch);
+    if (!s) {
+      units.push(ch);
+      i++;
+      continue;
+    }
+    const R = REVERSE[s];
+    if (s === 'malayalam' && MALAYALAM_CHILLU[ch]) {
+      units.push(MALAYALAM_CHILLU[ch]);
+      i++;
+      continue;
+    }
+    const letter = letterAt(s);
+    if (letter) {
+      let [key, len] = letter;
+      i += len;
+      if (src[i] === '़') i++; // stray nukta
+      let qualKey: string | null = null;
+      // Tamil: vowel sign, then an optional ² ³ ⁴
+      const sign2 = src.slice(i, i + 2);
+      let vowel: string | null = null;
+      if (R.signs.has(sign2)) {
+        vowel = R.signs.get(sign2)!;
+        i += 2;
+      } else if (R.signs.has(src[i])) {
+        vowel = R.signs.get(src[i])!;
+        i += 1;
+      }
+      if (s === 'tamil' && SUPERSCRIPT_QUAL.includes(src[i] || '')) {
+        qualKey = R.qual.get(SCRIPTS.tamil.cons[key] + src[i]) || null;
+        i += 1;
+      }
+      if (qualKey) key = qualKey;
+      const typed = TYPED[key] || key;
+      if (vowel) units.push(typed, vowel);
+      else if (src[i] === R.virama) {
+        units.push(typed);
+        i += 1;
+        if (s === 'tamil' && SUPERSCRIPT_QUAL.includes(src[i] || '')) {
+          const q = R.qual.get(SCRIPTS.tamil.cons[key] + src[i]);
+          if (q) units[units.length - 1] = TYPED[q] || q;
+          i += 1;
+        }
+      } else units.push(typed, 'a');
+      continue;
+    }
+    if (R.vowels.has(src.slice(i, i + 2)) && src.slice(i, i + 2).length === 2) {
+      units.push(R.vowels.get(src.slice(i, i + 2))!);
+      i += 2;
+      continue;
+    }
+    if (R.vowels.has(ch)) units.push(R.vowels.get(ch)!);
+    else if (ch === R.M || ch === 'ँ' || ch === 'ം') units.push('M');
+    else if (ch === R.H) units.push('H');
+    else if (ch === '।' || ch === '॥') units.push(ch === '।' ? '|' : '||');
+    else if (SUPERSCRIPT_QUAL.includes(ch)) {
+      /* a stray qualifier */
+    } else units.push(ch); // digits, avagraha, unknown signs: keep
+    i++;
+  }
+  // join, keeping letters apart where they would merge (k + h != kh)
+  let out = '';
+  let prev = '';
+  for (const u of units) {
+    const letters = /^[A-Za-z_]+$/;
+    if (prev && letters.test(prev) && letters.test(u)) {
+      const a = scanUnits(prev);
+      const b = scanUnits(u);
+      const ab = scanUnits(prev + u);
+      if (ab.length !== a.length + b.length || ab.some((x, j) => x.src !== [...a, ...b][j].src)) out += '.';
+    }
+    out += u;
+    prev = u;
+  }
+  return out;
+}
+
 function toScript(tokens: Token[], scriptName: IndicScript, opts: LangOpts): string {
   const sc = SCRIPTS[scriptName];
   const tamil = scriptName === 'tamil';

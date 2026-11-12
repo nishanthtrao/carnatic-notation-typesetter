@@ -633,7 +633,25 @@ function Editor({ initial }: { initial: Initial }) {
         />
 
         <section className="editor-pane" aria-label="Notation input">
-          <NotationEditor ref={editor} initialValue={initial.text} onInput={onInput} onShortcut={(cmd) => commands[cmd]()} />
+          <NotationEditor
+            ref={editor}
+            initialValue={initial.text}
+            onInput={onInput}
+            onShortcut={(cmd) => commands[cmd]()}
+            onPasteConverted={({ start, original, converted, scriptName, languageWord }) => {
+              const ed = editor.current!;
+              const lang = lettersContext(ed.getValue(), ed.lineInfo()).lang;
+              const wanted = languageWord.toLowerCase() === 'sanskrit' ? 'devanagari' : languageWord.toLowerCase();
+              const tip = languageWord && lang !== wanted ? ' Add “Language: ' + languageWord + '” above it to print it in ' + scriptName + '.' : '';
+              toast('Converted the pasted ' + (scriptName || 'text') + ' into the typing scheme.' + tip, {
+                label: 'Keep original',
+                run: () => {
+                  const now = ed.getValue();
+                  if (now.slice(start, start + converted.length) === converted) ed.replaceRange(start, start + converted.length, original);
+                },
+              });
+            }}
+          />
           <IssuesList list={doc.warnings} open={issuesOpen} onJump={(n) => editor.current?.goToLine(n)} />
           <footer className="pane-foot">
             <IssuesBadge list={doc.warnings} open={issuesOpen} onToggle={() => setIssuesOpen(!issuesOpen)} />

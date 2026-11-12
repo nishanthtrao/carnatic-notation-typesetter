@@ -1,3 +1,4 @@
+import { convertPasted, hasIndic } from '../lib/paste-convert';
 import { toggleLineComments } from '../lib/comments';
 import { forwardRef, useImperativeHandle, useRef } from 'react';
 import { complete } from '../lib/directives';
@@ -27,6 +28,8 @@ interface Props {
   initialValue: string;
   onInput: (text: string) => void;
   onShortcut: (cmd: 'update' | 'save' | 'letters') => void;
+  /** pasted Indian-script text was converted; original kept for "Keep original" */
+  onPasteConverted?: (info: { start: number; original: string; converted: string; scriptName: string; languageWord: string }) => void;
 }
 
 const KEYS: [string, string, string?][] = [
@@ -36,7 +39,7 @@ const KEYS: [string, string, string?][] = [
   ['S:', '\nS: '], ['L:', '\nL: '],
 ];
 
-export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationEditor({ initialValue, onInput, onShortcut }, ref) {
+export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationEditor({ initialValue, onInput, onShortcut, onPasteConverted }, ref) {
   const ta = useRef<HTMLTextAreaElement>(null);
 
   const lineInfo = (): LineInfo => {
@@ -142,6 +145,19 @@ export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationE
         wrap="off"
         aria-label="Notation input"
         onInput={(e) => onInput(e.currentTarget.value)}
+        onPaste={(e) => {
+          const original = e.clipboardData.getData('text/plain');
+          if (!original || !hasIndic(original)) return; // ordinary paste
+          e.preventDefault();
+          const el = e.currentTarget;
+          const start = el.selectionStart;
+          const lineStart = el.value.lastIndexOf('\n', start - 1) + 1;
+          const before = el.value.slice(lineStart, start);
+          const intoSwaras = /^\s*S\s*:/i.test(before);
+          const c = convertPasted(original, intoSwaras);
+          replaceRange(start, el.selectionEnd, c.text);
+          onPasteConverted?.({ start, original, converted: c.text, scriptName: c.scriptName, languageWord: c.languageWord });
+        }}
         onKeyDown={(e) => {
           if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
             e.preventDefault();
