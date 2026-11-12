@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Modal } from '../components/Modal';
-import { FONT_STYLES, normaliseLang, parseFontStyle, parseGati, parseHeading, styleFamilies, swaraSample, transliterate, type FontStyle, type Lang } from '../engine';
+import { FONT_STYLES, normaliseLang, parse, parseFontStyle, parseGati, parseHeading, render, styleFamilies, swaraSample, SWARA_RE, transliterate, type FontStyle, type Lang } from '../engine';
 import { Icon } from '../components/Icons';
 import { DIRECTIVES, LANG_OPTIONS, LAYOUT_OPTIONS, talaOptions } from '../lib/directives';
 import { Check, Field, Select } from './common';
@@ -8,20 +8,30 @@ import { Check, Field, Select } from './common';
 export type AssistMode =
   | { kind: 'pick' }
   | { kind: 'help'; which: 'S' | 'L' }
-  | { kind: 'form'; name: FormName; value: string };
+  | { kind: 'form'; name: FormName; value: string; range?: [number, number]; context?: string; line?: string };
 
 const PREFS = ['SwaraPrefs', 'LyricPrefs', 'HeadingPrefs', 'GamakaPrefs'] as const;
 type PrefsName = (typeof PREFS)[number];
 export type FormName =
   | 'Tala' | 'Gati' | 'Layout' | 'DefaultSpeed' | 'Language' | 'LanguageFont' | 'Heading'
-  | 'SpeedMarks' | 'PhraseEnds' | 'Title' | 'Orientation' | PrefsName;
+  | 'SpeedMarks' | 'PhraseEnds' | 'Title' | 'Orientation' | 'Scale' | PrefsName;
 export const FORM_NAMES: FormName[] = [
   'Tala', 'Gati', 'Layout', 'DefaultSpeed', 'Language', 'LanguageFont', 'Heading',
-  'SpeedMarks', 'PhraseEnds', 'Title', 'Orientation', ...PREFS,
+  'SpeedMarks', 'PhraseEnds', 'Title', 'Orientation', 'Scale', ...PREFS,
 ];
+
+/** Raga, Arohana and Avarohana lines are edited together in the Scale form. */
+export const SCALE_LINE = /^\s*(raga|ragam|arohana|arohanam|avarohana|avarohanam)\s*:/i;
+
+/** The form a directive opens, if any. */
+export function formFor(name: string): FormName | null {
+  if (SCALE_LINE.test(name + ':')) return 'Scale';
+  return (FORM_NAMES as string[]).includes(name) ? (name as FormName) : null;
+}
 
 /** Work out what Assist should show for the current line. */
 export function assistModeFor(line: string): AssistMode {
+  if (SCALE_LINE.test(line)) return { kind: 'form', name: 'Scale', value: line };
   const m = line.match(/^\s*([A-Za-z]+)\s*(?::\s*(.*))?$/);
   const name = m ? DIRECTIVES.find((d) => d.name.toLowerCase() === m[1].toLowerCase())?.name : undefined;
   if (name && (FORM_NAMES as string[]).includes(name)) return { kind: 'form', name: name as FormName, value: m![2] ?? '' };
@@ -74,7 +84,8 @@ export function AssistDialog({ mode, onClose, onApply, onChooseForm, currentLine
               key={d.name}
               type="button"
               onClick={() => {
-                if ((FORM_NAMES as string[]).includes(d.name)) onChooseForm(d.name as FormName);
+                const form = formFor(d.name);
+                if (form) onChooseForm(form);
                 else onApply(d.template, !currentLineBlank);
               }}
             >
@@ -87,6 +98,8 @@ export function AssistDialog({ mode, onClose, onApply, onChooseForm, currentLine
       </Modal>
     );
   }
+  if (mode.name === 'Scale')
+    return <ScaleForm key={mode.value} value={mode.value} line={mode.line ?? mode.value} context={mode.context || ''} onClose={onClose} onApply={(t) => onApply(t, false)} />;
   return <DirectiveForm key={mode.name + mode.value} name={mode.name} value={mode.value} onClose={onClose} onApply={(t) => onApply(t, false)} />;
 }
 
@@ -483,6 +496,177 @@ function HeadingForm({ value, onClose, onApply, footer }: FormProps) {
         </div>
       </div>
       <p className="hint">Inside the text: <code>*bold*</code>, <code>_italic_</code>, <code>[br]</code> for a new line, <code>---</code> for a rule.</p>
+    </Modal>
+  );
+}
+
+// ---- Scale: raga name, ārōhaṇam and avarōhaṇam --------------------------------------
+
+/** Well-known ragas to start from: [label, name as typed, ārōhaṇam, avarōhaṇam]. */
+const RAGAS: [string, string, string, string][] = [
+  ['Ābhōgi', 'AbhOgi', "s r2 g2 m1 d2 s'", "s' d2 m1 g2 r2 s"],
+  ['Bilahari', 'bilahari', "s r2 g3 p d2 s'", "s' n3 d2 p m1 g3 r2 s"],
+  ['Haṃsadhvani', 'haMsadhvani', "s r2 g3 p n3 s'", "s' n3 p g3 r2 s"],
+  ['Harikāmbhōji', 'harikAmbhOji', "s r2 g3 m1 p d2 n2 s'", "s' n2 d2 p m1 g3 r2 s"],
+  ['Hindōḷam', 'hindOLam', "s g2 m1 d1 n2 s'", "s' n2 d1 m1 g2 s"],
+  ['Kalyāṇi', 'kalyANi', "s r2 g3 m2 p d2 n3 s'", "s' n3 d2 p m2 g3 r2 s"],
+  ['Kānaḍa', 'kAnaDa', "s r2 g2 m1 d2 n2 s'", "s' n2 p m1 g2 m1 r2 s"],
+  ['Kharaharapriya', 'kharaharapriya', "s r2 g2 m1 p d2 n2 s'", "s' n2 d2 p m1 g2 r2 s"],
+  ['Madhyamāvati', 'madhyamAvati', "s r2 m1 p n2 s'", "s' n2 p m1 r2 s"],
+  ['Māyāmāḷavagauḷa', 'mAyAmALavagauLa', "s r1 g3 m1 p d1 n3 s'", "s' n3 d1 p m1 g3 r1 s"],
+  ['Mōhanam', 'mOhanam', "s r2 g3 p d2 s'", "s' d2 p g3 r2 s"],
+  ['Śaṅkarābharaṇam', 'SaMkarAbharaNam', "s r2 g3 m1 p d2 n3 s'", "s' n3 d2 p m1 g3 r2 s"],
+  ['Tōḍi', 'tODi', "s r1 g2 m1 p d1 n2 s'", "s' n2 d1 p m1 g2 r1 s"],
+];
+
+/** Keypad: each group is one swara and its variants. */
+const KEYPAD: string[][] = [['s'], ['r1', 'r2', 'r3'], ['g1', 'g2', 'g3'], ['m1', 'm2'], ['p'], ['d1', 'd2', 'd3'], ['n1', 'n2', 'n3']];
+type Octave = 'lower' | 'middle' | 'upper';
+const OCTAVE_MARK: Record<Octave, string> = { lower: '`', middle: '', upper: "'" };
+
+/** Tokens that are not swaras (so the field can be marked). */
+function badSwaras(line: string): string[] {
+  return line.split(/\s+/).filter((t) => t && !SWARA_RE.test(t));
+}
+
+function ScalePreview({ text }: { text: string }) {
+  const el = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (el.current) render(parse(text), el.current, { emptyText: 'The scale will show here.' });
+  }, [text]);
+  return <div ref={el} className="scale-preview" aria-label="Preview" />;
+}
+
+function ScaleForm({ value, line, context, onClose, onApply }: { value: string; line: string; context: string; onClose: () => void; onApply: (t: string) => void }) {
+  const lines = value.split('\n');
+  const find = (re: RegExp) => (lines.find((l) => re.test(l)) || '').replace(/^[^:]*:\s*/, '').trim();
+  const [raga, setRaga] = useState(find(/^\s*raga(m)?\s*:/i));
+  const [aro, setAro] = useState(find(/^\s*arohana(m)?\s*:/i));
+  const [ava, setAva] = useState(find(/^\s*avarohana(m)?\s*:/i));
+  const [target, setTarget] = useState<'aro' | 'ava'>(/^\s*avarohana/i.test(line) ? 'ava' : 'aro');
+  const [octave, setOctave] = useState<Octave>('middle');
+  const [preset, setPreset] = useState('');
+  const aroRef = useRef<HTMLInputElement>(null);
+  const avaRef = useRef<HTMLInputElement>(null);
+  // start in the line the cursor was on (after the dialog has placed its own focus)
+  useEffect(() => {
+    const t = setTimeout(() => (target === 'aro' ? aroRef : avaRef).current?.focus(), 0);
+    return () => clearTimeout(t);
+  }, []);
+
+  const output = [raga.trim() && 'Raga: ' + raga.trim(), aro.trim() && 'Arohana: ' + aro.trim(), ava.trim() && 'Avarohana: ' + ava.trim()].filter(Boolean).join('\n');
+  const aroBad = badSwaras(aro);
+  const avaBad = badSwaras(ava);
+  const ok = !aroBad.length && !avaBad.length;
+
+  const set = target === 'aro' ? setAro : setAva;
+  const press = (key: string) => {
+    set((v) => (v.trim() ? v.trimEnd() + ' ' : '') + key + OCTAVE_MARK[octave]);
+    setOctave('middle');
+    (target === 'aro' ? aroRef : avaRef).current?.focus();
+  };
+  const backspace = () => set((v) => v.trim().split(/\s+/).slice(0, -1).join(' '));
+  const reverse = () => {
+    setAva(aro.trim().split(/\s+/).filter(Boolean).reverse().join(' '));
+    setTarget('ava');
+  };
+  const choosePreset = (label: string) => {
+    setPreset(label);
+    const r = RAGAS.find(([l]) => l === label);
+    if (!r) return;
+    setRaga(r[1]);
+    setAro(r[2]);
+    setAva(r[3]);
+  };
+
+  return (
+    <Modal
+      title="Scale"
+      open
+      onClose={onClose}
+      wide
+      footer={
+        <>
+          <button type="button" onClick={onClose}>Cancel</button>
+          <button type="button" className="primary" disabled={!ok} onClick={() => ok && onApply(output)}>OK</button>
+        </>
+      }
+    >
+      <div className="form-grid">
+        <Field id="a-sc-preset" label="Start from">
+          <Select id="a-sc-preset" value={preset} onChange={choosePreset} options={[['', 'a raga…'] as [string, string]].concat(RAGAS.map(([l]): [string, string] => [l, l]))} />
+        </Field>
+        <Field id="a-sc-raga" label="Raga name">
+          <input id="a-sc-raga" type="text" value={raga} placeholder="optional, e.g. kAnaDa" onChange={(e) => setRaga(e.target.value)} />
+        </Field>
+        <Field id="a-sc-aro" label="Ārōhaṇam">
+          <input
+            id="a-sc-aro"
+            ref={aroRef}
+            type="text"
+            className={'scale-field' + (target === 'aro' ? ' active' : '')}
+            value={aro}
+            placeholder="s r2 g3 p d2 s'"
+            spellCheck={false}
+            autoCapitalize="off"
+            onFocus={() => setTarget('aro')}
+            onChange={(e) => setAro(e.target.value)}
+            aria-invalid={aroBad.length > 0}
+          />
+        </Field>
+        <Field id="a-sc-ava" label="Avarōhaṇam">
+          <div className="inline-fields">
+            <input
+              id="a-sc-ava"
+              ref={avaRef}
+              type="text"
+              className={'scale-field' + (target === 'ava' ? ' active' : '')}
+              value={ava}
+              placeholder="s' d2 p g3 r2 s"
+              spellCheck={false}
+              autoCapitalize="off"
+              onFocus={() => setTarget('ava')}
+              onChange={(e) => setAva(e.target.value)}
+              aria-invalid={avaBad.length > 0}
+            />
+            <button type="button" onClick={reverse} disabled={!aro.trim()} title="Fill the avarōhaṇam with the ārōhaṇam reversed">
+              Reverse ārōhaṇam
+            </button>
+          </div>
+        </Field>
+      </div>
+
+      <div className="scale-pad" aria-label={'Add a swara to the ' + (target === 'aro' ? 'ārōhaṇam' : 'avarōhaṇam')}>
+        <div className="seg" role="radiogroup" aria-label="Octave of the next swara">
+          {(['lower', 'middle', 'upper'] as Octave[]).map((o) => (
+            <button key={o} type="button" role="radio" aria-checked={octave === o} className={octave === o ? 'on' : ''} onMouseDown={(e) => e.preventDefault()} onClick={() => setOctave(o)}>
+              {o === 'lower' ? 'Lower (dot below)' : o === 'upper' ? 'Upper (dot above)' : 'Middle'}
+            </button>
+          ))}
+        </div>
+        <div className="scale-keys">
+          {KEYPAD.map((group) => (
+            <span key={group[0]} className="scale-group">
+              {group.map((k) => (
+                <button key={k} type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => press(k)} aria-label={k + (octave === 'middle' ? '' : ', ' + octave + ' octave')}>
+                  {k[0]}
+                  {k[1] && <sub>{k[1]}</sub>}
+                </button>
+              ))}
+            </span>
+          ))}
+          <button type="button" className="scale-back" onMouseDown={(e) => e.preventDefault()} onClick={backspace} aria-label="Remove the last swara" title="Remove the last swara">
+            ⌫
+          </button>
+        </div>
+      </div>
+
+      <ScalePreview text={context + '\n' + output} />
+      {!ok && <p className="hint error">Not a swara: {[...aroBad, ...avaBad].map((t) => '“' + t + '”').join(', ')}</p>}
+      <p className="hint">
+        Tap a swara to add it to the highlighted line. Choose <i>Upper</i> or <i>Lower</i> first for a dot above or below; you can also type <code>s'</code> or <code>n2`</code>. The labels and the raga name follow the
+        document's Language.
+      </p>
     </Modal>
   );
 }
