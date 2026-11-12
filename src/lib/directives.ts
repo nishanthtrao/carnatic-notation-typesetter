@@ -62,6 +62,7 @@ const VALUE_COMPLETIONS: Record<string, () => string[]> = {
   phraseends: () => ['Hide', 'Show', 'Handle', 'HandleThick'],
   orientation: () => ['Portrait', 'Landscape'],
   defaultspeed: () => ['0', '1', '2'],
+  languagefont: () => ['All', ...LANG_OPTIONS.map(([v]) => v)],
 };
 
 /**

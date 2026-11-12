@@ -683,3 +683,18 @@ select optgroup {
 .about li { margin: 2px 0; }
 .about a { color: var(--accent); }
 .about-small { margin: 10px 0 0; font-size: 12px; color: var(--label-2); }
+
+/* Assist: a field followed by a unit or a value readout */
+.inline-fields { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.inline-fields > input[type='number'] { width: 9em; flex: none; }
+.inline-fields > select { flex: 1; min-width: 0; }
+.form-grid input[type='color'] {
+  width: 44px;
+  height: 30px;
+  padding: 2px;
+  border: 1px solid var(--separator);
+  border-radius: 8px;
+  background: var(--surface);
+  cursor: pointer;
+}
+.form-grid input[aria-invalid='true'] { border-color: #d70015; box-shadow: 0 0 0 1px #d70015; }
