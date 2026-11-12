@@ -20,14 +20,20 @@ const NEW_SONG = `# A new song. Replace the sample lines below with your own.
 # and lyrics on L: lines. Assist helps with the line you are on; Examples
 # and Help (the manual) are in the toolbar. Lines starting with # are notes
 # to yourself and are not printed. Save keeps the song as a file.
+# The sample shows short swaras (s r g), long swaras (sa ri ga), the upper
+# octave (s'), and holding a note with , (one beat-part) and ; (two).
 Title: "Song name"
 Tala: Adi
 SmartLyricMode
 Heading: "Song name - Raga - Tala - Composer",bold,center,14
 Heading: ""
 Heading: "pallavi:",bold,left,12
-S: s , r , g , p , | d , s' , | d p g r ||
-L: sa ri ga pa da sa da pa ga ri
+S: s  r  g  m  p  d  n  s' | s' n  d  p  | m  g  r  s  ||
+L: sa ri ga ma pa da ni sa   sa ni da pa   ma ga ri sa
+S: sa ri ga ma | pa da | ni sa' ||
+L: sa ri ga ma   pa da   ni sa
+S: sa , ri , ga | ma ; | pa ; ||
+L: sa   ri   ga   ma     pa
 `;
 
 const QUICKSTART = `# The "Quick Start" example from the v1.5 manual
