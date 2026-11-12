@@ -393,7 +393,18 @@ textarea#input::selection { background: var(--accent-soft); }
   .tb-sub { display: none; }
   .tb-title { max-width: 52vw; }
   .view-switch { display: inline-flex; }
-  .toolbar { order: 3; flex: 1 0 100%; margin-left: 0; gap: 6px; }
+  .toolbar {
+    order: 3;
+    flex: 1 0 100%;
+    margin-left: 0;
+    gap: 6px;
+    /* the row scrolls sideways: fade the right edge so that is visible */
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+    padding-right: 24px;
+  }
+  .tb-btn.prominent .tb-label { display: none; }
+  .tb-btn.prominent { padding: 0 12px; }
   .tb-group + .tb-group { padding-left: 6px; }
   .layout-toggle { display: none; }
   .workspace.layout-side, .workspace.layout-stack {
@@ -576,6 +587,18 @@ select optgroup {
   pointer-events: none;
 }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
+.toast { display: flex; align-items: center; gap: 12px; max-width: min(92vw, 560px); }
+.toast.has-action.show { pointer-events: auto; }
+.toast-action {
+  flex: none;
+  padding: 3px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font: 600 12px var(--font);
+  cursor: pointer;
+}
 
 /* ---- Desktop app: macOS title bar with traffic lights ------------------------ */
 .is-desktop.platform-darwin .titlebar { padding-left: 84px; -webkit-app-region: drag; }
@@ -791,4 +814,93 @@ select optgroup {
   .letters-top { grid-template-columns: max-content 1fr; }
   .letters-top input { grid-column: 1 / -1; }
   .letter-groups { max-height: none; }
+}
+
+/* ---- Library ---- */
+.lib-top { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
+.lib-top input {
+  flex: 1;
+  min-width: 0;
+  padding: 7px 10px;
+  border: 1px solid var(--separator);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--label);
+  font: inherit;
+}
+.lib-list {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  max-height: min(56vh, 560px);
+  overflow: auto;
+  border-radius: var(--radius);
+  background: var(--fill, rgba(120, 120, 128, 0.12));
+}
+.lib-list li { display: flex; align-items: center; gap: 2px; padding-right: 6px; }
+.lib-list li + li { border-top: 0.5px solid var(--separator); }
+.lib-list li.current { background: var(--accent-soft, rgba(155, 35, 53, 0.1)); }
+.lib-open {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 12px;
+  padding: 10px 12px;
+  border: 0;
+  background: none;
+  color: var(--label);
+  text-align: left;
+  cursor: pointer;
+}
+.lib-title { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lib-sub { grid-column: 1; color: var(--label-2); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lib-when { grid-column: 2; grid-row: 1 / span 2; align-self: center; color: var(--label-2); font-size: 12px; white-space: nowrap; }
+.lib-badge {
+  margin-left: 8px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  vertical-align: 1px;
+}
+.lib-icon {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--label-2);
+  cursor: pointer;
+}
+.lib-icon:hover { background: var(--fill-2, rgba(120, 120, 128, 0.2)); color: var(--label); }
+.lib-icon.danger:hover { color: #d70015; }
+.lib-icon .ico { width: 18px; height: 18px; }
+.lib-empty { padding: 18px; text-align: center; color: var(--label-2); border-radius: var(--radius); background: var(--fill, rgba(120, 120, 128, 0.12)); margin-bottom: 8px; }
+.lib-empty p { margin: 4px 0; }
+.lib-undo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 8px 8px 14px;
+  margin-bottom: 10px;
+  border-radius: var(--radius);
+  background: var(--label);
+  color: var(--surface);
+  font-size: 13px;
+}
+.lib-undo button {
+  padding: 4px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font: 600 12px var(--font);
+  cursor: pointer;
 }

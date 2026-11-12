@@ -460,6 +460,7 @@ function buildMenu() {
         { label: 'New Window', accelerator: 'CmdOrCtrl+Shift+N', click: () => createWindow({ additional: true }) },
         { type: 'separator' },
         { label: 'Open…', accelerator: 'CmdOrCtrl+O', click: () => send('open') },
+        { label: 'Library…', accelerator: 'CmdOrCtrl+Shift+O', click: () => send('library') },
         {
           label: 'Open Recent',
           submenu: recent.length

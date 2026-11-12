@@ -27,15 +27,19 @@ import { alignText } from '../lib/align';
 import { desk, inFrame, type DesktopFile } from '../lib/desktop';
 import { readShareHash } from '../lib/share';
 import { KEYS, store } from '../lib/storage';
+import { backupJson, createSong, currentSongId, deleteSong, getSong, putSong, restoreBackup, setCurrentSongId, songMeta, type Song } from '../lib/library';
+import { LibraryDialog } from '../dialogs/LibraryDialog';
 import APP_ICON from '../assets/app-icon.png';
 
-type DialogName = 'new' | 'examples' | 'share' | 'photo' | 'settings' | 'copy' | 'about' | 'letters' | null;
+type DialogName = 'new' | 'examples' | 'share' | 'photo' | 'settings' | 'copy' | 'about' | 'letters' | 'library' | null;
 
 interface Initial {
   text: string;
   file: { path: string; name: string } | null;
   dirty: boolean;
   message: string;
+  /** library song the editor is bound to (null: not in the library until edited) */
+  songId?: string | null;
 }
 
 /** Decide what the editor starts with (shared link, file, recovered work, draft, example). */
@@ -59,8 +63,16 @@ async function loadInitial(): Promise<Initial> {
   } catch {
     /* corrupt link: fall through */
   }
+  const current = getSong(currentSongId());
+  if (current) return { text: current.text, file: null, dirty: false, message: '', songId: current.id };
   const draft = store.get(KEYS.draft);
-  if (draft && draft.trim()) return { text: draft, file: null, dirty: false, message: 'Restored your last draft' };
+  if (draft && draft.trim()) {
+    if (examples.some((e) => e.text === draft)) return { text: draft, file: null, dirty: false, message: '' };
+    // earlier versions kept one draft: move it into the library
+    const song = createSong(draft);
+    setCurrentSongId(song.id);
+    return { text: draft, file: null, dirty: false, message: 'Your draft is now in the Library', songId: song.id };
+  }
   return { text: examples[0].text, file: null, dirty: false, message: '' };
 }
 
@@ -129,6 +141,33 @@ function Editor({ initial }: { initial: Initial }) {
   const dirty = useRef(initial.dirty);
   const file = useRef(initial.file);
   const textRef = useRef(initial.text);
+  // library: the song being edited, and whether it has unsaved typing
+  const songId = useRef<string | null>(initial.songId ?? null);
+  const libPending = useRef(false);
+  const [libVersion, setLibVersion] = useState(0);
+  const [libUndo, setLibUndo] = useState<{ message: string; run: () => void } | null>(null);
+  const [currentSong, setCurrentSong] = useState<string | null>(initial.songId ?? null);
+  /** Save typing into the library now (creates the song on its first edit). */
+  const flushLibrary = useCallback(() => {
+    if (!libPending.current) return;
+    libPending.current = false;
+    const t = textRef.current;
+    const existing = getSong(songId.current);
+    if (existing) {
+      if (existing.text !== t) putSong({ ...existing, text: t, updated: Date.now() });
+    } else if (t.trim()) {
+      const song = createSong(t);
+      songId.current = song.id;
+      setCurrentSong(song.id);
+      setCurrentSongId(song.id);
+    }
+  }, []);
+  const bindSong = useCallback((id: string | null) => {
+    songId.current = id;
+    libPending.current = false;
+    setCurrentSong(id);
+    setCurrentSongId(id);
+  }, []);
 
   const say = useCallback((m: string) => {
     setStatus(m);
@@ -160,12 +199,13 @@ function Editor({ initial }: { initial: Initial }) {
   useEffect(() => {
     const t = setTimeout(() => {
       if (autoUpdate) update();
+      flushLibrary();
       store.set(KEYS.draft, text);
       store.set(KEYS.draftMeta, JSON.stringify({ path: file.current?.path ?? null, dirty: dirty.current }));
       if (desk && dirty.current) desk.saveDraft(text);
     }, 300);
     return () => clearTimeout(t);
-  }, [text, autoUpdate, update]);
+  }, [text, autoUpdate, update, flushLibrary]);
 
   useEffect(() => {
     document.title = doc.title ? doc.title + ' · Carnatic Notation' : 'Carnatic Music Notation Typesetter';
@@ -185,8 +225,19 @@ function Editor({ initial }: { initial: Initial }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    const onHide = () => flushLibrary();
+    window.addEventListener('pagehide', onHide);
+    document.addEventListener('visibilitychange', onHide);
+    return () => {
+      window.removeEventListener('pagehide', onHide);
+      document.removeEventListener('visibilitychange', onHide);
+    };
+  }, [flushLibrary]);
+
   const onInput = (t: string) => {
     textRef.current = t;
+    libPending.current = true;
     setText(t);
     if (!dirty.current) {
       dirty.current = true;
@@ -195,7 +246,9 @@ function Editor({ initial }: { initial: Initial }) {
   };
 
   /** Replace the whole notation (open, example, new song). */
-  const setAll = useCallback((t: string, msg: string, f: { path: string; name: string } | null = null) => {
+  const setAll = useCallback((t: string, msg: string, f: { path: string; name: string } | null = null, song: string | null = null) => {
+    flushLibrary(); // keep what was typed in the song being left
+    bindSong(song);
     editor.current?.setValue(t);
     textRef.current = t;
     setText(t);
@@ -206,9 +259,10 @@ function Editor({ initial }: { initial: Initial }) {
     setDoc(parse(t));
     setDrawnText(t);
     if (msg) say(msg);
-  }, [notifyState, say]);
+  }, [notifyState, say, flushLibrary, bindSong]);
 
   const confirmReplace = useCallback(async () => {
+    if (!desk) return true; // web: typing is saved in the Library as you go
     if (!dirty.current || !textRef.current.trim()) return true;
     return confirm({ title: 'Replace the current notation?', message: 'Your changes since you last saved will be replaced. Save first if you want to keep them.', ok: 'Replace' });
   }, [confirm]);
@@ -244,6 +298,85 @@ function Editor({ initial }: { initial: Initial }) {
 
   const openFileInput = useRef<HTMLInputElement>(null);
 
+  // ---- library ---------------------------------------------------------------------
+  /** Open notation from a file as a new song in the library (web). */
+  const openAsSong = useCallback((t: string, name: string) => {
+    setAll(t, 'Opened ' + name + ' (added to the Library)', null, createSong(t).id);
+  }, [setAll]);
+
+  const download = (name: string, data: string, type: string) => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([data], { type }));
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      URL.revokeObjectURL(a.href);
+      a.remove();
+    }, 1000);
+  };
+
+  const library = {
+    open: (s: Song) => {
+      setDialog(null);
+      if (s.id === songId.current) return;
+      setAll(s.text, 'Opened “' + songMeta(s.text).title + '”', null, s.id);
+    },
+    duplicate: (s: Song) => {
+      const copyText = /^\s*Title\s*:/im.test(s.text)
+        ? s.text.replace(/^(\s*Title\s*:\s*"?)([^"\n]*)/im, (_m, a: string, b: string) => a + b.trim() + ' (copy)')
+        : 'Title: "' + songMeta(s.text).title + ' (copy)"\n' + s.text;
+      createSong(copyText);
+      setLibVersion((v) => v + 1);
+      toast('Duplicated “' + songMeta(s.text).title + '”');
+    },
+    remove: (s: Song) => {
+      flushLibrary();
+      const wasCurrent = s.id === songId.current;
+      const gone = deleteSong(s.id);
+      if (wasCurrent) bindSong(null);
+      setLibVersion((v) => v + 1);
+      if (gone)
+        setLibUndo({
+          message: 'Deleted “' + songMeta(gone.text).title + '”',
+          run: () => {
+            putSong(gone);
+            if (wasCurrent && songId.current === null) bindSong(gone.id);
+            setLibVersion((v) => v + 1);
+            setLibUndo(null);
+          },
+        });
+    },
+    importFiles: async (files: File[]) => {
+      let n = 0;
+      for (const f of files) {
+        if (f.size > 5 * 1024 * 1024) continue;
+        const t = await f.text();
+        if (t.trim()) {
+          createSong(t);
+          n++;
+        }
+      }
+      setLibVersion((v) => v + 1);
+      toast(n ? 'Imported ' + n + (n === 1 ? ' song' : ' songs') : 'No notation found in those files');
+    },
+    backup: () => {
+      flushLibrary();
+      download('carnatic-notation-library-' + new Date().toISOString().slice(0, 10) + '.json', backupJson(), 'application/json');
+      toast('Backup downloaded');
+      if (inFrame) toast('Downloads are blocked in this preview; use the hosted site to back up');
+    },
+    restore: async (f: File) => {
+      try {
+        const n = restoreBackup(await f.text());
+        setLibVersion((v) => v + 1);
+        toast(n ? 'Restored ' + n + (n === 1 ? ' song' : ' songs') : 'Everything in that backup is already here');
+      } catch (e) {
+        toast('Could not restore: ' + (e instanceof Error ? e.message : 'not a library backup'));
+      }
+    },
+  };
+
   const commands = useMemo(() => {
     const c: Record<string, () => unknown> = {
       new: () => setDialog('new'),
@@ -276,6 +409,11 @@ function Editor({ initial }: { initial: Initial }) {
         setDialog('photo');
       },
       examples: () => setDialog('examples'),
+      library: () => {
+        flushLibrary();
+        setLibVersion((v) => v + 1);
+        setDialog('library');
+      },
       about: () => setDialog('about'),
       letters: () => {
         const ed = editor.current;
@@ -313,7 +451,7 @@ function Editor({ initial }: { initial: Initial }) {
       },
     };
     return c;
-  }, [confirmReplace, notifyState, save, say, setAll, update]);
+  }, [confirmReplace, notifyState, save, say, setAll, update, flushLibrary]);
 
   const commandsRef = useRef(commands);
   commandsRef.current = commands;
@@ -383,7 +521,7 @@ function Editor({ initial }: { initial: Initial }) {
         return;
       }
       if (f.size > 5 * 1024 * 1024) return say('That file is too large to be notation');
-      setAll(await f.text(), 'Opened ' + f.name);
+      openAsSong(await f.text(), f.name);
     };
     window.addEventListener('dragover', over);
     window.addEventListener('drop', drop);
@@ -435,7 +573,7 @@ function Editor({ initial }: { initial: Initial }) {
           <div className="tb-names">
             <div className="tb-title">
               {docState.name || 'Untitled'}
-              {docState.dirty && <span className="tb-edited"> — Edited</span>}
+              {docState.dirty && desk && <span className="tb-edited"> — Edited</span>}
             </div>
             <div className="tb-sub">Carnatic Notation Typesetter</div>
           </div>
@@ -539,7 +677,7 @@ function Editor({ initial }: { initial: Initial }) {
         onChange={async (e) => {
           const f = e.target.files?.[0];
           e.target.value = '';
-          if (f) setAll(await f.text(), 'Opened ' + f.name);
+          if (f) openAsSong(await f.text(), f.name);
         }}
       />
 
@@ -549,11 +687,31 @@ function Editor({ initial }: { initial: Initial }) {
         onCreate={async (t, line) => {
           setDialog(null);
           if (!(await confirmReplace())) return;
-          setAll(t, 'New song started');
+          setAll(t, 'New song started', null, createSong(t).id);
           setTimeout(() => editor.current?.goToLine(line), 0);
         }}
       />
       <AboutDialog open={dialog === 'about'} onClose={() => setDialog(null)} />
+      <LibraryDialog
+        open={dialog === 'library'}
+        currentId={currentSong}
+        version={libVersion}
+        onClose={() => {
+          setDialog(null);
+          setLibUndo(null);
+        }}
+        undo={libUndo}
+        onOpen={(s) => {
+          setLibUndo(null);
+          library.open(s);
+        }}
+        onNew={() => setDialog('new')}
+        onDuplicate={library.duplicate}
+        onDelete={library.remove}
+        onImportFiles={library.importFiles}
+        onBackup={library.backup}
+        onRestore={library.restore}
+      />
       {dialog === 'letters' && (
         <LettersDialog
           ctx={lettersCtx}
