@@ -282,7 +282,11 @@ function renderStaff(st: StaffBlock, geo: Geometry, stretch: number): string {
     const g = geo.rows.get(row)!;
     const E = (ev: NoteEvent) => geo.evs.get(ev)!;
     const hasGamaka = row.events.some((ev) => ev.gamaka);
-    html += '<div class="cm-row' + (hasGamaka ? ' has-gamaka' : '') + '" style="width:' + sx(g.total) + '">';
+    // Inline tala markers sit just above the swaras when nothing else needs that space
+    // (speed lines above, gamakas); otherwise they keep a band of their own.
+    const roomAbove = !hasGamaka && (st.speedMarks === 'below' || !row.groups.length);
+    const cls = (hasGamaka ? ' has-gamaka' : '') + (row.inline.length ? ' has-inline' + (roomAbove ? ' it-tight' : '') : '');
+    html += '<div class="cm-row' + cls + '" style="width:' + sx(g.total) + '">';
     if (row.label) html += '<span class="cm-label">' + esc(row.label) + '</span>';
 
     if (row.inline.length) {
