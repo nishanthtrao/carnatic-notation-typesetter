@@ -1,0 +1,12 @@
+# Render Blueprint: Render -> New -> Blueprint -> pick this repository.
+# Free web service built from the Dockerfile. Free services sleep after
+# 15 minutes without visitors; the first visit after that takes ~1 minute.
+services:
+  - type: web
+    name: carnatic-notation-typesetter
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz
+    autoDeploy: true

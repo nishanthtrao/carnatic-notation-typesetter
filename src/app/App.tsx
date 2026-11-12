@@ -1,0 +1,528 @@
+/*
+ * Carnatic Music Notation Typesetter — the editor application
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { examples, newSongTemplate, parse, type Example, type NotationDoc } from '../engine';
+import { NotationEditor, type EditorHandle } from '../components/NotationEditor';
+import { Preview } from '../components/Preview';
+import { Splitter } from '../components/Splitter';
+import { Toolbar, type Command } from '../components/Toolbar';
+import { useToast } from '../components/Toast';
+import { IssuesBadge, IssuesList } from '../components/Warnings';
+import { Icon } from '../components/Icons';
+import { AssistDialog, assistModeFor, type AssistMode, type FormName } from '../dialogs/AssistDialog';
+import { useConfirm } from '../dialogs/ConfirmDialog';
+import { CopyTextDialog } from '../dialogs/CopyTextDialog';
+import { ExamplesDialog } from '../dialogs/ExamplesDialog';
+import { NewSongDialog } from '../dialogs/NewSongDialog';
+import { PhotoImportDialog } from '../dialogs/PhotoImportDialog';
+import { SettingsDialog } from '../dialogs/SettingsDialog';
+import { ShareDialog } from '../dialogs/ShareDialog';
+import { alignText } from '../lib/align';
+import { desk, inFrame, type DesktopFile } from '../lib/desktop';
+import { readShareHash } from '../lib/share';
+import { KEYS, store } from '../lib/storage';
+import APP_ICON from '../assets/app-icon.png';
+
+type DialogName = 'new' | 'examples' | 'share' | 'photo' | 'settings' | 'copy' | null;
+
+interface Initial {
+  text: string;
+  file: { path: string; name: string } | null;
+  dirty: boolean;
+  message: string;
+}
+
+/** Decide what the editor starts with (shared link, file, recovered work, draft, example). */
+async function loadInitial(): Promise<Initial> {
+  if (desk) {
+    const st = await desk.startup();
+    if (st.file) return { text: st.file.text, file: st.file, dirty: false, message: 'Opened ' + st.file.name };
+    if (st.recovered) {
+      const f = st.recovered.path ? { path: st.recovered.path, name: st.recovered.name || 'Untitled' } : null;
+      return { text: st.recovered.text, file: f, dirty: true, message: 'Recovered your unsaved changes' };
+    }
+    if (st.lastFile) return { text: st.lastFile.text, file: st.lastFile, dirty: false, message: '' };
+    return { text: st.additional ? newSongTemplate : examples[0].text, file: null, dirty: false, message: '' };
+  }
+  try {
+    const shared = await readShareHash();
+    if (shared !== null) {
+      history.replaceState(null, '', location.pathname + location.search);
+      return { text: shared, file: null, dirty: false, message: 'Opened shared notation' };
+    }
+  } catch {
+    /* corrupt link: fall through */
+  }
+  const draft = store.get(KEYS.draft);
+  if (draft && draft.trim()) return { text: draft, file: null, dirty: false, message: 'Restored your last draft' };
+  return { text: examples[0].text, file: null, dirty: false, message: '' };
+}
+
+export function App() {
+  const [initial, setInitial] = useState<Initial | null>(null);
+  useEffect(() => {
+    loadInitial().then(setInitial);
+  }, []);
+  if (!initial) return null;
+  return <Editor initial={initial} />;
+}
+
+function Editor({ initial }: { initial: Initial }) {
+  const toast = useToast();
+  const { confirm, element: confirmElement } = useConfirm();
+  const editor = useRef<EditorHandle>(null);
+  const appRef = useRef<HTMLElement>(null);
+
+  const [text, setText] = useState(initial.text);
+  const [doc, setDoc] = useState<NotationDoc>(() => parse(initial.text));
+  const [autoUpdate, setAutoUpdate] = useState(store.get(KEYS.auto) !== '0');
+  const [splitY, setSplitY] = useState(() => parseFloat(store.get(KEYS.split) || '') || 52);
+  const [splitX, setSplitX] = useState(() => parseFloat(store.get(KEYS.splitX) || '') || 42);
+  const [layout, setLayout] = useState<'side' | 'stack'>(() => (store.get(KEYS.layout) as 'side' | 'stack') || (window.innerWidth >= 1000 ? 'side' : 'stack'));
+  const [view, setView] = useState<'notation' | 'text'>('notation');
+  const [issuesOpen, setIssuesOpen] = useState(false);
+  const [docState, setDocState] = useState({ name: '', dirty: initial.dirty });
+  const [status, setStatus] = useState(initial.message);
+  const [dialog, setDialog] = useState<DialogName>(null);
+  const [assist, setAssist] = useState<AssistMode | null>(null);
+  const [settingsVersion, setSettingsVersion] = useState(0);
+  const [droppedImages, setDroppedImages] = useState<File[] | undefined>(undefined);
+
+  // file state lives in refs so desktop callbacks always see the latest
+  const dirty = useRef(initial.dirty);
+  const file = useRef(initial.file);
+  const textRef = useRef(initial.text);
+
+  const say = useCallback((m: string) => {
+    setStatus(m);
+    if (m) toast(m);
+  }, [toast]);
+
+  const displayName = () => {
+    if (file.current) return file.current.name;
+    const m = textRef.current.match(/^\s*Title\s*:\s*"?([^"\n]*)"?/im);
+    return (m && m[1].trim()) || 'Untitled';
+  };
+
+  const notifyState = useCallback(() => {
+    store.set(KEYS.draftMeta, JSON.stringify({ path: file.current?.path ?? null, dirty: dirty.current }));
+    const name = displayName();
+    setDocState({ name, dirty: dirty.current });
+    desk?.setState({ dirty: dirty.current, path: file.current?.path ?? null, name });
+  }, []);
+
+  // ---- parsing (debounced while typing) -----------------------------------------
+  // the text the preview was last drawn from (shows whether Update has anything to do)
+  const [drawnText, setDrawnText] = useState(initial.text);
+  const drawnRef = useRef(drawnText);
+  drawnRef.current = drawnText;
+  const update = useCallback(() => {
+    setDoc(parse(textRef.current));
+    setDrawnText(textRef.current);
+  }, []);
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (autoUpdate) update();
+      store.set(KEYS.draft, text);
+      store.set(KEYS.draftMeta, JSON.stringify({ path: file.current?.path ?? null, dirty: dirty.current }));
+      if (desk && dirty.current) desk.saveDraft(text);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [text, autoUpdate, update]);
+
+  useEffect(() => {
+    document.title = doc.title ? doc.title + ' · Carnatic Notation' : 'Carnatic Music Notation Typesetter';
+    let el = document.getElementById('pageStyle');
+    if (!el) {
+      el = document.createElement('style');
+      el.id = 'pageStyle';
+      document.head.appendChild(el);
+    }
+    el.textContent = '@page { size: ' + (doc.page.size || 'A4') + ' ' + doc.page.orientation + '; margin: ' + (doc.page.margin || '12mm') + '; }';
+  }, [doc]);
+
+  useEffect(() => {
+    notifyState();
+    if (initial.message) toast(initial.message);
+    if (desk) desk.setExamples(examples.map((e) => ({ id: e.id, title: e.title })));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const onInput = (t: string) => {
+    textRef.current = t;
+    setText(t);
+    if (!dirty.current) {
+      dirty.current = true;
+      notifyState();
+    }
+  };
+
+  /** Replace the whole notation (open, example, new song). */
+  const setAll = useCallback((t: string, msg: string, f: { path: string; name: string } | null = null) => {
+    editor.current?.setValue(t);
+    textRef.current = t;
+    setText(t);
+    file.current = f;
+    dirty.current = false;
+    store.set(KEYS.draft, t);
+    notifyState();
+    setDoc(parse(t));
+    setDrawnText(t);
+    if (msg) say(msg);
+  }, [notifyState, say]);
+
+  const confirmReplace = useCallback(async () => {
+    if (!dirty.current || !textRef.current.trim()) return true;
+    return confirm({ title: 'Replace the current notation?', message: 'Your changes since you last saved will be replaced. Save first if you want to keep them.', ok: 'Replace' });
+  }, [confirm]);
+
+  // ---- commands -------------------------------------------------------------------
+  const save = useCallback(async (saveAs = false): Promise<boolean> => {
+    const current = parse(textRef.current);
+    if (desk) {
+      const r = await desk.saveFile({ text: textRef.current, path: file.current?.path ?? null, saveAs, suggestedName: current.title || 'Untitled' });
+      if (!r) return false;
+      file.current = r;
+      dirty.current = false;
+      notifyState();
+      say('Saved ' + r.name);
+      return true;
+    }
+    const name = (current.title || 'notation').replace(/[\\/:*?"<>|]+/g, '').trim() || 'notation';
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([textRef.current], { type: 'text/plain;charset=utf-8' }));
+    a.download = name + '.txt';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      URL.revokeObjectURL(a.href);
+      a.remove();
+    }, 1000);
+    dirty.current = false;
+    notifyState();
+    say('Saved ' + a.download);
+    if (inFrame) setDialog('copy');
+    return true;
+  }, [notifyState, say]);
+
+  const openFileInput = useRef<HTMLInputElement>(null);
+
+  const commands = useMemo(() => {
+    const c: Record<string, () => unknown> = {
+      new: () => setDialog('new'),
+      open: async () => {
+        if (!(await confirmReplace())) return;
+        if (desk) {
+          const f = await desk.openFile();
+          if (f) setAll(f.text, 'Opened ' + f.name, f);
+        } else openFileInput.current?.click();
+      },
+      save: () => save(false),
+      saveAs: () => save(true),
+      assist: () => setAssist(assistModeFor(editor.current?.lineInfo().text ?? '')),
+      update: () => {
+        const changed = textRef.current !== drawnRef.current;
+        update();
+        say(changed ? 'Notation updated' : 'Notation is already up to date');
+      },
+      align: () => {
+        const before = editor.current!.getValue();
+        const after = alignText(before);
+        if (after === before) return say('Nothing to align');
+        const top = editor.current!.scrollTop;
+        editor.current!.replaceRange(0, before.length, after);
+        editor.current!.scrollTop = top;
+        say('Lyrics lined up under their swaras');
+      },
+      photo: () => {
+        setDroppedImages(undefined);
+        setDialog('photo');
+      },
+      examples: () => setDialog('examples'),
+      share: () => setDialog('share'),
+      exportPdf: async () => {
+        update();
+        if (!desk) return window.print();
+        const base = file.current ? file.current.name.replace(/\.[^.]+$/, '') : parse(textRef.current).title || 'notation';
+        const r = await desk.exportPdf({ suggestedName: base });
+        if (r) say('Exported ' + r.name);
+      },
+      print: () => {
+        update();
+        if (desk) return desk.print();
+        requestAnimationFrame(() => {
+          try {
+            window.print();
+          } catch {
+            /* blocked */
+          }
+          if (inFrame) say('If no print dialog opened, printing is blocked in this preview — use the hosted site');
+        });
+      },
+      saveThenClose: async () => {
+        if (await save(false)) desk?.closeWindow();
+      },
+      discardThenClose: () => {
+        dirty.current = false;
+        notifyState();
+        desk?.closeWindow();
+      },
+    };
+    return c;
+  }, [confirmReplace, notifyState, save, say, setAll, update]);
+
+  const commandsRef = useRef(commands);
+  commandsRef.current = commands;
+
+  const openExample = useCallback(async (ex: Example) => {
+    setDialog(null);
+    if (await confirmReplace()) setAll(ex.text, 'Opened “' + ex.title + '”');
+  }, [confirmReplace, setAll]);
+
+  // ---- desktop app: menus and files opened from the system ---------------------
+  useEffect(() => {
+    if (!desk) return;
+    desk.onMenu(async (cmd) => {
+      if (cmd.startsWith('example:')) {
+        const ex = examples.find((x) => x.id === cmd.slice(8));
+        if (ex) openExample(ex);
+        return;
+      }
+      commandsRef.current[cmd]?.();
+    });
+    desk.onOpenFile(async (f: DesktopFile) => {
+      if (await confirmReplace()) setAll(f.text, 'Opened ' + f.name, f);
+    });
+    // registered once; the handlers read the latest state through refs
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ---- web: shared links opened while the page is open ----------------------------
+  useEffect(() => {
+    if (desk) return;
+    const onHash = async () => {
+      try {
+        const t = await readShareHash();
+        if (t !== null && (await confirmReplace())) {
+          setAll(t, 'Opened shared notation');
+          history.replaceState(null, '', location.pathname + location.search);
+        }
+      } catch {
+        say('Could not read the shared link');
+      }
+    };
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, [confirmReplace, say, setAll]);
+
+  // ---- drag & drop: notation files open, images go to the photo reader ----------
+  useEffect(() => {
+    const over = (e: DragEvent) => {
+      if (e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files')) e.preventDefault();
+    };
+    const drop = async (e: DragEvent) => {
+      const files = Array.from(e.dataTransfer?.files || []);
+      if (!files.length) return;
+      e.preventDefault();
+      const images = files.filter((f) => f.type.startsWith('image/'));
+      if (images.length) {
+        setDroppedImages(images);
+        setDialog('photo');
+        return;
+      }
+      const f = files[0];
+      if (!(await confirmReplace())) return;
+      if (desk) {
+        const r = await desk.openDropped(f);
+        if ('error' in r) say(r.error);
+        else setAll(r.text, 'Opened ' + r.name, r);
+        return;
+      }
+      if (f.size > 5 * 1024 * 1024) return say('That file is too large to be notation');
+      setAll(await f.text(), 'Opened ' + f.name);
+    };
+    window.addEventListener('dragover', over);
+    window.addEventListener('drop', drop);
+    return () => {
+      window.removeEventListener('dragover', over);
+      window.removeEventListener('drop', drop);
+    };
+  }, [confirmReplace, say, setAll]);
+
+  // ---- photo result ----------------------------------------------------------------
+  const usePhotoResult = async (t: string, mode: 'insert' | 'replace') => {
+    if (mode === 'replace') {
+      if (!(await confirmReplace())) return;
+      editor.current!.replaceRange(0, editor.current!.getValue().length, t);
+      file.current = null;
+      notifyState();
+      say('Notation replaced with the photo reading');
+    } else {
+      const li = editor.current!.lineInfo();
+      const at = li.text.trim() ? li.end : li.start;
+      editor.current!.replaceRange(at, at, (li.text.trim() ? '\n' : '') + t.replace(/\n+$/, '') + '\n');
+      say('Inserted the photo reading');
+    }
+    update();
+  };
+
+  // ---- Assist ------------------------------------------------------------------------
+  const applyAssist = (t: string, insert: boolean) => {
+    setAssist(null);
+    const li = editor.current!.lineInfo();
+    if (insert) editor.current!.replaceRange(li.end, li.end, '\n' + t);
+    else editor.current!.replaceRange(li.start, li.end, t);
+  };
+  const chooseForm = (name: FormName) => {
+    const li = editor.current!.lineInfo();
+    if (li.text.trim()) editor.current!.replaceRange(li.end, li.end, '\n');
+    setAssist({ kind: 'form', name, value: '' });
+  };
+
+  const lineBlank = !(editor.current?.lineInfo().text.trim());
+
+  return (
+    <>
+      <header className="titlebar">
+        <div className="tb-doc">
+          <img className="tb-icon" src={APP_ICON} alt="" />
+          <div className="tb-names">
+            <div className="tb-title">
+              {docState.name || 'Untitled'}
+              {docState.dirty && <span className="tb-edited"> — Edited</span>}
+            </div>
+            <div className="tb-sub">Carnatic Notation Typesetter</div>
+          </div>
+        </div>
+        <div className="segmented view-switch" role="tablist" aria-label="Show">
+          <button type="button" role="tab" aria-selected={view === 'notation'} onClick={() => setView('notation')}>Notation</button>
+          <button type="button" role="tab" aria-selected={view === 'text'} onClick={() => setView('text')}>Text</button>
+        </div>
+        <Toolbar desktop={!!desk} onCommand={(c: Command) => {
+          if (c === 'assist' || c === 'align') setView('text'); // phones: show the text being edited
+          commands[c]?.();
+        }} />
+        <button
+          type="button"
+          className="tb-btn layout-toggle"
+          title={layout === 'side' ? 'Show the text below the notation' : 'Show the text beside the notation'}
+          aria-label="Change layout"
+          onClick={() => {
+            const next = layout === 'side' ? 'stack' : 'side';
+            setLayout(next);
+            store.set(KEYS.layout, next);
+          }}
+        >
+          <Icon name={layout === 'side' ? 'stacked' : 'sidebyside'} />
+          <span className="tb-label">Layout</span>
+        </button>
+      </header>
+
+      <main
+        className={'workspace layout-' + layout + ' view-' + view}
+        ref={appRef}
+        style={{ ['--split-x' as string]: splitX + '%', ['--split-y' as string]: splitY + '%' }}
+      >
+        <section className="preview-pane" aria-label="Notation preview">
+          <Preview doc={doc} landscape={doc.page.orientation === 'landscape'} onJumpToLine={(n) => { setView('text'); setTimeout(() => editor.current?.goToLine(n), 0); }} />
+        </section>
+
+        <Splitter
+          orientation={layout === 'side' ? 'vertical' : 'horizontal'}
+          value={layout === 'side' ? splitX : splitY}
+          container={appRef}
+          onChange={(p) => {
+            if (layout === 'side') {
+              setSplitX(p);
+              store.set(KEYS.splitX, String(p));
+            } else {
+              setSplitY(p);
+              store.set(KEYS.split, String(p));
+            }
+          }}
+        />
+
+        <section className="editor-pane" aria-label="Notation input">
+          <NotationEditor ref={editor} initialValue={initial.text} onInput={onInput} onShortcut={(cmd) => commands[cmd]()} />
+          <IssuesList list={doc.warnings} open={issuesOpen} onJump={(n) => editor.current?.goToLine(n)} />
+          <footer className="pane-foot">
+            <IssuesBadge list={doc.warnings} open={issuesOpen} onToggle={() => setIssuesOpen(!issuesOpen)} />
+            <span className="status" aria-live="polite">{status}</span>
+            {!autoUpdate && (
+              <button
+                type="button"
+                className={'pill' + (text === drawnText ? ' is-current' : '')}
+                title={text === drawnText ? 'The notation matches the text' : 'Redraw the notation from the text (Ctrl+Enter)'}
+                onClick={() => commands.update()}
+              >
+                {text === drawnText ? 'Up to date' : 'Update'}
+              </button>
+            )}
+            <label className="switch" title="Redraw the notation as you type">
+              <input
+                type="checkbox"
+                role="switch"
+                checked={autoUpdate}
+                onChange={(e) => {
+                  setAutoUpdate(e.target.checked);
+                  store.set(KEYS.auto, e.target.checked ? '1' : '0');
+                  if (e.target.checked) update();
+                }}
+              />
+              <span className="track" aria-hidden="true" />
+              Live
+            </label>
+          </footer>
+        </section>
+      </main>
+
+      <input
+        ref={openFileInput}
+        type="file"
+        accept=".txt,.cmnt,.text,text/plain"
+        hidden
+        onChange={async (e) => {
+          const f = e.target.files?.[0];
+          e.target.value = '';
+          if (f) setAll(await f.text(), 'Opened ' + f.name);
+        }}
+      />
+
+      <NewSongDialog
+        open={dialog === 'new'}
+        onClose={() => setDialog(null)}
+        onCreate={async (t, line) => {
+          setDialog(null);
+          if (!(await confirmReplace())) return;
+          setAll(t, 'New song started');
+          setTimeout(() => editor.current?.goToLine(line), 0);
+        }}
+      />
+      <ExamplesDialog open={dialog === 'examples'} onClose={() => setDialog(null)} onPick={openExample} />
+      <ShareDialog open={dialog === 'share'} onClose={() => setDialog(null)} text={text} />
+      <CopyTextDialog
+        open={dialog === 'copy'}
+        onClose={() => setDialog(null)}
+        text={text}
+        message="If no file was downloaded (this preview may block downloads), copy the text below and keep it in a .txt file, or use the hosted site."
+      />
+      <PhotoImportDialog
+        open={dialog === 'photo'}
+        onClose={() => setDialog(null)}
+        onOpenSettings={() => setDialog('settings')}
+        settingsVersion={settingsVersion}
+        initialFiles={droppedImages}
+        onUse={usePhotoResult}
+      />
+      <SettingsDialog
+        open={dialog === 'settings'}
+        onClose={() => setDialog('photo')}
+        onSaved={() => setSettingsVersion((v) => v + 1)}
+      />
+      <AssistDialog mode={assist} onClose={() => setAssist(null)} onApply={applyAssist} onChooseForm={chooseForm} currentLineBlank={lineBlank} />
+      {confirmElement}
+    </>
+  );
+}

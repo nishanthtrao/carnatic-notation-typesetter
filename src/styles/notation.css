@@ -1,0 +1,313 @@
+/*
+ * Carnatic Music Notation Typesetter — notation sheet styles
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ *
+ * Used by the editor preview, the manual and printing.
+ * Geometry is set by render.js through custom properties:
+ *   --cm-k      font size in cqi so the widest row fits
+ *   --cm-max    largest font size allowed
+ *   (positions inside a row are in em, computed by render.js)
+ */
+.cm-sheet {
+  --cm-ink: #1a1a1a;
+  --cm-muted: #5b5b5b;
+  --cm-accent: #7a1f1f;
+  --cm-swara-color: var(--cm-ink);
+  --cm-lyric-color: #23408e;
+  --cm-gamaka-color: var(--cm-ink);
+  --cm-lyric-scale: 0.95;
+  --cm-gamaka-scale: 0.8;
+  --cm-max: 14pt;
+  --cm-k: 2;
+  --cm-latin: 'Noto Serif', 'Gentium Plus', Georgia, 'Times New Roman', serif;
+  --cm-indic: 'Noto Serif Devanagari', 'Noto Serif Telugu', 'Noto Serif Kannada', 'Noto Serif Malayalam', 'Noto Serif Tamil',
+    'Noto Sans Devanagari', 'Noto Sans Telugu', 'Noto Sans Kannada', 'Noto Sans Malayalam', 'Noto Sans Tamil',
+    'Nirmala UI', Mangal, Gautami, Tunga, Latha, 'Kohinoor Devanagari', 'Kohinoor Telugu',
+    'Tamil Sangam MN', 'Kannada Sangam MN', 'Malayalam Sangam MN', 'Telugu Sangam MN', sans-serif;
+  --cm-fallback: var(--cm-latin), var(--cm-indic);
+  container-type: inline-size;
+  color: var(--cm-ink);
+  font-family: var(--cm-latin), var(--cm-indic);
+  line-height: 1.3;
+  background: #fff;
+}
+
+.cm-sheet *,
+.cm-sheet *::before,
+.cm-sheet *::after {
+  box-sizing: border-box;
+}
+
+/* ---- Headings ---------------------------------------------------------- */
+.cm-heading {
+  font-size: min(12pt, 4.2cqi);
+  margin: 0.25em 0;
+  line-height: 1.35;
+}
+.cm-heading.cm-section {
+  margin-top: 0.8em;
+}
+.cm-heading .cm-hr {
+  border: 0;
+  border-top: 1px solid currentColor;
+  margin: 0.4em 0;
+}
+.cm-table {
+  border-collapse: collapse;
+  margin: 0.2em 0;
+}
+.cm-table td {
+  padding: 0.05em 0.5em 0.05em 0;
+  vertical-align: top;
+}
+.cm-img {
+  max-width: 100%;
+}
+.cm-space {
+  height: 0.6em;
+}
+.cm-empty {
+  color: var(--cm-muted);
+  font-style: italic;
+  text-align: center;
+  padding: 2em 1em;
+}
+
+/* ---- Raga / tala info ------------------------------------------------- */
+.cm-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.15em 1.6em;
+  margin: 0.2em 0 0.6em;
+  font-size: min(1rem, 3.6cqi);
+}
+.cm-meta-k {
+  color: var(--cm-muted);
+  font-style: italic;
+}
+.cm-meta-k::after {
+  content: ':';
+}
+.cm-meta-v {
+  font-weight: 600;
+}
+.cm-inline .cm-g {
+  margin: 0 0.12em;
+}
+
+/* ---- Staff -------------------------------------------------------------- */
+.cm-staff {
+  font-size: min(var(--cm-max), calc(var(--cm-k) * 1cqi));
+  margin: 0.1em 0 0.3em;
+}
+.cm-row {
+  position: relative;
+  margin-bottom: 0.3em;
+  break-inside: avoid;
+  max-width: 100%;
+}
+.cm-label {
+  position: absolute;
+  left: 0;
+  top: 0.75em;
+  line-height: 1.2em;
+  font-style: italic;
+  color: var(--cm-accent);
+  white-space: nowrap;
+}
+.has-gamaka .cm-label { top: 1.3em; }
+/* Swara line: [speed marks][upper dots][glyph][lower dots] */
+.cm-swaras {
+  position: relative;
+  height: 2.3em;
+}
+.cm-ev,
+.cm-bar,
+.cm-speed,
+.cm-lyr {
+  position: absolute;
+}
+.cm-ev {
+  top: 0.75em;
+  height: 1.2em;
+  white-space: nowrap;
+  color: var(--cm-swara-color);
+}
+.has-gamaka .cm-swaras { height: 2.85em; }
+.has-gamaka .cm-ev,
+.has-gamaka .cm-bar { top: 1.3em; }
+.cm-g {
+  position: relative;
+  display: inline-block;
+  padding: 0 0.06em;
+  line-height: 1.2em;
+}
+.cm-g sub {
+  font-size: 0.6em;
+  vertical-align: -0.35em;
+  line-height: 0;
+}
+.cm-same {
+  letter-spacing: 0.05em;
+}
+
+/* gamaka glyphs above the swara */
+.cm-gam {
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  margin-bottom: 0.02em;
+  line-height: 1;
+  color: var(--cm-gamaka-color);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.cm-gam.over-dot {
+  margin-bottom: 0.3em;
+}
+.cm-gsvg {
+  display: block;
+  height: 0.5em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.cm-gam-text {
+  font-size: calc(var(--cm-gamaka-scale) * 1em);
+  font-style: italic;
+}
+
+/* phrase ends */
+.cm-pe {
+  margin-left: 0.04em;
+}
+.cm-handle {
+  display: inline-block;
+  width: 0.28em;
+  height: 0.38em;
+  border-right: 0.07em solid currentColor;
+  border-bottom: 0.07em solid currentColor;
+  vertical-align: -0.12em;
+}
+.cm-handle.thick {
+  border-width: 0.14em;
+}
+
+/* inline tala markers (Tala: …,Manual,InlineTalaMarkers) */
+.cm-inline-tala {
+  position: relative;
+  height: 1.1em;
+}
+.cm-it {
+  position: absolute;
+  top: 0.15em;
+  color: var(--cm-muted);
+}
+.cm-it > span {
+  display: inline-block;
+  font-size: 0.75em;
+  padding-left: 0.1em;
+}
+.cm-oct {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.08em;
+  pointer-events: none;
+}
+.cm-g sub ~ .cm-oct {
+  right: 0.3em;
+}
+.cm-oct.up {
+  bottom: 100%;
+  margin-bottom: -0.02em;
+  flex-direction: column-reverse;
+}
+.cm-oct.down {
+  top: 100%;
+  margin-top: -0.04em;
+}
+.cm-oct i {
+  display: block;
+  width: 0.2em;
+  height: 0.2em;
+  border-radius: 50%;
+  background: currentColor;
+}
+.cm-bar {
+  top: 0.75em;
+  line-height: 1.2em;
+  text-align: center;
+  letter-spacing: -0.05em;
+  font-family: var(--cm-latin);
+}
+.cm-speed {
+  height: 0;
+}
+.cm-speed::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 0.07em solid currentColor;
+}
+.cm-speed.d1 { top: 0.4em; }
+.cm-speed.d2 { top: 0.25em; }
+.cm-speed.d3 { top: 0.1em; }
+.cm-speed.d4 { top: -0.05em; }
+.has-gamaka .cm-speed.d1 { top: 0.95em; }
+.has-gamaka .cm-speed.d2 { top: 0.8em; }
+.has-gamaka .cm-speed.d3 { top: 0.65em; }
+
+.marks-below .cm-swaras { height: 2.6em; }
+.marks-below .cm-ev,
+.marks-below .cm-bar { top: 0.4em; }
+.marks-below .cm-speed.d1 { top: auto; bottom: 0.48em; }
+.marks-below .cm-speed.d2 { top: auto; bottom: 0.32em; }
+.marks-below .cm-speed.d3 { top: auto; bottom: 0.16em; }
+.marks-below .cm-speed.d4 { top: auto; bottom: 0; }
+
+/* Lyric lines */
+.cm-lyrics {
+  position: relative;
+  height: 1.45em;
+}
+/* .cm-lyr keeps the notation font size so its `left` (in em) lands exactly
+   under the swara; only the text inside is scaled. */
+.cm-lyr {
+  top: 0;
+  white-space: nowrap;
+  color: var(--cm-lyric-color);
+}
+.cm-missing {
+  color: #c0392b;
+  font-weight: 700;
+}
+.cm-t {
+  display: inline-block;
+  padding-left: 0.06em;
+  font-size: calc(var(--cm-lyric-scale) * 1em);
+}
+
+.cm-pagebreak {
+  height: 0;
+  border-top: 1px dashed #c9c2b4;
+  margin: 1em 0;
+}
+
+@media print {
+  .cm-sheet {
+    background: none;
+  }
+  .cm-pagebreak {
+    border: 0;
+    margin: 0;
+    break-after: page;
+  }
+}

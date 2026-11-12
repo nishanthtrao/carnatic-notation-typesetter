@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9a2b2b"/>
+      <stop offset="1" stop-color="#5e1414"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fffaf0"/>
+      <stop offset="1" stop-color="#f1e6cf"/>
+    </linearGradient>
+  </defs>
+  <rect x="80" y="80" width="864" height="864" rx="190" fill="url(#bg)"/>
+  <rect x="80" y="80" width="864" height="864" rx="190" fill="none" stroke="#3d0b0b" stroke-opacity=".35" stroke-width="6"/>
+  <!-- speed line -->
+  <rect x="236" y="318" width="420" height="26" rx="13" fill="url(#paper)"/>
+  <!-- tara stayi dot over the s -->
+  <circle cx="336" cy="400" r="30" fill="url(#paper)"/>
+  <!-- the swara -->
+  <text x="450" y="690" text-anchor="middle" font-family="Noto Serif, Georgia, serif" font-style="italic" font-weight="700" font-size="400" fill="url(#paper)">sa</text>
+  <!-- tala marker -->
+  <rect x="752" y="410" width="22" height="300" rx="11" fill="url(#paper)"/>
+  <rect x="800" y="410" width="22" height="300" rx="11" fill="url(#paper)"/>
+</svg>

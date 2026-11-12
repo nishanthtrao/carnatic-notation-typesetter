@@ -1,0 +1,98 @@
+# Builds the desktop app for Windows, macOS and Linux.
+#
+# - Run it by hand: Actions tab -> "Desktop apps" -> Run workflow.
+#   The installers appear as downloadable "artifacts" on the run's page.
+# - Push a version tag (e.g. `git tag v2.0.1 && git push --tags`) to also
+#   publish them on a GitHub Release.
+#
+# Code signing is optional. Without certificates the apps still work, but
+# Windows SmartScreen and macOS Gatekeeper show a warning on first launch
+# (see README). To sign, add these repository secrets:
+#   macOS:   MAC_CERTIFICATE (base64 .p12), MAC_CERTIFICATE_PASSWORD,
+#            APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID (notarising)
+#   Windows: WIN_CERTIFICATE (base64 .pfx), WIN_CERTIFICATE_PASSWORD
+name: Desktop apps
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run typecheck
+      - run: npm test
+
+  build:
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Build
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MAC_CERTIFICATE: ${{ secrets.MAC_CERTIFICATE }}
+          MAC_CERTIFICATE_PASSWORD: ${{ secrets.MAC_CERTIFICATE_PASSWORD }}
+          WIN_CERTIFICATE: ${{ secrets.WIN_CERTIFICATE }}
+          WIN_CERTIFICATE_PASSWORD: ${{ secrets.WIN_CERTIFICATE_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          # Use a signing certificate only if one was provided
+          if [ "$RUNNER_OS" = "macOS" ] && [ -n "$MAC_CERTIFICATE" ]; then
+            export CSC_LINK="$MAC_CERTIFICATE" CSC_KEY_PASSWORD="$MAC_CERTIFICATE_PASSWORD"
+          elif [ "$RUNNER_OS" = "Windows" ] && [ -n "$WIN_CERTIFICATE" ]; then
+            export CSC_LINK="$WIN_CERTIFICATE" CSC_KEY_PASSWORD="$WIN_CERTIFICATE_PASSWORD"
+          else
+            export CSC_IDENTITY_AUTO_DISCOVERY=false
+          fi
+          [ -z "$APPLE_ID" ] && unset APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID
+          npm run dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: carnatic-notation-typesetter-${{ runner.os }}
+          path: |
+            release/*.exe
+            release/*.dmg
+            release/*.zip
+            release/*.AppImage
+            release/*.deb
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: release
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: release/*
+          generate_release_notes: true

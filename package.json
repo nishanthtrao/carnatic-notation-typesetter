@@ -1,0 +1,127 @@
+{
+  "name": "carnatic-notation-typesetter",
+  "productName": "Carnatic Notation Typesetter",
+  "version": "3.0.0",
+  "description": "Typeset Carnatic music notation (swaras, lyrics, tala) in English, Sanskrit, Telugu, Kannada and Tamil \u2014 and read handwritten notation from photos",
+  "author": "Carnatic Notation Typesetter contributors",
+  "homepage": "https://sourceforge.net/projects/cmnt/",
+  "license": "GPL-2.0-or-later",
+  "private": true,
+  "type": "module",
+  "main": "desktop/main.cjs",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "app": "vite build && electron .",
+    "dist": "vite build && electron-builder --publish never",
+    "dist:win": "vite build && electron-builder --win --publish never",
+    "dist:mac": "vite build && electron-builder --mac --publish never",
+    "dist:linux": "vite build && electron-builder --linux --publish never"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "electron": "^45.2.3",
+    "electron-builder": "^26.18.0",
+    "jsdom": "^31.0.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.6",
+    "vitest": "^5.1.0"
+  },
+  "build": {
+    "appId": "io.github.cmnt.typesetter",
+    "productName": "Carnatic Notation Typesetter",
+    "copyright": "Free software under the GNU GPL v2 or later",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**",
+      "desktop/main.cjs",
+      "desktop/preload.cjs",
+      "build/icon.png",
+      "LICENSE",
+      "package.json"
+    ],
+    "publish": [],
+    "fileAssociations": [
+      {
+        "ext": "cmnt",
+        "name": "Carnatic Notation",
+        "description": "Carnatic music notation",
+        "role": "Editor",
+        "mimeType": "text/x-cmnt"
+      }
+    ],
+    "afterPack": "desktop/adhoc-sign.cjs",
+    "mac": {
+      "category": "public.app-category.music",
+      "icon": "build/icon.png",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ]
+    },
+    "dmg": {
+      "title": "Carnatic Notation Typesetter"
+    },
+    "win": {
+      "icon": "build/icon.png",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "artifactName": "${productName}-Setup-${version}-${arch}.${ext}"
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-${version}.${ext}"
+    },
+    "linux": {
+      "icon": "build/icon.png",
+      "category": "Audio;Education",
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "maintainer": "Carnatic Notation Typesetter contributors <noreply@example.com>"
+    }
+  }
+}

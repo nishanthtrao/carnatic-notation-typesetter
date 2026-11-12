@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%237a1f1f'/%3E%3Ctext x='16' y='22' font-family='Georgia,serif' font-size='17' font-style='italic' text-anchor='middle' fill='%23fff'%3Esa%3C/text%3E%3Ccircle cx='19' cy='6.5' r='1.8' fill='%23fff'/%3E%3C/svg%3E">
+  <title>Manual · Carnatic Music Notation Typesetter</title>
+  <link rel="stylesheet" href="../src/styles/fonts.css">
+  <link rel="stylesheet" href="../src/styles/notation.css">
+  <style>
+    :root { --ink: #23201b; --muted: #6d665b; --accent: #7a1f1f; --line: #ddd5c6; --bg: #f7f4ee; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+    header { background: linear-gradient(#f6f3ec, #e9e3d6); border-bottom: 1px solid var(--line); padding: 14px 20px; }
+    header a { color: var(--accent); }
+    .wrap { max-width: 880px; margin: 0 auto; padding: 0 20px 60px; }
+    h1 { font: italic 600 28px/1.25 'Noto Serif', Georgia, serif; margin: 0; }
+    h2 { font: italic 600 22px 'Noto Serif', Georgia, serif; margin: 2.2em 0 0.4em; padding-top: 0.6em; border-top: 1px solid var(--line); color: var(--accent); }
+    h3 { font: 600 17px 'Noto Serif', Georgia, serif; margin: 1.6em 0 0.3em; }
+    code, pre, kbd { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 0.88em; }
+    code { background: #ece5d6; padding: 0.05em 0.3em; border-radius: 3px; }
+    pre { background: #fff; border: 1px solid var(--line); border-radius: 8px 8px 0 0; padding: 10px 12px; margin: 0.8em 0 0; overflow: auto; line-height: 1.45; }
+    .out { background: #fff; border: 1px solid var(--line); border-top: 1px dashed var(--line); border-radius: 0 0 8px 8px; padding: 10px 14px 6px; margin-bottom: 1em; }
+    pre.plain { border-radius: 8px; margin-bottom: 1em; }
+    table.t { border-collapse: collapse; width: 100%; margin: 0.6em 0 1em; font-size: 0.94em; background: #fff; }
+    table.t th, table.t td { border: 1px solid var(--line); padding: 5px 8px; text-align: left; vertical-align: top; }
+    table.t th { background: #efe9dc; font-weight: 600; }
+    nav.toc { columns: 2 220px; background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 10px 16px; margin: 1.2em 0; font-size: 0.95em; }
+    nav.toc a { color: var(--ink); text-decoration: none; display: block; padding: 1px 0; }
+    nav.toc a:hover { color: var(--accent); }
+    .note { background: #fff8ec; border-left: 3px solid #d9a441; padding: 8px 12px; border-radius: 0 6px 6px 0; margin: 1em 0; }
+    .ext { font-size: 0.75em; font-weight: 600; color: #fff; background: #5b7a3a; border-radius: 4px; padding: 1px 6px; vertical-align: 0.15em; font-style: normal; font-family: system-ui, sans-serif; }
+    a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap" style="padding-bottom:0">
+      <h1>Carnatic Music Notation Typesetter — Manual</h1>
+      <div><a href="../index.html">← Back to the editor</a></div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <p>The typesetter turns a simple text description of a song into a notation sheet laid out like a Carnatic music book: swaras and lyrics aligned against the tala, speed lines, stayi dots, gamaka signs and headings, in English, English with diacritics, Sanskrit, Telugu, Kannada, Malayalam or Tamil.</p>
+    <p>This is version 3.0, a modern rebuild of Arun K's <i>Carnatic Music Notation Typesetter v1.5 Beta</i>. It reads the same input format, so notation files written for the old site work here unchanged. Small additions are marked <span class="ext">new</span>.</p>
+
+    <nav class="toc" aria-label="Contents">
+      <a href="#editor">Using the editor</a>
+      <a href="#photo">Reading handwritten notation</a>
+      <a href="#basics">Input basics</a>
+      <a href="#swaras">Swaras (S:)</a>
+      <a href="#lyrics">Lyrics (L:) and SmartLyricMode</a>
+      <a href="#tala">Tala</a>
+      <a href="#manual-modes">Manual modes, LineBreak, SongBreak</a>
+      <a href="#layout">Layout and DefaultSpeed</a>
+      <a href="#gati">Gati</a>
+      <a href="#speedmarks">SpeedMarks and PhraseEnds</a>
+      <a href="#heading">Heading, Title, Pagebreak, Orientation</a>
+      <a href="#language">Language and LanguageFont</a>
+      <a href="#prefs">Size and colour preferences</a>
+      <a href="#extensions">Additions in 2.0</a>
+      <a href="#credits">Credits and licence</a>
+    </nav>
+
+    <h2 id="editor">Using the editor</h2>
+    <p>The window has the text you type on one side and the typeset page on the other. On a computer they sit side by side; press <b>Layout</b> in the toolbar to put the text under the page instead, and drag the divider to resize. On a phone, switch between <b>Notation</b> and <b>Text</b> at the top. Click any line of the page to jump to its <code>S:</code> line.</p>
+    <p>With the <b>Live</b> switch on (bottom of the text), the page redraws as you type; otherwise press <b>Update</b> there (or <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>Enter</kbd>). The badge next to it shows <i>No issues</i>, or how many problems were found — click it to see each one with its line number, and click a problem to jump to the line.</p>
+    <table class="t">
+      <tr><th>Button</th><th>What it does</th></tr>
+      <tr><td>New</td><td>Asks for the song name, raga, tala, composer, layout and language, and writes the starting directives for you.</td></tr>
+      <tr><td>Open / Save</td><td>Open or save the notation as a plain text file (<kbd>⌘</kbd>/<kbd>Ctrl</kbd>+<kbd>S</kbd> saves). Your work is also kept in this browser automatically, so a refresh does not lose it.</td></tr>
+      <tr><td>Assist</td><td>Help with the directive on the current line. On an empty line it lists all directives; on a <code>Tala:</code>, <code>Heading:</code>, <code>Language:</code>, <code>Layout:</code> or <code>DefaultSpeed:</code> line it opens a form to edit it; on an <code>S:</code>/<code>L:</code> line it shows a syntax summary.</td></tr>
+      <tr><td>Align</td><td>Pads your input with spaces so each lyric sits under its swara, which makes the text much easier to read and check.</td></tr>
+      <tr><td>Examples</td><td>Opens one of the bundled examples.</td></tr>
+      <tr><td>Read Photo</td><td>Reads handwritten or printed notation from a photo and turns it into text you can edit. See <a href="#photo">Reading handwritten notation</a>. You can also drop an image onto the window.</td></tr>
+      <tr><td>Share</td><td>Makes a link that opens your notation in the editor. The notation is stored inside the link itself; nothing is uploaded.</td></tr>
+      <tr><td>Print</td><td>Prints only the notation page. Choose <i>Save as PDF</i> in the print dialog to make a PDF (the desktop app also has a <b>PDF</b> button).</td></tr>
+    </table>
+    <p><b>TAB completion:</b> type the start of a directive name and press <kbd>Tab</kbd> (<code>t</code> → <code>Tala: </code>). After <code>Tala:</code>, <code>Language:</code>, <code>Layout:</code>, <code>Gati:</code> and a few others, <kbd>Tab</kbd> completes the value too (<code>Tala: k</code> → <code>KhandaCapu</code>). On phones and tablets, a row of swara keys above the text saves switching keyboards.</p>
+    <p>The editor follows your device's light or dark appearance; the notation page always stays white, like paper.</p>
+
+    <h2 id="photo">Reading handwritten notation <span class="ext">new</span></h2>
+    <p><b>Read Photo</b> reads a photo or scan of notation — handwritten or printed, with swaras and lyrics in English letters, Tamil, Telugu, Kannada, Malayalam or Devanagari — and writes it as input for this typesetter. You check and correct the result, then insert it.</p>
+    <h3>Setting it up (once)</h3>
+    <p>Reading images uses Claude, Anthropic's AI model, with <b>your own API key</b>:</p>
+    <ol>
+      <li>Create an account at <a href="https://platform.claude.com/">platform.claude.com</a>, add a little credit, and create an API key under <i>API keys</i>.</li>
+      <li>In the typesetter press <b>Read Photo</b>, then <b>Settings</b>, and paste the key. It is stored only on this device (encrypted by the operating system in the desktop app) and sent only to Anthropic.</li>
+    </ol>
+    <p>Each page costs a few US cents with the default model (Claude Sonnet 5.5); the more accurate Claude Opus 5.5 costs about twice as much. The photo is sent to Anthropic to be read; it is not stored by the typesetter.</p>
+    <h3>Reading a page</h3>
+    <ol>
+      <li>Press <b>Read Photo</b> and choose up to five images (on a phone you can take the photo directly). You can also paste an image or drop it on the window.</li>
+      <li>Optionally tell it the script of the lyrics, the tala and raga if they are not written on the page, and anything unusual about the writer's style.</li>
+      <li>Press <b>Read notation</b>. After 10–40 seconds you see the input it wrote, a preview of the typeset result, and notes about anything it was unsure of (also left as <code>#</code> comment lines).</li>
+      <li>Fix anything that is wrong, then <b>Insert at cursor</b> or <b>Replace all</b>.</li>
+    </ol>
+    <p>The result is checked with the same parser as your typing; if it finds mistakes, the reader is asked once to correct them automatically.</p>
+    <div class="note"><b>For the best results:</b> photograph in daylight, flat and square-on, one page per photo, filling the frame. Crop away anything that isn't notation. Dots above and below swaras and the lines marking faster passages are the easiest things to lose, so check those first. Lyrics written in Indian scripts are converted to the roman transliteration this typesetter uses, so you can still switch the display language afterwards.</div>
+
+    <h2 id="basics">Input basics</h2>
+    <p>Each line holds one <b>directive</b>: a name, a colon and a value. Names are case-insensitive and spaces around the colon don't matter. A few directives (<code>SmartLyricMode</code>, <code>SongBreak</code>, <code>LineBreak</code>, <code>Pagebreak</code>) have no value. Lines starting with <code>#</code> (or <code>%</code>) are comments, and blank lines are ignored.</p>
+    <pre class="plain">Tala: Adi
+S: s r g m | p d | n s'</pre>
+    <p>Directives such as <code>Tala</code>, <code>Layout</code>, <code>DefaultSpeed</code> and <code>SmartLyricMode</code> belong in the <i>header</i>, before the first heading or swara line. Here is a complete short example (the "Quick Start" from the original manual):</p>
+    <pre class="ex">Tala: Adi
+DefaultSpeed: 1
+Heading: "brOva bhAramA - bahudAri - Adi - tyAgarAja",bold,italic,14,center
+Heading: ""
+Heading: "pallavi:",bold,left,12
+S: "1)" ; , ( p   d n , ) pa m | ga , g | m      pa , ||
+L:      _ _   brO _ va _   bhA ra   mA _ ra ghu rA ,
+S: "2)" m~ , , ( p    d n s' n p     ; ) m | ga , g | m    pa , ||
+L:      mA . .    brO _ vA . . bhA _     ra   mA _ ra ghu rA ,</pre>
+
+    <h2 id="swaras">Swaras — the S directive</h2>
+    <pre class="plain">S: notations
+S: "label" notations</pre>
+    <p>Notations are separated by spaces. Several <code>S:</code> lines in a row are joined into one continuous stream, which the typesetter breaks into lines at the end of each tala cycle (avartanam).</p>
+    <table class="t">
+      <tr><th>Write</th><th>Meaning</th></tr>
+      <tr><td><code>s r g m p d n</code></td><td>A swara lasting one mātra in the current speed.</td></tr>
+      <tr><td><code>sa ri ga ma pa da ni</code></td><td>A dhīrgha (long) swara lasting two mātras. <code>dha</code> also works.</td></tr>
+      <tr><td><code>s'</code> &nbsp; <code>p`</code></td><td>Tara stayi (dot above) and mandra stayi (dot below). Repeat for two octaves: <code>s''</code>. Works with long swaras too: <code>sa'</code>.</td></tr>
+      <tr><td><code>,</code> &nbsp; <code>;</code></td><td>Pause or continuation of one mātra and two mātras.</td></tr>
+      <tr><td><code>_</code> &nbsp; <code>__</code></td><td>Empty space of one or two mātras, with nothing shown (for indenting to the eḍuppu).</td></tr>
+      <tr><td><code>=</code></td><td>"Same as the previous line", lasting one whole akshara.</td></tr>
+      <tr><td><code>( … )</code></td><td>Everything inside is twice as fast and gets a speed line. Nest them for faster speeds.</td></tr>
+      <tr><td><code>|</code> &nbsp; <code>||</code></td><td>Optional, only for your own readability: the typesetter places tala markers itself (except in <code>Tala: Manual</code>).</td></tr>
+      <tr><td><code>"1)"</code></td><td>A quoted label at the start is shown to the left of the line (sangati numbers, etc.).</td></tr>
+    </table>
+    <pre class="ex">Tala: Adi
+DefaultSpeed: 1
+S: g , m , ( p m g r s n` ) s , , ,</pre>
+
+    <h3>Gamakas</h3>
+    <p>After the swara (and its stayi mark) you can add a gamaka sign, drawn above the swara:</p>
+    <table class="t">
+      <tr><th>Write</th><th>Sign</th><th>Write</th><th>Sign</th></tr>
+      <tr><td><code>m~</code></td><td>kampita (wavy)</td><td><code>ma~~</code></td><td>long kampita</td></tr>
+      <tr><td><code>g^</code></td><td>tick</td><td><code>n(w)</code></td><td>any text in brackets</td></tr>
+      <tr><td><code>m/</code> &nbsp; <code>ma//</code></td><td>rising arrows</td><td><code>d\</code> &nbsp; <code>da\\</code></td><td>falling arrows</td></tr>
+    </table>
+    <pre class="ex">Tala: Adi
+DefaultSpeed: 1
+S: m~ , ma~~ , r g^ m s m/ g r s ma// g r n d\ p m n da\\ p s' n(w) n d</pre>
+
+    <h3>Phrase ends</h3>
+    <p>A hyphen after a swara (<code>p-</code>) marks the end of a phrase, for example where to breathe. By default it is invisible; see <a href="#speedmarks">PhraseEnds</a> to show it or add space after it.</p>
+
+    <h3>Same as before</h3>
+    <pre class="ex">DefaultSpeed: 1
+Tala: Adi
+S: p ; ( s' n d n ) p d n | s' , , , | , , , , ||
+S: =   =   =      =           | =    =   | ( d n s' ,- d n s' , ) ||</pre>
+
+    <h2 id="lyrics">Lyrics — the L directive</h2>
+    <p>An <code>L:</code> line gives the lyrics for the <code>S:</code> line just above it. Add several <code>L:</code> lines for several caraṇams sung to the same tune.</p>
+    <p>By default you must give <b>one entry for every swara and every pause</b> in the swara line. Use <code>_</code> for an empty entry; a <code>.</code> is shown as a dot (often used under a held note). You don't need to line the lyrics up with spaces, but the <b>Align</b> button will do it for you.</p>
+    <h3>SmartLyricMode</h3>
+    <p>Put <code>SmartLyricMode</code> in the header and you only need lyrics for actual swaras: pauses (<code>, ; _ __ -</code>) take an entry only if it is <code>.</code>, <code>-</code> or <code>_</code>. Swaras left without a lyric show a red <code>?</code>.</p>
+    <pre class="ex">Tala: Adi
+SmartLyricMode
+S: ; , ( p d n , ) pa m | ga , g | m pa , ||
+L:       brO . va    bhA ra mA   ra ghu rA</pre>
+    <p>Lyrics are typed in the Unified Transliteration Scheme and shown in the script chosen with <a href="#language">Language</a>.</p>
+
+    <h2 id="tala">Tala</h2>
+    <pre class="plain">Tala: Tala_Name
+Tala: Tala_Name,Manual
+Tala: Tala_Name,Manual,InlineTalaMarkers
+Tala: Manual</pre>
+    <p>The tala decides where tala markers go and where lines break. Names are case-insensitive.</p>
+    <table class="t">
+      <tr><th>Tala</th><th>Write</th></tr>
+      <tr><td>Adi</td><td><code>Adi</code>, <code>Tisra_Adi</code> (tiśra gati), <code>Adi2Kalai</code></td></tr>
+      <tr><td>Rupaka</td><td><code>Rupaka</code> or <code>Roopaka</code> (catuśra jāti), <code>Tisra_Rupaka</code>, <code>Khanda_Rupaka</code>, <code>Misra_Rupaka</code>, <code>Sankirna_Rupaka</code></td></tr>
+      <tr><td>Cāpu talas</td><td><code>MisraCapu</code>, <code>KhandaCapu</code> (4 avartanams per line), <code>KhandaCapu2</code> (2 per line), <code>RupakaCapu</code></td></tr>
+      <tr><td>Dhruva</td><td><code>Dhruva</code>, <code>Dhruva2</code> (one avartanam over two lines), <code>Tisra_Dhruva</code>, <code>Catusra_Dhruva</code>, <code>Khanda_Dhruva</code>, <code>Misra_Dhruva</code>, <code>Sankirna_Dhruva</code></td></tr>
+      <tr><td>Matya</td><td><code>Matya</code> and <code>&lt;Jati&gt;_Matya</code></td></tr>
+      <tr><td>Jhampa</td><td><code>Jhampa</code> (miśra jāti) and <code>&lt;Jati&gt;_Jhampa</code></td></tr>
+      <tr><td>Triputa</td><td><code>Triputa</code> (tiśra jāti) and <code>&lt;Jati&gt;_Triputa</code></td></tr>
+      <tr><td>Ata</td><td><code>Ata</code> (khaṇḍa jāti) and <code>&lt;Jati&gt;_Ata</code></td></tr>
+      <tr><td>Eka</td><td><code>Eka</code> (catuśra jāti) and <code>&lt;Jati&gt;_Eka</code></td></tr>
+    </table>
+    <p>Jātis are <code>Tisra</code>, <code>Catusra</code>, <code>Khanda</code>, <code>Misra</code> and <code>Sankirna</code>, so all 35 sūḷādi talas are available.</p>
+    <pre class="ex">Tala: MisraCapu
+DefaultSpeed: 1
+S: s , n d m d n d , m g m d m
+Tala: KhandaCapu
+DefaultSpeed: 1
+S: s g s g m g m g m p</pre>
+
+    <h3 id="manual-modes">Manual modes, LineBreak and SongBreak</h3>
+    <p><b>Manual mode #1</b> (<code>Tala: Adi,Manual</code>): the typesetter still tracks the tala and places markers, but starts a new line only at <code>LineBreak</code> (which keeps counting the tala) or <code>SongBreak</code> (which starts a new tala cycle). Very long lines are wrapped at a phrase end or pause. Add <code>,InlineTalaMarkers</code> to show the markers above the swaras instead (<code>||</code> cycle start, <code>|</code> anga, <code>*</code> akshara), so that phrases are not split by bars.</p>
+    <p><b>Manual mode #2</b> (<code>Tala: Manual</code>): no tala at all. Markers appear exactly where you write <code>|</code> and <code>||</code>. Useful for raga phrases or unusual layouts.</p>
+    <pre class="ex">PhraseEnds: Hide,0.45in
+Tala: Adi,Manual,InlineTalaMarkers
+DefaultSpeed: 2
+S: sa pa ma ri- s pa m r s- p m ga- m p n p ga- m pa m ri- p m ri-
+L: sR.Sh Tis dit yan da kA ra kA . mi ta kA mi ta pha la dA sa mA na gA tra Sa ci
+LineBreak
+S: n p m ri- s' n p m ri- r' sa'- p sa'- m pa- r g m pa- s' , n p m
+L: pa ti nu tA pti ma ta ha ra nu rA ga rA ga rA ji ta ka tA sA _ ra hi ta</pre>
+    <p>A heading always ends the current notation line, just like <code>SongBreak</code>.</p>
+
+    <h2 id="layout">Layout and DefaultSpeed</h2>
+    <table class="t">
+      <tr><th>Layout</th><th>Default speed</th><th>Alignment</th></tr>
+      <tr><td><code>Layout: krithi</code> (default)</td><td>second (2 swaras per akshara)</td><td>rows aligned at each anga; swaras within an anga run together</td></tr>
+      <tr><td><code>Layout: varnam</code></td><td>second</td><td>rows aligned at every akshara, with a space between aksharas</td></tr>
+      <tr><td><code>Layout: gitam</code></td><td>first (1 swara per akshara)</td><td>aligned at every akshara</td></tr>
+    </table>
+    <p><code>Layout: krithi,FullWidth</code> stretches the rows to the full width of the page.</p>
+    <p>By default the bars (<code>|</code>) of rows in the same section line up, so a short anga gets extra space to match a longer one in the rows above or below. <code>Layout: krithi,Compact</code> turns this off: every row is set at its natural width. The options can be combined (<code>Layout: krithi,Compact,FullWidth</code>), and the <b>Assist</b> button offers them as checkboxes. <i>(New in this version.)</i></p>
+    <p><code>DefaultSpeed: 0</code>, <code>1</code> or <code>2</code> overrides the layout's speed: first speed (one swara per akshara), second (two in catuśra gati) or third (four). Use <code>( )</code> for faster passages; there is no way to go slower than the default.</p>
+    <pre class="ex">Layout: gitam
+Tala: rupaka
+S: m   p d s' s' r' r' s' d p m      p
+L: sRi . ga Na nA ta sin du ra . var na
+S: r   m p d m p d p m g r s
+L: ka ru Na sA ga ra ka ri va da na .</pre>
+    <pre class="ex">Layout: varnam
+Tala: Adi
+S: g , g , r , , , s s r r g g r r s r g r s r s d` s r g p g r s r
+L: ni _ nnu _ kO . . . ri . . . . . . . yu . . . nnA . . . nu . . . ra . . .</pre>
+
+    <h2 id="gati">Gati</h2>
+    <p><code>Gati: tisra</code> (or <code>catusra</code>, <code>khanda</code>, <code>misra</code>, <code>sankirna</code>) changes the gati from the next swara. With a default speed of 2, switching away from catuśra drops to speed 1 (3, 5, 7 or 9 swaras per akshara) and switching back restores it, as in practice.</p>
+    <pre class="ex">Layout: Varnam
+Tala: Adi
+DefaultSpeed: 2
+S: s r g m p d n s' s' n d p | m g r s |
+Gati: Tisra
+S: s r g r g m g m p m p d ||
+Gati: Khanda
+S: s r s r g r g r g m
+Gati: Misra
+S: s r g s r g m
+Gati: Sankirna
+S: s r s r g s r g m |
+Gati: catusra
+S: s r g m p d n s' | s' n d p m g r s ||</pre>
+
+    <h2 id="speedmarks">SpeedMarks and PhraseEnds</h2>
+    <p><code>SpeedMarks: above</code> (default) or <code>below</code> puts speed lines over or under the swaras.</p>
+    <p><code>PhraseEnds: style</code> or <code>PhraseEnds: style,space</code> controls phrase-end hyphens. Styles: <code>Hide</code> (default), <code>Show</code> (as a hyphen), <code>Handle</code> and <code>HandleThick</code> (a small corner after the swara). Space is in pixels (<code>15</code>) or inches (<code>0.15in</code>). Speed lines are broken at shown or spaced phrase ends.</p>
+    <pre class="ex">SpeedMarks: below
+PhraseEnds: Handle,10
+Tala: Adi
+S: ( s' n' d p- n d p m ) pa ( s' n' d p- n d p m ) pa ; ;</pre>
+
+    <h2 id="heading">Heading, Title, Pagebreak, Orientation</h2>
+    <pre class="plain">Heading: "Heading text",attribute,attribute,...</pre>
+    <p>Attributes, in any order: a <b>number</b> (point size), <code>bold</code>, <code>italic</code>, <code>underline</code>, <code>left</code>/<code>center</code>/<code>right</code>, a <b>language</b> (<code>english</code>, <code>diacritics</code>, <code>sanskrit</code>, <code>telugu</code>, <code>tamil</code>, <code>kannada</code>, <code>malayalam</code>, optionally with attributes like <code>tamil:noqual</code>), or anything else, which is taken as a <b>font name</b>. <code>Heading: ""</code> adds a blank line.</p>
+    <p>Inside the text you can use <code>*bold*</code>, <code>_italic_</code>, <code>^superscript^</code>, <code>~subscript~</code>, <code>[br]</code> for a line break, <code>---</code> for a horizontal rule, <code>{c:red}</code> at the start for a colour, <code>{c:=}</code> to underline, <code>[img:https://…]</code> for an image, and tables:</p>
+    <pre class="ex">Heading: "*rAga:* AbhOgi[br]_tALa:_ Adi",center,13
+Heading: "---"
+Heading: "[|*P:*|nAdalOluDai brahmAnandamandavE manasA|\
+|*A:*|svAdu phalaprada sapta svara rAga nicaya sahita|]",11</pre>
+    <p><code>Title: "song name"</code> sets the page title, which browsers can print in the page header. <code>Pagebreak</code> forces a new page when printing. <code>Orientation: Landscape</code> (or <code>Portrait</code>) sets the printed page orientation; you can add a margin such as <code>Orientation: Landscape,0.5in</code>.</p>
+
+    <h2 id="language">Language and LanguageFont</h2>
+    <p><code>Language: English</code> (default), <code>Diacritics</code>, <code>Sanskrit</code>, <code>Telugu</code>, <code>Tamil</code>, <code>Kannada</code> or <code>Malayalam</code> sets the script for swaras, lyrics and headings. Lyrics and headings are typed in the Unified Transliteration Scheme:</p>
+    <table class="t">
+      <tr><th>Sounds</th><th>Write</th></tr>
+      <tr><td>vowels</td><td><code>a A i I u U R</code> (ṛ) <code>e E ai o O au</code> — capitals are long; <code>aa ii ee uu oo</code> also work</td></tr>
+      <tr><td>consonants</td><td><code>k kh g gh #n</code> (ṅ) &nbsp; <code>c ch j jh ~n</code> (ñ) &nbsp; <code>T Th D Dh N</code> (retroflex) &nbsp; <code>t th d dh n</code> &nbsp; <code>p ph b bh m</code> &nbsp; <code>y r l v</code> &nbsp; <code>S</code> (ś) <code>Sh</code> (ṣ) <code>s h</code> &nbsp; <code>L</code> (ḷ/ள) <code>zh</code> (ழ)</td></tr>
+      <tr><td>others</td><td><code>M</code> anusvāra, <code>H</code> visarga, <code>ksh</code> (kṣ), <code>jn</code> (jñ); a <code>.</code> between letters only separates them (<code>sR.ShTi</code>)</td></tr>
+    </table>
+    <pre class="ex">Language: Telugu
+Tala: Adi
+S: ; , ( p d n , ) pa m | ga , g | m pa , ||
+L: _ _ brO _ va _ bhA ra mA _ ra ghu rA ,
+Language: Malayalam
+S: ; , ( p d n , ) pa m | ga , g | m pa , ||
+L: _ _ brO _ va _ bhA ra mA _ ra ghu rA ,
+Language: Tamil
+S: ; , ( p d n , ) pa m | ga , g | m pa , ||
+L: _ _ brO _ va _ bhA ra mA _ ra ghu rA ,</pre>
+    <h3>Tamil</h3>
+    <p>Because a lyric word is split into syllables (<code>nin nu kO ri</code>), the typesetter cannot tell where words begin. In lyrics, <code>n</code> is therefore always ன; write <code>^n</code> or <code>n2</code> for ந (<code>ma na m ^nO gi</code>). In headings, word starts are detected normally. Sounds Tamil does not distinguish get small qualifier numbers (க² க³ க⁴); turn them off with <code>Language: Tamil:noqual</code>. <code>Tamil:granthasa</code> uses ஶ for <code>S</code>.</p>
+    <h3>Malayalam</h3>
+    <p>Malayalam follows modern spelling: a consonant at the end of a word or lyric syllable takes its chillu form — <code>n</code> ൻ, <code>N</code> ൺ, <code>r</code> ർ, <code>l</code> ൽ, <code>L</code> ൾ — and a final <code>m</code> is written as anusvāra ം (<code>avan</code> അവൻ, <code>manam</code> മനം). <code>Language: Malayalam:nochillu</code> keeps the older form with a visible virama (അവന്). Swaras are printed സ രി ഗ മ പ ധ നി. <i>(New in this version.)</i></p>
+    <h3>LanguageFont</h3>
+    <p>Every language has three built-in font styles, so the sheet looks the same on every device:</p>
+    <table class="t">
+      <tr><th>Style</th><th>Fonts</th><th>Character</th></tr>
+      <tr><td><code>Serif</code> (default)</td><td>Noto Serif</td><td>classic book style with thick and thin strokes</td></tr>
+      <tr><td><code>Sans</code></td><td>Anek</td><td>clean, even strokes</td></tr>
+      <tr><td><code>Rounded</code></td><td>Nunito (English), Baloo 2, Baloo Tammudu 2, Baloo Tamma 2, Baloo Chettan 2, Baloo Thambi 2</td><td>soft and rounded</td></tr>
+    </table>
+    <p><code>LanguageFont: Tamil,Rounded</code> sets the style for one language; <code>LanguageFont: All,Sans</code> sets it for every language (later lines can still change single languages). The English font is also used for labels, numbers and headings. The <b>Assist</b> button on a <code>LanguageFont</code> line shows each style with a preview. <i>(New in this version.)</i></p>
+    <p>You can also name a font installed on the reader's device, such as <code>LanguageFont: Tamil,Latha</code>; it shows only where that font is installed. <code>LanguageFont: English,Fixed</code> uses a fixed-width font.</p>
+    <pre class="ex">LanguageFont: All,Rounded
+Language: Tamil
+Tala: Adi
+S: ; , ( p d n , ) pa m | ga , g | m pa , ||
+L: _ _ brO _ va _ bhA ra mA _ ra ghu rA ,</pre>
+
+    <h2 id="prefs">Size and colour preferences</h2>
+    <p><code>SwaraPrefs</code>, <code>LyricPrefs</code>, <code>HeadingPrefs</code> and <code>GamakaPrefs</code> take a point size and/or a colour, e.g. <code>LyricPrefs: 12,blue</code> or <code>SwaraPrefs: 12,rgb(64,100,125)</code>. The swara size is the largest size used; the sheet is scaled down automatically when a line would not fit the screen or page.</p>
+    <pre class="ex">SwaraPrefs: 13,rgb(90,30,30)
+LyricPrefs: 11,green
+Tala: Adi
+S: s r g m p d n s' s' n d p m g r s
+L: sa ri ga ma pa da ni sa sa ni da pa ma ga ri sa</pre>
+
+    <h2 id="extensions">Additions in 2.0</h2>
+    <p>Everything above follows the v1.5 manual. These extras are new; files that use them won't work on the old site.</p>
+    <table class="t">
+      <tr><th>Write</th><th>Meaning</th></tr>
+      <tr><td><code>Raga: mOhanam</code>, <code>Composer: …</code>, <code>Arohana: s r2 g3 p d2 s'</code>, <code>Avarohana: …</code></td><td>A centred information line; ārōhaṇam/avarōhaṇam are drawn as swaras.</td></tr>
+      <tr><td><code>Section: pallavi</code> &nbsp; <code>Text: …</code></td><td>Quick headings without quotes or attributes.</td></tr>
+      <tr><td><code>r1 r2 g3 …</code></td><td>Swara variants shown with a subscript number.</td></tr>
+      <tr><td><code>srgm</code></td><td>Plain swaras may be written joined; same as <code>s r g m</code>.</td></tr>
+      <tr><td><code>S R G</code></td><td>A capital letter is a dhīrgha swara, like <code>sa ri ga</code>.</td></tr>
+      <tr><td><code>Tala: 4+2+2</code></td><td>A custom tala given as anga lengths in aksharas.</td></tr>
+      <tr><td><code>AvartanamsPerLine: 2</code></td><td>Put more than one avartanam on each line.</td></tr>
+      <tr><td><code>PageSize: Letter</code></td><td>Paper size when printing (A4, A5, A3, Letter, Legal).</td></tr>
+    </table>
+    <pre class="ex">Heading: "Alankaram 1",bold,center,14
+Raga: mAyAmALavagauLa
+Arohana: s r1 g3 m1 p d1 n3 s'
+Avarohana: s' n3 d1 p m1 g3 r1 s
+Layout: gitam
+Tala: Catusra_Dhruva
+S: srgm gr srgr srgm
+S: rgmp mg rgmg rgmp</pre>
+    <div class="note">Differences from v1.5: only a subset of the Wiky heading formatting is supported (the constructs listed above); images must use <code>https://</code> addresses; <code>Layout: …,FullWidth</code> stretches columns evenly rather than exactly as before.</div>
+
+    <h2 id="credits">Credits and licence</h2>
+    <p>The original <i>Carnatic Music Notation Typesetter</i> and its input format were created by Arun K and published under the GNU General Public License v2 (<a href="https://sourceforge.net/projects/cmnt/">sourceforge.net/projects/cmnt</a>). Most examples in this manual come from his v1.5 Beta manual. This rebuild is also free software under the GNU GPL, version 2 or later. Fonts: Noto Serif family, SIL Open Font License 1.1.</p>
+  </div>
+
+  <script type="module" src="../src/manual.ts"></script>
+</body>
+</html>
