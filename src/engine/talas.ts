@@ -1,6 +1,9 @@
 /*
  * Carnatic Music Notation Typesetter — tala definitions
- * SPDX-License-Identifier: GPL-2.0-or-later
+ * SPDX-License-Identifier: GPL-2.0-only
+ *
+ * Part of an unofficial rebuild of the Carnatic Music Notation Typesetter
+ * created by Arun K (sourceforge.net/projects/cmnt, GPLv2). See NOTICE.md.
  *
  * Tala names follow the v1.5 manual: Adi, Tisra_Adi, Adi2Kalai,
  * Rupaka/Roopaka, RupakaCapu, KhandaCapu, KhandaCapu2, MisraCapu, Dhruva2 and

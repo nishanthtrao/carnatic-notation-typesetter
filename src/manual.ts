@@ -1,6 +1,6 @@
 /*
  * Carnatic Music Notation Typesetter — renders the live examples in the manual
- * SPDX-License-Identifier: GPL-2.0-or-later
+ * SPDX-License-Identifier: GPL-2.0-only
  */
 import { parse, render } from './engine';
 

@@ -2,7 +2,7 @@
  * Preparing photos for the vision model: fix orientation, rotate on request,
  * scale so the long edge is at most 2,576 px (the most current Claude models
  * read at that resolution) and encode as JPEG under the 10 MB limit.
- * SPDX-License-Identifier: GPL-2.0-or-later
+ * SPDX-License-Identifier: GPL-2.0-only
  */
 
 export interface PreparedImage {

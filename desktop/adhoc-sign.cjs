@@ -1,6 +1,6 @@
 /*
  * electron-builder "afterPack" hook.
- * SPDX-License-Identifier: GPL-2.0-or-later
+ * SPDX-License-Identifier: GPL-2.0-only
  *
  * Apple Silicon Macs refuse to run apps whose code signature is broken
  * ("app is damaged"). Without a paid Apple Developer certificate we give the

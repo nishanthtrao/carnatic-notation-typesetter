@@ -1,7 +1,7 @@
 /*
  * Reading notation from photos with Claude (Anthropic API), using the
  * user's own API key, called directly from the browser / desktop app.
- * SPDX-License-Identifier: GPL-2.0-or-later
+ * SPDX-License-Identifier: GPL-2.0-only
  */
 import { parse } from '../engine';
 import { repairInstruction, SYSTEM_PROMPT, userInstruction, type RecognitionHints } from './prompt';

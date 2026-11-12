@@ -2,10 +2,17 @@
   "name": "carnatic-notation-typesetter",
   "productName": "Carnatic Notation Typesetter",
   "version": "3.0.0",
-  "description": "Typeset Carnatic music notation (swaras, lyrics, tala) in English, Sanskrit, Telugu, Kannada and Tamil \u2014 and read handwritten notation from photos",
+  "description": "Unofficial rebuild of Arun K's Carnatic Music Notation Typesetter: typeset Carnatic music notation in English, Sanskrit, Telugu, Kannada, Malayalam and Tamil, and read handwritten notation from photos",
   "author": "Carnatic Notation Typesetter contributors",
-  "homepage": "https://sourceforge.net/projects/cmnt/",
-  "license": "GPL-2.0-or-later",
+  "homepage": "https://github.com/nishanthtrao/carnatic-notation-typesetter",
+  "contributors": [
+    "Arun K (creator of the original Carnatic Music Notation Typesetter, https://sourceforge.net/projects/cmnt/)"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nishanthtrao/carnatic-notation-typesetter.git"
+  },
+  "license": "GPL-2.0-only",
   "private": true,
   "type": "module",
   "main": "desktop/main.cjs",
@@ -39,7 +46,7 @@
   "build": {
     "appId": "io.github.cmnt.typesetter",
     "productName": "Carnatic Notation Typesetter",
-    "copyright": "Free software under the GNU GPL v2 or later",
+    "copyright": "Based on the Carnatic Music Notation Typesetter by Arun K. Free software under the GNU GPL v2",
     "directories": {
       "output": "release",
       "buildResources": "build"

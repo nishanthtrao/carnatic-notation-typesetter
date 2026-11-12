@@ -1,6 +1,6 @@
 /*
  * Instructions for reading handwritten notation with Claude's vision.
- * SPDX-License-Identifier: GPL-2.0-or-later
+ * SPDX-License-Identifier: GPL-2.0-only
  *
  * The model is asked to transcribe what is on the page into this
  * typesetter's input format (v1.5 syntax), which the user then reviews.

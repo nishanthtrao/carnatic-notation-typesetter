@@ -1,5 +1,5 @@
 // Photo-reader tests with a simulated Anthropic API — run with: npm test
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: GPL-2.0-only
 import { describe, expect, test } from 'vitest';
 import { parse } from '../src/engine/parser';
 import { API_URL, estimateCost, explainError, extractReply, recognizeNotation, RecognitionError } from '../src/recognition/claude';

@@ -2,7 +2,11 @@
 
 Typeset Carnatic music notation (swaras, lyrics, tala markers, speed lines, gamakas) in English, English with diacritics, Sanskrit, Telugu, Kannada, Malayalam and Tamil, and **read handwritten notation from a photo**. It runs as a website and as a desktop app for Windows, macOS and Linux.
 
-This is a modern rebuild of **Arun K's Carnatic Music Notation Typesetter v1.5 Beta**. It reads the **same input format**, so notation files written for the old site open unchanged.
+> **Credit:** the Carnatic Music Notation Typesetter and its input format were created by **Arun K** ([original project](https://sourceforge.net/projects/cmnt/), [his page about it](http://arunk.freepgs.com/wordpress/cm-typesetter/about/)). This is an **unofficial, community-maintained rebuild** of his v1.5 Beta, made because the original site is no longer maintained. It is not affiliated with or endorsed by Arun K. See [NOTICE.md](NOTICE.md) for full credits and the list of changes.
+
+**Live site:** https://carnatic-notation-typesetter.onrender.com
+
+It reads the **same input format** as the original, so notation files written for the old site open unchanged.
 
 - **Built with** React and TypeScript (Vite), with a framework-independent, fully typed notation engine.
 - **Design** follows Apple's Human Interface Guidelines: a unified title bar and toolbar, text and notation side by side, light and dark mode, sheets for dialogs, and a phone layout that switches between Notation and Text.
@@ -107,4 +111,4 @@ How it works:
 
 ## Credits and licence
 
-The original typesetter and its input format were created by Arun K and released under the GNU GPL v2 (https://sourceforge.net/projects/cmnt/). This rebuild is free software under the **GNU General Public License, version 2 or later** (see `LICENSE`). The bundled fonts (Noto Serif, Anek, Nunito and the Baloo 2 family) are under the SIL Open Font License 1.1 (`src/assets/fonts/OFL.txt`).
+The original typesetter, its input format and the v1.5 Beta manual were created by **Arun K** and released under the GNU GPL v2 (https://sourceforge.net/projects/cmnt/). This rebuild's code was written from scratch to the same specification; it is free software under the same licence, the **GNU General Public License, version 2** (see `LICENSE`). Full credits and the list of changes are in [NOTICE.md](NOTICE.md). The bundled fonts (Noto Serif, Anek, Nunito and the Baloo 2 family) are under the SIL Open Font License 1.1 (`src/assets/fonts/OFL.txt`).

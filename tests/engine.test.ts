@@ -1,5 +1,5 @@
 // Engine tests — run with: npm test
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: GPL-2.0-only
 import { readFileSync } from 'node:fs';
 import { test, expect } from 'vitest';
 import * as talas from '../src/engine/talas';
@@ -240,4 +240,14 @@ test('LanguageFont: bundled styles and All', () => {
   expect(parseFontStyle(' rounded ')).toBe('rounded');
   expect(parseFontStyle('Latha')).toBeNull();
   expect(parser.parse('LanguageFont: Klingon,Sans\n').warnings).toHaveLength(1);
+});
+
+test('comments: # % // lines and <!-- --> blocks', () => {
+  const d = parser.parse('# a\n% b\n// c\n<!-- one line -->\nS: s r g m ||\n<!--\nS: this is not parsed\nL: nor this\n-->\nS: p d n s\' ||\nTala: Bogus\n');
+  expect(d.blocks.filter((b) => b.type === 'staff')).toHaveLength(1);
+  expect(d.warnings.map((w) => w.line)).toEqual([11]); // line numbers survive block comments
+  const open = parser.parse('S: s r g m ||\n<!-- forgot to close\nS: p d n s ||\n');
+  expect(open.warnings).toHaveLength(1);
+  expect(open.warnings[0].line).toBe(2);
+  expect(open.warnings[0].message).toMatch(/never closed/);
 });

@@ -1,6 +1,6 @@
 /*
  * Carnatic Music Notation Typesetter — entry point
- * SPDX-License-Identifier: GPL-2.0-or-later
+ * SPDX-License-Identifier: GPL-2.0-only
  */
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';

@@ -1,6 +1,9 @@
 /*
  * Carnatic Music Notation Typesetter — input parser
- * SPDX-License-Identifier: GPL-2.0-or-later
+ * SPDX-License-Identifier: GPL-2.0-only
+ *
+ * Part of an unofficial rebuild of the Carnatic Music Notation Typesetter
+ * created by Arun K (sourceforge.net/projects/cmnt, GPLv2). See NOTICE.md.
  *
  * Implements the input format of Carnatic Music Notation Typesetter v1.5
  * Beta (see docs/manual.html), plus a few extensions marked as such there.
@@ -240,7 +243,17 @@ export function parse(input: string): NotationDoc {
   };
 
   // ---- read lines, joining "\" continuations ----------------------------
-  const rawLines = String(input || '').replace(/\r\n?/g, '\n').split('\n');
+  // Extension: <!-- … --> comments, which may span lines. They are blanked out
+  // (newlines kept) so line numbers in warnings stay right.
+  let source = String(input || '').replace(/\r\n?/g, '\n');
+  let unclosedComment = -1;
+  source = source.replace(/<!--[\s\S]*?(-->|$)/g, (m: string, close: string, at: number) => {
+    if (!close) unclosedComment = at;
+    return m.replace(/[^\n]/g, ' ');
+  });
+  if (unclosedComment >= 0)
+    warn(source.slice(0, unclosedComment).split('\n').length, 'This <!-- comment is never closed with --> so everything after it is ignored');
+  const rawLines = source.split('\n');
   const lines: { no: number; text: string }[] = [];
   for (let i = 0; i < rawLines.length; i++) {
     let text = rawLines[i];

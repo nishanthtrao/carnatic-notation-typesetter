@@ -1,6 +1,9 @@
 /*
  * Carnatic Music Notation Typesetter — HTML renderer
- * SPDX-License-Identifier: GPL-2.0-or-later
+ * SPDX-License-Identifier: GPL-2.0-only
+ *
+ * Part of an unofficial rebuild of the Carnatic Music Notation Typesetter
+ * created by Arun K (sourceforge.net/projects/cmnt, GPLv2). See NOTICE.md.
  *
  * Layout works like a notation book: swaras within an anga (or akshara, in
  * the gitam/varnam layouts) are set close together and rows of the same

@@ -1,6 +1,6 @@
 /*
  * Carnatic Music Notation Typesetter — document model
- * SPDX-License-Identifier: GPL-2.0-or-later
+ * SPDX-License-Identifier: GPL-2.0-only
  *
  * parser.ts turns the text input into a NotationDoc; render.ts draws it.
  * Times are in aksharas (beats) measured from the start of a row.

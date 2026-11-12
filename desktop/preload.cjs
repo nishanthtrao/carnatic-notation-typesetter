@@ -1,6 +1,6 @@
 /*
  * Carnatic Music Notation Typesetter — desktop bridge (Electron preload)
- * SPDX-License-Identifier: GPL-2.0-or-later
+ * SPDX-License-Identifier: GPL-2.0-only
  *
  * Exposes a small, fixed API to the page as window.cmntDesktop. The page
  * never gets direct access to Node.js or the file system.

@@ -1,3 +1,4 @@
+import { toggleLineComments } from '../lib/comments';
 import { forwardRef, useImperativeHandle, useRef } from 'react';
 import { complete } from '../lib/directives';
 
@@ -136,6 +137,12 @@ export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationE
           if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
             e.preventDefault();
             onShortcut('update');
+          } else if ((e.ctrlKey || e.metaKey) && (e.key === '/' || e.code === 'Slash')) {
+            e.preventDefault();
+            const el = e.currentTarget;
+            const c = toggleLineComments(el.value, el.selectionStart, el.selectionEnd);
+            replaceRange(c.start, c.end, c.text);
+            el.setSelectionRange(c.selStart, c.selEnd);
           } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
             e.preventDefault();
             onShortcut('save');

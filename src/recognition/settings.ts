@@ -1,7 +1,7 @@
 /*
  * Photo-reader settings. The API key is kept on this device only: encrypted
  * by the operating system in the desktop app, in browser storage on the web.
- * SPDX-License-Identifier: GPL-2.0-or-later
+ * SPDX-License-Identifier: GPL-2.0-only
  */
 import { desk } from '../lib/desktop';
 import { KEYS, store } from '../lib/storage';

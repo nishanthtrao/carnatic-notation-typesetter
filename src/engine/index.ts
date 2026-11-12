@@ -1,6 +1,6 @@
 /*
  * Carnatic Music Notation Typesetter — engine public API
- * SPDX-License-Identifier: GPL-2.0-or-later
+ * SPDX-License-Identifier: GPL-2.0-only
  */
 export * from './types';
 export { parse, alignmentMap, tokenizeSwaraLine, perAkshara, SWARA_RE } from './parser';

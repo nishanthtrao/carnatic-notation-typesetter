@@ -1,6 +1,9 @@
 /*
  * Carnatic Music Notation Typesetter — transliteration
- * SPDX-License-Identifier: GPL-2.0-or-later
+ * SPDX-License-Identifier: GPL-2.0-only
+ *
+ * Part of an unofficial rebuild of the Carnatic Music Notation Typesetter
+ * created by Arun K (sourceforge.net/projects/cmnt, GPLv2). See NOTICE.md.
  *
  * Converts lyrics typed in the Unified Transliteration Scheme (a Harvard-Kyoto
  * style roman scheme, e.g. "SrI kamalAmbikAyAm", "dEvi nIyE tuNai") into

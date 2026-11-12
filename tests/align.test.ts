@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
+// SPDX-License-Identifier: GPL-2.0-only
 import { expect, test } from 'vitest';
 import { alignText } from '../src/lib/align';
 import { complete } from '../src/lib/directives';

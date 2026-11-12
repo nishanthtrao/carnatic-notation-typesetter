@@ -43,7 +43,13 @@
 
   <div class="wrap">
     <p>The typesetter turns a simple text description of a song into a notation sheet laid out like a Carnatic music book: swaras and lyrics aligned against the tala, speed lines, stayi dots, gamaka signs and headings, in English, English with diacritics, Sanskrit, Telugu, Kannada, Malayalam or Tamil.</p>
-    <p>This is version 3.0, a modern rebuild of Arun K's <i>Carnatic Music Notation Typesetter v1.5 Beta</i>. It reads the same input format, so notation files written for the old site work here unchanged. Small additions are marked <span class="ext">new</span>.</p>
+    <div class="note credit-note">
+      <b>Credit:</b> the <i>Carnatic Music Notation Typesetter</i> and its input format were created by <b>Arun K</b>
+      (<a href="https://sourceforge.net/projects/cmnt/">original project</a>, <a href="http://arunk.freepgs.com/wordpress/cm-typesetter/about/">his page about it</a>).
+      This version 3.0 is an unofficial, community-maintained rebuild of his v1.5 Beta, made so it keeps working in today's browsers; it is not affiliated with or endorsed by him.
+      This manual follows his v1.5 Beta manual, and most of its examples come from it.
+    </div>
+    <p>It reads the same input format, so notation files written for the old site work here unchanged. Small additions are marked <span class="ext">new</span>.</p>
 
     <nav class="toc" aria-label="Contents">
       <a href="#editor">Using the editor</a>
@@ -100,7 +106,15 @@
     <div class="note"><b>For the best results:</b> photograph in daylight, flat and square-on, one page per photo, filling the frame. Crop away anything that isn't notation. Dots above and below swaras and the lines marking faster passages are the easiest things to lose, so check those first. Lyrics written in Indian scripts are converted to the roman transliteration this typesetter uses, so you can still switch the display language afterwards.</div>
 
     <h2 id="basics">Input basics</h2>
-    <p>Each line holds one <b>directive</b>: a name, a colon and a value. Names are case-insensitive and spaces around the colon don't matter. A few directives (<code>SmartLyricMode</code>, <code>SongBreak</code>, <code>LineBreak</code>, <code>Pagebreak</code>) have no value. Lines starting with <code>#</code> (or <code>%</code>) are comments, and blank lines are ignored.</p>
+    <p>Each line holds one <b>directive</b>: a name, a colon and a value. Names are case-insensitive and spaces around the colon don't matter. A few directives (<code>SmartLyricMode</code>, <code>SongBreak</code>, <code>LineBreak</code>, <code>Pagebreak</code>) have no value. Blank lines are ignored.</p>
+    <p><b>Comments.</b> A line starting with <code>#</code>, <code>%</code> or <code>//</code> is a comment. To comment out several lines at once, wrap them in <code>&lt;!--</code> and <code>--&gt;</code>, as in HTML; this can span any number of lines. <span class="ext">new</span> In the editor, <b>Ctrl+/</b> (<b>⌘/</b> on a Mac) comments or uncomments the selected lines. A comment can't follow other text on the same line, because <code>#</code> is also used in ordinary text such as <code>caraNam #5</code>.</p>
+    <pre class="ex"># Pallavi only for now
+Tala: Adi
+S: s r g m | p , | m g ||
+&lt;!--
+S: this line is not ready yet
+L: so it is commented out
+--&gt;</pre>
     <pre class="plain">Tala: Adi
 S: s r g m | p d | n s'</pre>
     <p>Directives such as <code>Tala</code>, <code>Layout</code>, <code>DefaultSpeed</code> and <code>SmartLyricMode</code> belong in the <i>header</i>, before the first heading or swara line. Here is a complete short example (the "Quick Start" from the original manual):</p>
@@ -331,7 +345,9 @@ S: rgmp mg rgmg rgmp</pre>
     <div class="note">Differences from v1.5: only a subset of the Wiky heading formatting is supported (the constructs listed above); images must use <code>https://</code> addresses; <code>Layout: …,FullWidth</code> stretches columns evenly rather than exactly as before.</div>
 
     <h2 id="credits">Credits and licence</h2>
-    <p>The original <i>Carnatic Music Notation Typesetter</i> and its input format were created by Arun K and published under the GNU General Public License v2 (<a href="https://sourceforge.net/projects/cmnt/">sourceforge.net/projects/cmnt</a>). Most examples in this manual come from his v1.5 Beta manual. This rebuild is also free software under the GNU GPL, version 2 or later. Fonts: Noto Serif family, SIL Open Font License 1.1.</p>
+    <p>The original <i>Carnatic Music Notation Typesetter</i>, its input format and the v1.5 Beta manual were created by <b>Arun K</b> and published under the GNU General Public License v2 (<a href="https://sourceforge.net/projects/cmnt/">sourceforge.net/projects/cmnt</a>; <a href="http://arunk.freepgs.com/wordpress/cm-typesetter/about/">arunk.freepgs.com</a>). Most examples in this manual come from his manual.</p>
+    <p>This version is an unofficial rebuild, not affiliated with or endorsed by Arun K. Its code was written from scratch to the same specification and is free software under the same licence, the GNU GPL version 2. The changes from the original are listed in <a href="https://github.com/nishanthtrao/carnatic-notation-typesetter/blob/main/NOTICE.md">NOTICE.md</a>; the source code is on <a href="https://github.com/nishanthtrao/carnatic-notation-typesetter">GitHub</a>.</p>
+    <p>Fonts: Noto Serif, Anek, Nunito and the Baloo 2 family, under the SIL Open Font License 1.1.</p>
   </div>
 
   <script type="module" src="../src/manual.ts"></script>

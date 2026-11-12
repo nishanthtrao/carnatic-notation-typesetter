@@ -1,6 +1,6 @@
 /*
  * Bundled font styles for the LanguageFont directive.
- * SPDX-License-Identifier: GPL-2.0-or-later
+ * SPDX-License-Identifier: GPL-2.0-only
  *
  * Every language has three bundled styles, each from a different class:
  *   Serif   - Noto Serif (default): book style with stroke contrast

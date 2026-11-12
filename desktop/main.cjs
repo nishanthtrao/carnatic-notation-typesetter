@@ -1,6 +1,6 @@
 /*
  * Carnatic Music Notation Typesetter — desktop app (Electron main process)
- * SPDX-License-Identifier: GPL-2.0-or-later
+ * SPDX-License-Identifier: GPL-2.0-only
  *
  * Wraps the web app (index.html) in a native window and adds what a browser
  * page cannot do: real file Open/Save/Save As, PDF export, native printing,
@@ -508,7 +508,8 @@ function buildMenu() {
       role: 'help',
       submenu: [
         { label: 'Manual', accelerator: 'F1', click: openManual },
-        { label: 'Original Typesetter (SourceForge)', click: () => shell.openExternal('https://sourceforge.net/projects/cmnt/') },
+        { label: 'About and Credits…', click: () => send('about') },
+        { label: "Arun K's Original Typesetter (SourceForge)", click: () => shell.openExternal('https://sourceforge.net/projects/cmnt/') },
         ...(isMac ? [] : [{ type: 'separator' }, { role: 'about' }]),
       ],
     },
@@ -547,7 +548,7 @@ if (!app.requestSingleInstanceLock()) {
     app.setAboutPanelOptions({
       applicationName: PRODUCT,
       applicationVersion: app.getVersion(),
-      copyright: 'Free software under the GNU GPL v2 or later. Based on the original typesetter by Arun K.',
+      copyright: 'Based on the Carnatic Music Notation Typesetter created by Arun K. Unofficial rebuild, not affiliated with or endorsed by Arun K. Free software under the GNU GPL v2.',
     });
     buildMenu();
     const files = pendingOpen.concat(filesFromArgv(process.argv));

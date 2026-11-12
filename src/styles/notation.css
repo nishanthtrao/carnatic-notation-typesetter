@@ -1,6 +1,6 @@
 /*
  * Carnatic Music Notation Typesetter — notation sheet styles
- * SPDX-License-Identifier: GPL-2.0-or-later
+ * SPDX-License-Identifier: GPL-2.0-only
  *
  * Used by the editor preview, the manual and printing.
  * Geometry is set by render.js through custom properties:

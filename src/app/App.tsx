@@ -1,6 +1,6 @@
 /*
  * Carnatic Music Notation Typesetter — the editor application
- * SPDX-License-Identifier: GPL-2.0-or-later
+ * SPDX-License-Identifier: GPL-2.0-only
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { examples, newSongTemplate, parse, type Example, type NotationDoc } from '../engine';
@@ -14,6 +14,7 @@ import { Icon } from '../components/Icons';
 import { AssistDialog, assistModeFor, type AssistMode, type FormName } from '../dialogs/AssistDialog';
 import { useConfirm } from '../dialogs/ConfirmDialog';
 import { CopyTextDialog } from '../dialogs/CopyTextDialog';
+import { AboutDialog } from '../dialogs/AboutDialog';
 import { ExamplesDialog } from '../dialogs/ExamplesDialog';
 import { NewSongDialog } from '../dialogs/NewSongDialog';
 import { PhotoImportDialog } from '../dialogs/PhotoImportDialog';
@@ -25,7 +26,7 @@ import { readShareHash } from '../lib/share';
 import { KEYS, store } from '../lib/storage';
 import APP_ICON from '../assets/app-icon.png';
 
-type DialogName = 'new' | 'examples' | 'share' | 'photo' | 'settings' | 'copy' | null;
+type DialogName = 'new' | 'examples' | 'share' | 'photo' | 'settings' | 'copy' | 'about' | null;
 
 interface Initial {
   text: string;
@@ -241,6 +242,7 @@ function Editor({ initial }: { initial: Initial }) {
         setDialog('photo');
       },
       examples: () => setDialog('examples'),
+      about: () => setDialog('about'),
       share: () => setDialog('share'),
       exportPdf: async () => {
         update();
@@ -387,7 +389,9 @@ function Editor({ initial }: { initial: Initial }) {
     <>
       <header className="titlebar">
         <div className="tb-doc">
-          <img className="tb-icon" src={APP_ICON} alt="" />
+          <button type="button" className="tb-icon-btn" onClick={() => setDialog('about')} title="About this app and its original creator" aria-label="About">
+            <img className="tb-icon" src={APP_ICON} alt="" />
+          </button>
           <div className="tb-names">
             <div className="tb-title">
               {docState.name || 'Untitled'}
@@ -450,6 +454,9 @@ function Editor({ initial }: { initial: Initial }) {
           <footer className="pane-foot">
             <IssuesBadge list={doc.warnings} open={issuesOpen} onToggle={() => setIssuesOpen(!issuesOpen)} />
             <span className="status" aria-live="polite">{status}</span>
+            <button type="button" className="credit-link" onClick={() => setDialog('about')} title="About this app and its original creator">
+              Based on Arun K's typesetter
+            </button>
             {!autoUpdate && (
               <button
                 type="button"
@@ -500,6 +507,7 @@ function Editor({ initial }: { initial: Initial }) {
           setTimeout(() => editor.current?.goToLine(line), 0);
         }}
       />
+      <AboutDialog open={dialog === 'about'} onClose={() => setDialog(null)} />
       <ExamplesDialog open={dialog === 'examples'} onClose={() => setDialog(null)} onPick={openExample} />
       <ShareDialog open={dialog === 'share'} onClose={() => setDialog(null)} text={text} />
       <CopyTextDialog
