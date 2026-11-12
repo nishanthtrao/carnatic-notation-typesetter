@@ -276,12 +276,12 @@ function layoutDoc(doc: NotationDoc, el: HTMLElement): Geometry {
   return { maxTotal: Math.max(maxTotal, 4), labelW, rows: rowsGeo, evs: evGeo, styles };
 }
 
-function renderStaff(st: StaffBlock, geo: Geometry, stretch: number): string {
+function renderStaff(st: StaffBlock, geo: Geometry, stretch: number, bi = 0): string {
   const { labelW } = geo;
   const style = geo.styles.get(st) || '';
   const sx = (x: number) => num(labelW + (x - labelW) * stretch) + 'em';
   let html = '<div class="cm-staff' + (st.speedMarks === 'below' ? ' marks-below' : '') + '"' + (style ? ' style="' + style + '"' : '') + ' data-line="' + st.line + '">';
-  for (const row of st.rows) {
+  for (const [ri, row] of st.rows.entries()) {
     const g = geo.rows.get(row)!;
     const E = (ev: NoteEvent) => geo.evs.get(ev)!;
     const hasGamaka = row.events.some((ev) => ev.gamaka);
@@ -289,7 +289,8 @@ function renderStaff(st: StaffBlock, geo: Geometry, stretch: number): string {
     // (speed lines above, gamakas); otherwise they keep a band of their own.
     const roomAbove = !hasGamaka && (st.speedMarks === 'below' || !row.groups.length);
     const cls = (hasGamaka ? ' has-gamaka' : '') + (row.inline.length ? ' has-inline' + (roomAbove ? ' it-tight' : '') : '');
-    html += '<div class="cm-row' + cls + '" style="width:' + sx(g.total) + '">';
+    // data-row / data-ev: block.row.event, so playback can highlight the note being played
+    html += '<div class="cm-row' + cls + '" data-row="' + bi + '.' + ri + '" style="width:' + sx(g.total) + '">';
     if (row.label) html += '<span class="cm-label">' + esc(row.label) + '</span>';
 
     if (row.inline.length) {
@@ -302,9 +303,9 @@ function renderStaff(st: StaffBlock, geo: Geometry, stretch: number): string {
     }
 
     html += '<div class="cm-swaras">';
-    for (const ev of row.events) {
+    for (const [ei, ev] of row.events.entries()) {
       const eg = E(ev);
-      if (eg.html) html += '<span class="cm-ev" style="left:' + sx(eg.x) + '">' + eg.html + '</span>';
+      if (eg.html) html += '<span class="cm-ev" data-ev="' + bi + '.' + ri + '.' + ei + '" style="left:' + sx(eg.x) + '">' + eg.html + '</span>';
     }
     for (const gr of row.groups) {
       const a = row.events.find((e) => Math.abs(e.t - gr.start) < EPS);
@@ -399,12 +400,12 @@ export function render(doc: NotationDoc, el: HTMLElement, options: { emptyText?:
       stretchFor = (st) => (st.fullWidth ? Math.max(1, (availEm - geo.labelW - 0.2) / (geo.maxTotal - geo.labelW)) : 1);
     }
     let html = '';
-    for (const b of doc.blocks) {
+    for (const [bi, b] of doc.blocks.entries()) {
       if (b.type === 'heading') html += renderHeading(b);
       else if (b.type === 'space') html += '<div class="cm-space"></div>';
       else if (b.type === 'pagebreak') html += '<div class="cm-pagebreak"></div>';
       else if (b.type === 'meta') html += renderMeta(b.items);
-      else if (b.type === 'staff') html += renderStaff(b, geo, stretchFor(b));
+      else if (b.type === 'staff') html += renderStaff(b, geo, stretchFor(b), bi);
     }
     if (!doc.blocks.length) html = '<p class="cm-empty">' + esc(options.emptyText || 'Nothing to show yet.') + '</p>';
     el.innerHTML = styleTag + html;

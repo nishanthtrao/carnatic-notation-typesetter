@@ -904,3 +904,77 @@ select optgroup {
   font: 600 12px var(--font);
   cursor: pointer;
 }
+
+/* ---- Player (Play) ---- */
+.player {
+  position: sticky;
+  bottom: 4px;
+  z-index: 5;
+  max-width: 680px;
+  margin: 18px auto 0;
+  padding: 10px 14px 12px;
+  border-radius: 18px;
+  background: var(--material-strong);
+  -webkit-backdrop-filter: saturate(180%) blur(24px);
+  backdrop-filter: saturate(180%) blur(24px);
+  box-shadow: 0 0 0 0.5px var(--separator), 0 10px 34px rgba(0, 0, 0, 0.2);
+  color: var(--label);
+  font-size: 13px;
+}
+.pl-main { display: flex; align-items: center; gap: 12px; }
+.pl-play {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+.pl-play:disabled { opacity: 0.4; cursor: default; }
+.pl-play .ico { width: 20px; height: 20px; fill: currentColor; stroke-width: 1; }
+.pl-info { flex: 1; min-width: 0; display: grid; gap: 6px; }
+.pl-raga { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.pl-raga select {
+  min-width: 0;
+  max-width: 60%;
+  padding: 3px 6px;
+  border: 1px solid var(--separator);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--label);
+  font: 600 13px var(--font);
+}
+.pl-src { color: var(--label-2); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pl-progress { height: 4px; border-radius: 2px; background: var(--fill-2); overflow: hidden; }
+.pl-progress span { display: block; height: 100%; background: var(--accent); transition: width 0.1s linear; }
+.pl-close {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--fill);
+  color: var(--label-2);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+.pl-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-top: 10px; color: var(--label-2); }
+.pl-controls label { display: inline-flex; align-items: center; gap: 6px; }
+.pl-controls select {
+  padding: 3px 6px;
+  border: 1px solid var(--separator);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--label);
+  font: inherit;
+}
+.pl-tempo input { width: 120px; accent-color: var(--accent); }
+.pl-tempo span { min-width: 2.2em; color: var(--label); font-variant-numeric: tabular-nums; }
+.pl-check input { accent-color: var(--accent); }
+.pl-note { margin: 8px 0 0; color: var(--label-2); }
+@media print { .player { display: none !important; } }

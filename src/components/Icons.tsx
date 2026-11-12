@@ -8,6 +8,8 @@ const P: Record<string, string> = {
   align: 'M3 5h14 M3 9h10 M3 13h14 M3 17h10',
   library: 'M3 3h3.5v14H3z M8 3h3.5v14H8z M13.2 4.2l3.3-.9 3 12.8-3.3.9z',
   duplicate: 'M7 7h10v10H7z M4 13V4h9',
+  play: 'M6 3.5l10 6.5-10 6.5z',
+  stop: 'M5 5h10v10H5z',
   install: 'M10 3v9 M6.5 8.5l3.5 3.5 3.5-3.5 M4 14v3h12v-3',
   letters: 'M2.5 16l4.5-12 4.5 12 M4.2 11.5h5.6 M13.5 8.5h4 M13.5 12h4 M13.5 15.5h4',
   photo: 'M2.5 6h3l1.5-2h6l1.5 2h3v10h-15z M10 13.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',

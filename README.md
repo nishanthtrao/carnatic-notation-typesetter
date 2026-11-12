@@ -68,6 +68,10 @@ The site is a static build in `dist/`.
 
 The build uses relative paths, so it works in any folder.
 
+## Playback
+
+`src/audio/`: `ragas.ts` (swarasthanas, the 72 melakartas, common janya ragas with separate ascent/descent where needed, and working out a song's raga), `schedule.ts` (parsed song → timed notes and tala beats), `engine.ts` (Web Audio: voice, tanpura, clicks, a look-ahead scheduler). `src/components/Player.tsx` is the player bar; the renderer tags each swara with `data-ev` so the playing note can be highlighted.
+
 ## Song library
 
 Songs are kept in the browser's local storage (`src/lib/library.ts`) and saved as you type; the Library window (`src/dialogs/LibraryDialog.tsx`) searches, opens, duplicates, deletes (with Undo), imports files, and backs up / restores everything as one JSON file. The single draft kept by earlier versions moves into the library on first start.

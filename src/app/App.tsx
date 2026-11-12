@@ -16,6 +16,7 @@ import { useConfirm } from '../dialogs/ConfirmDialog';
 import { CopyTextDialog } from '../dialogs/CopyTextDialog';
 import { LettersDialog, type LettersContext } from '../dialogs/LettersDialog';
 import { lettersContext } from '../lib/letters-context';
+import { Player } from '../components/Player';
 import { useInstallPrompt } from '../lib/install';
 import { AboutDialog } from '../dialogs/AboutDialog';
 import { ExamplesDialog } from '../dialogs/ExamplesDialog';
@@ -91,6 +92,7 @@ function Editor({ initial }: { initial: Initial }) {
   const editor = useRef<EditorHandle>(null);
   const [lettersCtx, setLettersCtx] = useState<LettersContext | null>(null);
   const installPrompt = useInstallPrompt();
+  const [playerOpen, setPlayerOpen] = useState(false);
   // Run an editor action once the current dialog has closed (a closing <dialog>
   // moves focus, so the editor must be focused after that, not before).
   const afterClose = useRef<(() => void) | null>(null);
@@ -409,6 +411,11 @@ function Editor({ initial }: { initial: Initial }) {
         setDialog('photo');
       },
       examples: () => setDialog('examples'),
+      play: () => {
+        update(); // play what is written now
+        setView('notation');
+        setPlayerOpen((o) => !o);
+      },
       library: () => {
         flushLibrary();
         setLibVersion((v) => v + 1);
@@ -615,6 +622,9 @@ function Editor({ initial }: { initial: Initial }) {
       >
         <section className="preview-pane" aria-label="Notation preview">
           <Preview doc={doc} landscape={doc.page.orientation === 'landscape'} onJumpToLine={(n) => { setView('text'); setTimeout(() => editor.current?.goToLine(n), 0); }} />
+          {playerOpen && (
+            <Player doc={doc} text={text} sheet={() => appRef.current?.querySelector('.preview-pane .cm-sheet') ?? null} onClose={() => setPlayerOpen(false)} />
+          )}
         </section>
 
         <Splitter

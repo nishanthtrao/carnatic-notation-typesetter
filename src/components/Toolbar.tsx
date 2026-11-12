@@ -1,7 +1,7 @@
 import { Icon } from './Icons';
 
 export type Command =
-  | 'new' | 'library' | 'open' | 'save' | 'saveAs' | 'assist' | 'letters' | 'update' | 'align' | 'photo'
+  | 'new' | 'library' | 'play' | 'open' | 'save' | 'saveAs' | 'assist' | 'letters' | 'update' | 'align' | 'photo'
   | 'examples' | 'share' | 'exportPdf' | 'print';
 
 interface Item {
@@ -27,6 +27,7 @@ const GROUPS: Item[][] = [
     { cmd: 'align', label: 'Align', title: 'Line up lyrics under their swaras', icon: 'align' },
     { cmd: 'examples', label: 'Examples', title: 'Open an example', icon: 'examples' },
   ],
+  [{ cmd: 'play', label: 'Play', title: 'Listen to the notation, with tanpura and tala', icon: 'play' }],
   [{ cmd: 'photo', label: 'Read Photo', title: 'Read handwritten notation from a photo', icon: 'photo', prominent: true }],
   [
     { cmd: 'share', label: 'Share', title: 'Copy a link to this notation', icon: 'share', only: 'web' },

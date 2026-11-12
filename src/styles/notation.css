@@ -326,3 +326,12 @@
     break-after: page;
   }
 }
+
+/* the swara sounding during playback */
+.cm-ev.cm-playing {
+  color: #9b2335;
+  background: rgba(155, 35, 53, 0.13);
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px rgba(155, 35, 53, 0.13);
+}
+@media print { .cm-ev.cm-playing { color: inherit; background: none; box-shadow: none; } }
