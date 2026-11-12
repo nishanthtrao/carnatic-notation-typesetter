@@ -163,6 +163,8 @@ export interface HeadingBlock {
 export interface MetaItem {
   label: string;
   value: string;
+  /** the value as shown (transliterated), when it differs from value */
+  text?: string;
   swaras?: NoteEvent[];
   lang?: LangSpec;
 }

@@ -347,7 +347,7 @@ function renderHeading(b: HeadingBlock): string {
 function renderMeta(items: MetaItem[]): string {
   return '<div class="cm-meta">' + items.map((it) => it.value === '' ? '' :
     '<div class="cm-meta-item"><span class="cm-meta-k">' + esc(it.label) + '</span> <span class="cm-meta-v">' +
-    (it.swaras && it.swaras.length ? inlineSwaras(it.swaras, it.lang) : esc(it.value)) + '</span></div>').join('') + '</div>';
+    (it.swaras && it.swaras.length ? inlineSwaras(it.swaras, it.lang) : esc(it.text ?? it.value)) + '</span></div>').join('') + '</div>';
 }
 
 function cssFont(name: string, lang?: Lang): string {

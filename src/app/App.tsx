@@ -11,7 +11,7 @@ import { Toolbar, type Command } from '../components/Toolbar';
 import { useToast } from '../components/Toast';
 import { IssuesBadge, IssuesList } from '../components/Warnings';
 import { Icon } from '../components/Icons';
-import { AssistDialog, assistModeFor, type AssistMode, type FormName } from '../dialogs/AssistDialog';
+import { AssistDialog, assistModeFor, SCALE_LINE, type AssistMode, type FormName } from '../dialogs/AssistDialog';
 import { useConfirm } from '../dialogs/ConfirmDialog';
 import { CopyTextDialog } from '../dialogs/CopyTextDialog';
 import { LettersDialog, type LettersContext } from '../dialogs/LettersDialog';
@@ -294,7 +294,7 @@ function Editor({ initial }: { initial: Initial }) {
       },
       save: () => save(false),
       saveAs: () => save(true),
-      assist: () => setAssist(assistModeFor(editor.current?.lineInfo().text ?? '')),
+      assist: () => openAssist(),
       update: () => {
         const changed = textRef.current !== drawnRef.current;
         update();
@@ -450,16 +450,39 @@ function Editor({ initial }: { initial: Initial }) {
   };
 
   // ---- Assist ------------------------------------------------------------------------
+  /** Language and font lines in effect at `pos`, so the Scale preview uses the document's script. */
+  const languageContext = (text: string, pos: number) =>
+    text.slice(0, pos).split('\n').filter((l) => /^\s*(language|languagefont)\s*:/i.test(l)).join('\n');
+  function openAssist() {
+    const ed = editor.current;
+    if (!ed) return;
+    const li = ed.lineInfo();
+    const mode = assistModeFor(li.text);
+    if (mode.kind === 'form' && mode.name === 'Scale') {
+      // edit the whole Raga / Arohana / Avarohana group around the cursor
+      const text = ed.getValue();
+      const all = text.split('\n');
+      let first = li.index;
+      let last = li.index;
+      while (first > 0 && SCALE_LINE.test(all[first - 1])) first--;
+      while (last < all.length - 1 && SCALE_LINE.test(all[last + 1])) last++;
+      const start = all.slice(0, first).reduce((n, l) => n + l.length + 1, 0);
+      const block = all.slice(first, last + 1).join('\n');
+      setAssist({ ...mode, value: block, line: li.text, range: [start, start + block.length], context: languageContext(text, start) });
+    } else setAssist(mode);
+  }
   const applyAssist = (t: string, insert: boolean) => {
+    const range = assist && assist.kind === 'form' ? assist.range : undefined;
     setAssist(null);
     const li = editor.current!.lineInfo();
-    if (insert) editor.current!.replaceRange(li.end, li.end, '\n' + t);
+    if (range) editor.current!.replaceRange(range[0], range[1], t);
+    else if (insert) editor.current!.replaceRange(li.end, li.end, '\n' + t);
     else editor.current!.replaceRange(li.start, li.end, t);
   };
   const chooseForm = (name: FormName) => {
     const li = editor.current!.lineInfo();
     if (li.text.trim()) editor.current!.replaceRange(li.end, li.end, '\n');
-    setAssist({ kind: 'form', name, value: '' });
+    setAssist({ kind: 'form', name, value: '', context: languageContext(editor.current!.getValue(), li.start) });
   };
 
   const lineBlank = !(editor.current?.lineInfo().text.trim());
