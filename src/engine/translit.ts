@@ -94,6 +94,27 @@ export function tokenize(text: string): Token[] {
   return out;
 }
 
+/**
+ * Split text into the units the transliterator reads, keeping the source text
+ * of each (for the Letters kit). key: vowel/consonant key, keys joined by '+'
+ * for clusters like ksh; t 'x' = anything else (copied as is).
+ */
+export function scanUnits(text: string): { src: string; t: Token['t']; key: string }[] {
+  const out: { src: string; t: Token['t']; key: string }[] = [];
+  let i = 0;
+  while (i < text.length) {
+    const hit = TABLE.find((e) => text.startsWith(e.s, i));
+    if (!hit) {
+      out.push({ src: text[i], t: 'x', key: text[i] });
+      i += 1;
+      continue;
+    }
+    out.push({ src: hit.s, t: hit.t, key: hit.t === 'c' ? hit.ks.join('+') : hit.k });
+    i += hit.s.length;
+  }
+  return out;
+}
+
 // ---- script tables ----------------------------------------------------------
 const SCRIPTS: Record<IndicScript, ScriptTable> = {
   devanagari: {

@@ -58,7 +58,7 @@ Then the body:
 - A dot or dash written under a held note may be written as . (it is printed as a dot).
 - ALWAYS write lyrics in the roman Unified Transliteration Scheme, whatever script they were written in on the page (the typesetter converts them back to the script named in Language:):
     vowels: a A i I u U R(ṛ) e E(long e) ai o O(long o) au    marks: M (anusvara) H (visarga)
-    consonants: k kh g gh #n(ṅ) c ch j jh ~n(ñ) T Th D Dh N (retroflex) t th d dh n p ph b bh m y r l v S(ś) Sh(ṣ) s h L(ḷ/ள) zh(ழ) _r(ற)
+    consonants: k kh g gh #n(ṅ) c ch j jh ~n(ñ) T Th D Dh N (retroflex) t th d dh n p ph b bh m y r l v S(ś) Sh(ṣ) s h L(ḷ: ள ള) zh(ழ ഴ) _r(hard ṟ: ற റ; plain ra ര र is r) _n(ன)
     Malayalam: chillu letters ൻ ൺ ർ ൽ ൾ are n N r l L at the end of a syllable; anusvara ം is M (or m at the end of a word).
     Tamil: plain n is printed ன; write ^n where the page has ந. Tamil க may be k or g, த may be t or d, etc. — choose the sound the word needs.
   Examples: ஸ்ரீ ராம -> SrI rA ma, త్యాగరాజ -> tyA ga rA ja, नमो -> na mO, ಶ್ಯಾಮ -> SyA ma, ശങ്കര -> Sa #nka ra, മനം -> ma na M, மனம் -> ma na m.

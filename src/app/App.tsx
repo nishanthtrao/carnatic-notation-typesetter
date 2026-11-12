@@ -14,6 +14,8 @@ import { Icon } from '../components/Icons';
 import { AssistDialog, assistModeFor, type AssistMode, type FormName } from '../dialogs/AssistDialog';
 import { useConfirm } from '../dialogs/ConfirmDialog';
 import { CopyTextDialog } from '../dialogs/CopyTextDialog';
+import { LettersDialog, type LettersContext } from '../dialogs/LettersDialog';
+import { lettersContext } from '../lib/letters-context';
 import { AboutDialog } from '../dialogs/AboutDialog';
 import { ExamplesDialog } from '../dialogs/ExamplesDialog';
 import { NewSongDialog } from '../dialogs/NewSongDialog';
@@ -26,7 +28,7 @@ import { readShareHash } from '../lib/share';
 import { KEYS, store } from '../lib/storage';
 import APP_ICON from '../assets/app-icon.png';
 
-type DialogName = 'new' | 'examples' | 'share' | 'photo' | 'settings' | 'copy' | 'about' | null;
+type DialogName = 'new' | 'examples' | 'share' | 'photo' | 'settings' | 'copy' | 'about' | 'letters' | null;
 
 interface Initial {
   text: string;
@@ -74,6 +76,10 @@ function Editor({ initial }: { initial: Initial }) {
   const toast = useToast();
   const { confirm, element: confirmElement } = useConfirm();
   const editor = useRef<EditorHandle>(null);
+  const [lettersCtx, setLettersCtx] = useState<LettersContext | null>(null);
+  // Run an editor action once the current dialog has closed (a closing <dialog>
+  // moves focus, so the editor must be focused after that, not before).
+  const afterClose = useRef<(() => void) | null>(null);
   const appRef = useRef<HTMLElement>(null);
 
   const [text, setText] = useState(initial.text);
@@ -88,6 +94,32 @@ function Editor({ initial }: { initial: Initial }) {
   const [status, setStatus] = useState(initial.message);
   const [dialog, setDialog] = useState<DialogName>(null);
   const [assist, setAssist] = useState<AssistMode | null>(null);
+
+  // When a dialog closes, put the cursor back in the editor if that is where the
+  // person was typing (a closing <dialog> otherwise leaves focus on the page).
+  const lastOutsideFocus = useRef<Element | null>(null);
+  useEffect(() => {
+    const onFocusIn = (e: FocusEvent) => {
+      const t = e.target as Element | null;
+      if (t && !t.closest('dialog')) lastOutsideFocus.current = t;
+    };
+    document.addEventListener('focusin', onFocusIn);
+    return () => document.removeEventListener('focusin', onFocusIn);
+  }, []);
+  const assistWasOpen = useRef(false);
+  useEffect(() => {
+    if (assist !== null) assistWasOpen.current = true;
+    if (dialog !== null || assist !== null) return;
+    const fromAssist = assistWasOpen.current;
+    assistWasOpen.current = false;
+    if (afterClose.current) {
+      const run = afterClose.current;
+      afterClose.current = null;
+      run();
+    } else if ((document.activeElement === document.body || !document.activeElement) && (fromAssist || lastOutsideFocus.current?.id === 'input')) {
+      editor.current?.focus();
+    }
+  }, [dialog, assist]);
   const [settingsVersion, setSettingsVersion] = useState(0);
   const [droppedImages, setDroppedImages] = useState<File[] | undefined>(undefined);
 
@@ -243,6 +275,12 @@ function Editor({ initial }: { initial: Initial }) {
       },
       examples: () => setDialog('examples'),
       about: () => setDialog('about'),
+      letters: () => {
+        const ed = editor.current;
+        if (!ed) return;
+        setLettersCtx(lettersContext(ed.getValue(), ed.lineInfo()));
+        setDialog('letters');
+      },
       share: () => setDialog('share'),
       exportPdf: async () => {
         update();
@@ -508,6 +546,30 @@ function Editor({ initial }: { initial: Initial }) {
         }}
       />
       <AboutDialog open={dialog === 'about'} onClose={() => setDialog(null)} />
+      {dialog === 'letters' && (
+        <LettersDialog
+          ctx={lettersCtx}
+          onClose={() => {
+            afterClose.current = () => editor.current?.focus();
+            setDialog(null);
+          }}
+          onInsert={(code) => {
+            afterClose.current = () => {
+              editor.current?.focus();
+              editor.current?.insertAtCursor(code);
+            };
+            setDialog(null);
+          }}
+          onReplaceWord={(text) => {
+            const w = lettersCtx?.word;
+            afterClose.current = () => {
+              editor.current?.focus();
+              if (w) editor.current?.replaceRange(w.start, w.end, text);
+            };
+            setDialog(null);
+          }}
+        />
+      )}
       <ExamplesDialog open={dialog === 'examples'} onClose={() => setDialog(null)} onPick={openExample} />
       <ShareDialog open={dialog === 'share'} onClose={() => setDialog(null)} text={text} />
       <CopyTextDialog
