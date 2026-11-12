@@ -1,39 +1,65 @@
 /* Directive catalogue for Assist and TAB completion. */
 import { listTalas } from '../engine';
 
+export type GroupId = 'song' | 'lines' | 'rhythm' | 'layout' | 'script' | 'look';
+
+/** Assist groups directives by what they are for, in this order. */
+export const DIRECTIVE_GROUPS: { id: GroupId; title: string; about: string }[] = [
+  { id: 'song', title: 'Song details', about: 'Name, raga and scale; headings for sections' },
+  { id: 'lines', title: 'Notation lines', about: 'The swaras and lyrics themselves' },
+  { id: 'rhythm', title: 'Tala and speed', about: 'Near the top; Gati can change mid-song' },
+  { id: 'script', title: 'Language and fonts', about: 'Script and lettering style' },
+  { id: 'layout', title: 'Lines and pages', about: 'Where lines and pages break' },
+  { id: 'look', title: 'Sizes and colours', about: 'Applies from that line onwards' },
+];
+
 export interface DirectiveInfo {
   name: string;
   template: string;
   help: string;
+  group: GroupId;
 }
 
-export const DIRECTIVES: DirectiveInfo[] = [
-  ['Tala', 'Tala: Adi', 'Tala of the song'],
-  ['Layout', 'Layout: krithi', 'krithi, varnam or gitam; options: ,Compact ,FullWidth'],
-  ['DefaultSpeed', 'DefaultSpeed: 1', 'Default speed: 0, 1 or 2'],
-  ['Heading', 'Heading: ""', 'Song title, section names, text'],
-  ['Arohana', 'Arohana: ', 'Scale: ārōhaṇam and avarōhaṇam, drawn as swaras'],
-  ['Avarohana', 'Avarohana: ', 'Descending scale, drawn as swaras'],
-  ['Raga', 'Raga: ', 'Raga name, shown with the scale'],
-  ['Composer', 'Composer: ', 'Composer name'],
-  ['S', 'S: ', 'Swaras'],
-  ['L', 'L: ', 'Lyrics for the swaras above'],
-  ['Language', 'Language: English', 'Script for swaras and lyrics'],
-  ['SmartLyricMode', 'SmartLyricMode', 'Lyrics need no _ for pauses'],
-  ['Gati', 'Gati: tisra', 'Change gati (nadai)'],
-  ['SpeedMarks', 'SpeedMarks: above', 'Speed lines above or below'],
-  ['PhraseEnds', 'PhraseEnds: Show,10', 'How phrase ends (p-) look'],
-  ['SwaraPrefs', 'SwaraPrefs: 12', 'Swara size and colour'],
-  ['LyricPrefs', 'LyricPrefs: 12', 'Lyric size and colour'],
-  ['HeadingPrefs', 'HeadingPrefs: 12', 'Default heading size, colour'],
-  ['GamakaPrefs', 'GamakaPrefs: 10', 'Text gamaka size, colour'],
-  ['LanguageFont', 'LanguageFont: All,Sans', 'Font style for a language: Serif, Sans, Rounded or an installed font'],
-  ['Title', 'Title: ""', 'Page title (print header)'],
-  ['SongBreak', 'SongBreak', 'Start a new line and tala cycle'],
-  ['LineBreak', 'LineBreak', 'New line in manual tala mode'],
-  ['Pagebreak', 'Pagebreak', 'Page break when printing'],
-  ['Orientation', 'Orientation: Landscape', 'Portrait or Landscape'],
-].map(([name, template, help]) => ({ name, template, help }));
+// Order matters for TAB completion (first match wins: S before SmartLyricMode).
+export const DIRECTIVES: DirectiveInfo[] = (
+  [
+    ['Tala', 'Tala: Adi', 'Tala of the song', 'rhythm'],
+    ['Layout', 'Layout: krithi', 'Krithi, varnam or gitam spacing; compact or full width', 'layout'],
+    ['DefaultSpeed', 'DefaultSpeed: 1', 'First, second or third speed', 'rhythm'],
+    ['Heading', 'Heading: ""', 'Song name, section names, any text', 'song'],
+    ['Arohana', 'Arohana: ', 'The scale, going up', 'song'],
+    ['Avarohana', 'Avarohana: ', 'The scale, coming down', 'song'],
+    ['Raga', 'Raga: ', 'Raga name, shown with the scale', 'song'],
+    ['Composer', 'Composer: ', 'Composer name', 'song'],
+    ['S', 'S: ', 'A line of swaras', 'lines'],
+    ['L', 'L: ', 'Lyrics under the swaras above', 'lines'],
+    ['Language', 'Language: English', 'Script for swaras and lyrics', 'script'],
+    ['SmartLyricMode', 'SmartLyricMode', 'Lyrics skip pauses on their own', 'lines'],
+    ['Gati', 'Gati: tisra', 'Change the gati (nadai)', 'rhythm'],
+    ['SpeedMarks', 'SpeedMarks: above', 'Speed lines above or below', 'rhythm'],
+    ['PhraseEnds', 'PhraseEnds: Show,10', 'How phrase ends (p-) look', 'rhythm'],
+    ['SwaraPrefs', 'SwaraPrefs: 12', 'Swara size and colour', 'look'],
+    ['LyricPrefs', 'LyricPrefs: 12', 'Lyric size and colour', 'look'],
+    ['HeadingPrefs', 'HeadingPrefs: 12', 'Heading size and colour', 'look'],
+    ['GamakaPrefs', 'GamakaPrefs: 10', 'Gamaka text size and colour', 'look'],
+    ['LanguageFont', 'LanguageFont: All,Sans', 'Serif, Sans, Rounded or an installed font', 'script'],
+    ['Title', 'Title: ""', 'File name and print header', 'song'],
+    ['SongBreak', 'SongBreak', 'Start a new line and tala cycle', 'layout'],
+    ['LineBreak', 'LineBreak', 'New line (manual tala mode)', 'layout'],
+    ['Pagebreak', 'Pagebreak', 'New page when printing', 'layout'],
+    ['Orientation', 'Orientation: Landscape', 'Portrait or landscape page', 'layout'],
+  ] as [string, string, string, GroupId][]
+).map(([name, template, help, group]) => ({ name, template, help, group }));
+
+/** The order directives are shown in within each Assist group. */
+export const GROUP_ORDER: string[] = [
+  'Title', 'Heading', 'Raga', 'Arohana', 'Avarohana', 'Composer',
+  'S', 'L', 'SmartLyricMode',
+  'Tala', 'DefaultSpeed', 'Gati', 'SpeedMarks', 'PhraseEnds',
+  'Language', 'LanguageFont',
+  'Layout', 'SongBreak', 'LineBreak', 'Pagebreak', 'Orientation',
+  'SwaraPrefs', 'LyricPrefs', 'GamakaPrefs', 'HeadingPrefs',
+];
 
 export const NO_VALUE = new Set(['SmartLyricMode', 'SongBreak', 'LineBreak', 'Pagebreak']);
 
