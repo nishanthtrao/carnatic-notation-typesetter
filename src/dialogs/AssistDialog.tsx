@@ -39,20 +39,45 @@ export function assistModeFor(line: string): AssistMode {
   return { kind: 'pick' };
 }
 
+/** One row of the syntax help: what to type, and what it means. */
+function Ex({ code, children }: { code: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <li>
+      <span className="syn-code">{code}</span>
+      <span className="syn-what">{children}</span>
+    </li>
+  );
+}
+
 function SyntaxHelp() {
   return (
-    <>
-      <p className="hint" style={{ marginTop: 0 }}>
-        <b>Swaras</b> (space separated): <code>s r g m p d n</code> = one mātra, <code>sa ri ga ma pa da ni</code> = two (dhīrgha). Add <code>'</code> for tara stayi (<code>s'</code>) or <code>`</code> for mandra
-        (<code>p`</code>). <code>,</code> = one mātra pause, <code>;</code> = two. <code>( … )</code> doubles the speed (nest for more). <code>_</code> / <code>__</code> = empty space, <code>=</code> = same as before
-        (one akshara). Gamakas after the swara: <code>~ ~~ ^ / // \ \\</code> or text <code>n(w)</code>. Phrase end: <code>p-</code>. <code>|</code> and <code>||</code> are optional; the tala places markers itself. A label goes
-        first in quotes: <code>S: "1)" s r g m</code>.
-      </p>
-      <p className="hint">
-        <b>Lyrics</b>: one entry per swara <i>and</i> pause, <code>_</code> for an empty one — or add <code>SmartLyricMode</code> and give lyrics only for swaras. Type them in the Unified Transliteration Scheme (
-        <code>A I U E O</code> long vowels, <code>T D N L</code> retroflex, <code>S</code> = śa, <code>Sh</code> = ṣa).
-      </p>
-    </>
+    <div className="syntax-help">
+      <h4>Swaras (an <code>S:</code> line)</h4>
+      <p className="syn-lead">Separate swaras with spaces.</p>
+      <ul className="syn-list">
+        <Ex code={<code>s r g m p d n</code>}>Short swaras: one mātra each</Ex>
+        <Ex code={<><code>sa ri ga</code> or <code>S R G</code></>}>Long (dīrgha) swaras: two mātras each</Ex>
+        <Ex code={<code>r1 g3 m2</code>}>Swara variant, shown as a small number</Ex>
+        <Ex code={<><code>s'</code> &nbsp;<code>p`</code></>}>Upper octave (dot above), lower octave (dot below). Double it for two octaves: <code>s''</code></Ex>
+        <Ex code={<><code>,</code> &nbsp;<code>;</code></>}>Pause of one mātra, or two</Ex>
+        <Ex code={<code>( s r g m )</code>}>Twice as fast. Brackets inside brackets go faster still</Ex>
+        <Ex code={<><code>_</code> &nbsp;<code>__</code></>}>Empty space, one or two mātras</Ex>
+        <Ex code={<code>=</code>}>Same as before, for one akshara</Ex>
+        <Ex code={<><code>p~</code> &nbsp;<code>n(w)</code></>}>Gamaka after a swara: <code>~ ~~ ^ / // \ \\</code>, or any text in brackets</Ex>
+        <Ex code={<code>p-</code>}>End of a phrase (where to breathe)</Ex>
+        <Ex code={<><code>|</code> &nbsp;<code>||</code></>}>Bar lines. Optional: the tala places them for you</Ex>
+        <Ex code={<code>S: "1)" s r g</code>}>A label at the start of the line, in quotes</Ex>
+      </ul>
+
+      <h4>Lyrics (an <code>L:</code> line, under its swaras)</h4>
+      <ul className="syn-list">
+        <Ex code={<code>sa ri ga</code>}>One syllable for each swara and each pause. Use <code>_</code> where nothing is sung</Ex>
+        <Ex code={<code>SmartLyricMode</code>}>Add this line once, and give syllables only for swaras; pauses are skipped for you</Ex>
+        <Ex code={<code>A I U E O</code>}>Capitals are long vowels: <code>rAma</code> = rāma</Ex>
+        <Ex code={<code>T D N L</code>}>Capitals are the retroflex sounds: ṭa ḍa ṇa ḷa</Ex>
+        <Ex code={<><code>S</code> &nbsp;<code>Sh</code></>}>śa and ṣa</Ex>
+      </ul>
+    </div>
   );
 }
 
