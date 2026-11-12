@@ -6,8 +6,6 @@ const P: Record<string, string> = {
   assist: 'M3 3h14v14H3z M7.5 8a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .8-1 1.7 M10 14.5v.5',
   update: 'M16 10a6 6 0 1 1-2-4.5 M16 3v4h-4',
   align: 'M3 5h14 M3 9h10 M3 13h14 M3 17h10',
-  library: 'M3 3h3.5v14H3z M8 3h3.5v14H8z M13.2 4.2l3.3-.9 3 12.8-3.3.9z',
-  duplicate: 'M7 7h10v10H7z M4 13V4h9',
   install: 'M10 3v9 M6.5 8.5l3.5 3.5 3.5-3.5 M4 14v3h12v-3',
   letters: 'M2.5 16l4.5-12 4.5 12 M4.2 11.5h5.6 M13.5 8.5h4 M13.5 12h4 M13.5 15.5h4',
   photo: 'M2.5 6h3l1.5-2h6l1.5 2h3v10h-15z M10 13.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',

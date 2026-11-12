@@ -1,7 +1,7 @@
 import { Icon } from './Icons';
 
 export type Command =
-  | 'new' | 'library' | 'open' | 'save' | 'saveAs' | 'assist' | 'letters' | 'update' | 'align' | 'photo'
+  | 'new' | 'open' | 'save' | 'saveAs' | 'assist' | 'letters' | 'update' | 'align' | 'photo'
   | 'examples' | 'share' | 'exportPdf' | 'print';
 
 interface Item {
@@ -17,9 +17,8 @@ interface Item {
 const GROUPS: Item[][] = [
   [
     { cmd: 'new', label: 'New', title: 'New song (⌘N)', icon: 'new' },
-    { cmd: 'library', label: 'Library', title: 'Your songs, saved on this device', icon: 'library' },
-    { cmd: 'open', label: 'Open', title: 'Open a notation file from your device (⌘O)', icon: 'open' },
-    { cmd: 'save', label: 'Save', title: 'Save (⌘S)', icon: 'save' },
+    { cmd: 'open', label: 'Open', title: 'Open a notation file (⌘O)', icon: 'open' },
+    { cmd: 'save', label: 'Save', title: 'Save to a file on your device (⌘S; ⇧⌘S to save a copy elsewhere)', icon: 'save' },
   ],
   [
     { cmd: 'assist', label: 'Assist', title: 'Help with the directive on this line', icon: 'assist' },

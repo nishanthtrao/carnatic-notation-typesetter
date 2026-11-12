@@ -68,10 +68,6 @@ The site is a static build in `dist/`.
 
 The build uses relative paths, so it works in any folder.
 
-## Song library
-
-Songs are kept in the browser's local storage (`src/lib/library.ts`) and saved as you type; the Library window (`src/dialogs/LibraryDialog.tsx`) searches, opens, duplicates, deletes (with Undo), imports files, and backs up / restores everything as one JSON file. The single draft kept by earlier versions moves into the library on first start.
-
 ## Install and offline
 
 On the website the typesetter is an installable web app: Chrome and Edge show an **Install** button, iPhone/iPad use **Share → Add to Home Screen**. A service worker (`src/sw-template.js`, filled in by `vite.config.ts` at build time) keeps the app and its default fonts on the device, so it works offline; the optional Sans/Rounded fonts are cached when first used. Pages are fetched network-first, so a new deploy shows up on the next visit.

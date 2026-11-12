@@ -27,7 +27,7 @@ export interface EditorHandle {
 interface Props {
   initialValue: string;
   onInput: (text: string) => void;
-  onShortcut: (cmd: 'update' | 'save' | 'letters') => void;
+  onShortcut: (cmd: 'update' | 'save' | 'saveAs' | 'letters') => void;
   /** pasted Indian-script text was converted; original kept for "Keep original" */
   onPasteConverted?: (info: { start: number; original: string; converted: string; scriptName: string; languageWord: string }) => void;
 }
@@ -170,7 +170,7 @@ export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationE
             el.setSelectionRange(c.selStart, c.selEnd);
           } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
             e.preventDefault();
-            onShortcut('save');
+            onShortcut(e.shiftKey ? 'saveAs' : 'save'); // Ctrl+Shift+S: save a copy elsewhere
           } else if (e.key === 'Tab' && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
             const el = e.currentTarget;
             if (el.selectionStart !== el.selectionEnd) return;
