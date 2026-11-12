@@ -25,7 +25,7 @@ import { SettingsDialog } from '../dialogs/SettingsDialog';
 import { ShareDialog } from '../dialogs/ShareDialog';
 import { alignText } from '../lib/align';
 import { desk, inFrame, type DesktopFile } from '../lib/desktop';
-import { readShareHash } from '../lib/share';
+import { readShareHash, SharedLinkTooLarge } from '../lib/share';
 import { canPickFiles, downloadText, pickFileToOpen, pickFileToSave, writeFile, type FileHandle } from '../lib/files';
 import { KEYS, store } from '../lib/storage';
 import APP_ICON from '../assets/app-icon.png';
@@ -55,14 +55,17 @@ async function loadInitial(): Promise<Initial> {
       : null;
     return { text: newSongTemplate, file: null, dirty: false, message: '', recover: rec };
   }
+  let note = '';
   try {
     const shared = await readShareHash();
     if (shared !== null) {
       history.replaceState(null, '', location.pathname + location.search);
       return { text: shared, file: null, dirty: false, message: 'Opened shared notation' };
     }
-  } catch {
-    /* corrupt link: fall through */
+  } catch (e) {
+    // corrupt or oversized link: start as usual and say why
+    history.replaceState(null, '', location.pathname + location.search);
+    note = e instanceof SharedLinkTooLarge ? e.message : 'Could not read the shared link';
   }
   // Every visit starts the same: a new song. Unsaved work from last time is
   // kept aside and offered in a bar (it is not opened automatically).
@@ -76,7 +79,7 @@ async function loadInitial(): Promise<Initial> {
   if (meta.dirty && draft.trim() && draft !== newSongTemplate) store.set(KEYS.recover, draft);
   const kept = store.get(KEYS.recover) || '';
   const recover = kept.trim() && kept !== newSongTemplate ? { text: kept, name: titleOf(kept), file: null } : null;
-  return { text: newSongTemplate, file: null, dirty: false, message: '', recover };
+  return { text: newSongTemplate, file: null, dirty: false, message: note, recover };
 }
 
 export function App() {
@@ -386,8 +389,9 @@ function Editor({ initial }: { initial: Initial }) {
           setAll(t, 'Opened shared notation');
           history.replaceState(null, '', location.pathname + location.search);
         }
-      } catch {
-        say('Could not read the shared link');
+      } catch (e) {
+        history.replaceState(null, '', location.pathname + location.search);
+        say(e instanceof SharedLinkTooLarge ? e.message : 'Could not read the shared link');
       }
     };
     window.addEventListener('hashchange', onHash);
