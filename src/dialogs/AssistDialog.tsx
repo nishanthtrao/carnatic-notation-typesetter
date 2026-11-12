@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Modal } from '../components/Modal';
 import { FONT_STYLES, normaliseLang, parse, parseFontStyle, parseGati, parseHeading, render, styleFamilies, swaraSample, SWARA_RE, transliterate, type FontStyle, type Lang } from '../engine';
 import { Icon } from '../components/Icons';
-import { DIRECTIVES, LANG_OPTIONS, LAYOUT_OPTIONS, talaOptions } from '../lib/directives';
+import { DIRECTIVE_GROUPS, DIRECTIVES, GROUP_ORDER, LANG_OPTIONS, LAYOUT_OPTIONS, talaOptions, type DirectiveInfo } from '../lib/directives';
 import { Check, Field, Select } from './common';
 
 export type AssistMode =
@@ -76,25 +76,40 @@ export function AssistDialog({ mode, onClose, onApply, onChooseForm, currentLine
     );
   }
   if (mode.kind === 'pick') {
+    const choose = (d: DirectiveInfo) => {
+      const form = formFor(d.name);
+      if (form) onChooseForm(form);
+      else onApply(d.template, !currentLineBlank);
+    };
+    const byOrder = (a: DirectiveInfo, b: DirectiveInfo) => GROUP_ORDER.indexOf(a.name) - GROUP_ORDER.indexOf(b.name);
     return (
       <Modal title="Add a directive" open onClose={onClose} wide>
-        <div className="pick-list">
-          {DIRECTIVES.map((d) => (
-            <button
-              key={d.name}
-              type="button"
-              onClick={() => {
-                const form = formFor(d.name);
-                if (form) onChooseForm(form);
-                else onApply(d.template, !currentLineBlank);
-              }}
-            >
-              <b>{d.name}</b>
-              <span>{d.help}</span>
-            </button>
+        <div className="pick-groups">
+          {DIRECTIVE_GROUPS.map((g) => (
+            <section key={g.id} className="pick-group" aria-labelledby={'pg-' + g.id}>
+              <h3 id={'pg-' + g.id}>
+                {g.title} <span>{g.about}</span>
+              </h3>
+              <div className="pick-list">
+                {DIRECTIVES.filter((d) => d.group === g.id)
+                  .sort(byOrder)
+                  .map((d) => (
+                    <button key={d.name} type="button" onClick={() => choose(d)}>
+                      <b>
+                        {d.name}
+                        {formFor(d.name) && <i className="pick-form" title="Opens a form">…</i>}
+                      </b>
+                      <span>{d.help}</span>
+                    </button>
+                  ))}
+              </div>
+            </section>
           ))}
         </div>
-        <SyntaxHelp />
+        <details className="pick-syntax">
+          <summary>How to write swaras and lyrics</summary>
+          <SyntaxHelp />
+        </details>
       </Modal>
     );
   }

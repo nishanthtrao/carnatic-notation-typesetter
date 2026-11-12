@@ -878,3 +878,14 @@ select optgroup {
 }
 .scale-preview .cm-empty { color: #888; font-size: 13px; text-align: center; margin: 6px 0; }
 .hint.error { color: var(--accent); }
+
+/* Assist: directives grouped by purpose */
+.pick-groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px 18px; align-items: start; }
+.pick-group h3 { margin: 0 0 7px; font: 600 13px var(--font); color: var(--label); }
+.pick-group h3 span { display: block; margin-top: 1px; font-weight: 400; font-size: 12px; color: var(--label-2); }
+.pick-group .pick-list { grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: 6px; }
+.pick-group .pick-list button { padding: 8px 10px; }
+.pick-form { font-style: normal; color: var(--label-3); margin-left: 1px; }
+.pick-syntax { margin-top: 16px; border-top: 0.5px solid var(--separator); padding-top: 10px; }
+.pick-syntax summary { cursor: pointer; font-size: 13px; font-weight: 500; color: var(--accent); }
+.pick-syntax[open] summary { margin-bottom: 4px; }
