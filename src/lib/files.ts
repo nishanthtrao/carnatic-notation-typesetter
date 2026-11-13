@@ -1,69 +1,10 @@
 /*
- * Saving and opening notation files on the person's own device (web).
- * Chrome and Edge offer real file pickers (File System Access API): Save
- * asks where once and then saves over the same file. Other browsers use a
- * download for Save and a file input for Open.
+ * Saving notation files on the person's own device (web): Save is a normal
+ * browser download, so the file appears in the downloads list and the
+ * Downloads folder. Open uses a file input.
  * SPDX-License-Identifier: GPL-2.0-only
  */
-import { inFrame } from './desktop';
-
-interface PickerType {
-  description: string;
-  accept: Record<string, string[]>;
-}
-interface Writable {
-  write(data: string): Promise<void>;
-  close(): Promise<void>;
-}
-export interface FileHandle {
-  name: string;
-  getFile(): Promise<File>;
-  createWritable(): Promise<Writable>;
-}
-interface PickerWindow {
-  showOpenFilePicker?: (o: { types: PickerType[]; multiple?: boolean; excludeAcceptAllOption?: boolean }) => Promise<FileHandle[]>;
-  showSaveFilePicker?: (o: { types: PickerType[]; suggestedName?: string }) => Promise<FileHandle>;
-}
-
-const TYPES: PickerType[] = [{ description: 'Notation (text)', accept: { 'text/plain': ['.txt', '.cmnt'] } }];
-
-/** Real file pickers available (not inside a sandboxed preview frame)? */
-export function canPickFiles(): boolean {
-  const w = window as unknown as PickerWindow;
-  return !inFrame && typeof w.showSaveFilePicker === 'function' && typeof w.showOpenFilePicker === 'function';
-}
-
-const cancelled = (e: unknown) => e instanceof DOMException && e.name === 'AbortError';
-
-/** Ask for a file to open. null if the person cancels. */
-export async function pickFileToOpen(): Promise<{ handle: FileHandle; name: string; text: string } | null> {
-  try {
-    const [handle] = await (window as unknown as PickerWindow).showOpenFilePicker!({ types: TYPES, multiple: false });
-    const file = await handle.getFile();
-    return { handle, name: file.name, text: await file.text() };
-  } catch (e) {
-    if (cancelled(e)) return null;
-    throw e;
-  }
-}
-
-/** Ask where to save. null if the person cancels. */
-export async function pickFileToSave(suggestedName: string): Promise<FileHandle | null> {
-  try {
-    return await (window as unknown as PickerWindow).showSaveFilePicker!({ types: TYPES, suggestedName });
-  } catch (e) {
-    if (cancelled(e)) return null;
-    throw e;
-  }
-}
-
-export async function writeFile(handle: FileHandle, text: string): Promise<void> {
-  const w = await handle.createWritable(); // asks for permission the first time if needed
-  await w.write(text);
-  await w.close();
-}
-
-/** Browsers without pickers: save by downloading. Returns the file name used. */
+/** Save by downloading. Returns the file name used. */
 export function downloadText(name: string, text: string): string {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }));

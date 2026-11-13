@@ -26,7 +26,7 @@ import { ShareDialog } from '../dialogs/ShareDialog';
 import { alignText } from '../lib/align';
 import { desk, inFrame, type DesktopFile } from '../lib/desktop';
 import { readShareHash, SharedLinkTooLarge } from '../lib/share';
-import { canPickFiles, downloadText, pickFileToOpen, pickFileToSave, writeFile, type FileHandle } from '../lib/files';
+import { downloadText } from '../lib/files';
 import { KEYS, store } from '../lib/storage';
 import APP_ICON from '../assets/app-icon.png';
 
@@ -149,7 +149,6 @@ function Editor({ initial }: { initial: Initial }) {
   const textRef = useRef(initial.text);
   const [recover, setRecover] = useState(initial.recover ?? null);
   // web: the file Save writes to (Chrome/Edge file pickers)
-  const webHandle = useRef<FileHandle | null>(null);
 
   const say = useCallback((m: string) => {
     setStatus(m);
@@ -216,8 +215,7 @@ function Editor({ initial }: { initial: Initial }) {
   };
 
   /** Replace the whole notation (open, example, new song). */
-  const setAll = useCallback((t: string, msg: string, f: { path: string; name: string } | null = null, handle: FileHandle | null = null) => {
-    webHandle.current = handle;
+  const setAll = useCallback((t: string, msg: string, f: { path: string; name: string } | null = null) => {
     editor.current?.setValue(t);
     textRef.current = t;
     setText(t);
@@ -247,28 +245,14 @@ function Editor({ initial }: { initial: Initial }) {
       say('Saved ' + r.name);
       return true;
     }
-    const name = (current.title || 'notation').replace(/[\\/:*?"<>|]+/g, '').trim() || 'notation';
-    if (canPickFiles()) {
-      // Chrome/Edge: Save writes back to the same file; the first Save (or Save As) asks where
-      try {
-        const handle = (!saveAs && webHandle.current) || (await pickFileToSave(name + '.txt'));
-        if (!handle) return false;
-        await writeFile(handle, textRef.current);
-        webHandle.current = handle;
-        file.current = { path: '', name: handle.name };
-      } catch (e) {
-        say('Could not save: ' + (e instanceof Error ? e.message : 'unknown error'));
-        return false;
-      }
-      dirty.current = false;
-      notifyState();
-      say('Saved ' + file.current.name);
-      return true;
-    }
-    const saved = downloadText(name + '.txt', textRef.current);
+    // Website: always a normal browser download, so the file shows in the
+    // browser's downloads list (Ctrl+J) and in the Downloads folder.
+    const base = (current.title || file.current?.name.replace(/\.(txt|cmnt)$/i, '') || 'notation').replace(/[\\/:*?"<>|]+/g, '').trim() || 'notation';
+    const saved = downloadText(base + '.txt', textRef.current);
+    file.current = { path: '', name: saved };
     dirty.current = false;
     notifyState();
-    say('Saved ' + saved + ' to your downloads');
+    say('Downloaded ' + saved + ' (see your Downloads folder)');
     if (inFrame) setDialog('copy');
     return true;
   }, [notifyState, say]);
@@ -283,13 +267,6 @@ function Editor({ initial }: { initial: Initial }) {
         if (desk) {
           const f = await desk.openFile();
           if (f) setAll(f.text, 'Opened ' + f.name, f);
-        } else if (canPickFiles()) {
-          try {
-            const f = await pickFileToOpen();
-            if (f) setAll(f.text, 'Opened ' + f.name, { path: '', name: f.name }, f.handle);
-          } catch (e) {
-            say('Could not open: ' + (e instanceof Error ? e.message : 'unknown error'));
-          }
         } else openFileInput.current?.click();
       },
       save: () => save(false),
