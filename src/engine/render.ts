@@ -381,10 +381,19 @@ export function render(doc: NotationDoc, el: HTMLElement, options: { emptyText?:
     if (lang === 'english' && !doc.langFonts.iast) css += sel + ' .cm-lang-iast{font-family:' + cssFont(font, 'iast') + ', var(--cm-fallback)}';
   }
   const styleTag = css ? '<style>' + css + '</style>' : '';
-  el.innerHTML = styleTag;
 
-  const geo = layoutDoc(doc, el);
-  el.style.setProperty('--cm-k', num(99.5 / geo.maxTotal));
+  // Text is measured for layout, which only works while the sheet is shown.
+  // A sheet drawn while hidden (the Notation tab on a phone while typing in
+  // the Text tab) is measured again as soon as it is shown.
+  let geo!: Geometry;
+  let measuredHidden = false;
+  const measure = () => {
+    measuredHidden = el.getClientRects().length === 0;
+    el.innerHTML = styleTag;
+    geo = layoutDoc(doc, el);
+    el.style.setProperty('--cm-k', num(99.5 / geo.maxTotal));
+  };
+  measure();
   const fullWidth = doc.blocks.some((b) => b.type === 'staff' && b.fullWidth);
 
   const draw = () => {
@@ -413,8 +422,10 @@ export function render(doc: NotationDoc, el: HTMLElement, options: { emptyText?:
 
   return {
     refit(fontsChanged?: boolean) {
-      if (fontsChanged) render(doc, el, options);
-      else if (fullWidth) draw();
+      if (fontsChanged || measuredHidden) {
+        measure();
+        draw();
+      } else if (fullWidth) draw();
     },
   };
 }
