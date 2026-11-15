@@ -9,11 +9,13 @@
  *   (positions inside a row are in em, computed by render.js)
  */
 .cm-sheet {
-  --cm-ink: #1a1a1a;
-  --cm-muted: #5b5b5b;
-  --cm-accent: #7a1f1f;
+  /* light-dark(): the sheet follows the page's colour scheme. The app opts in
+     (color-scheme: light dark); the manual and printing stay light. */
+  --cm-ink: light-dark(#1a1a1a, #f2f2f7);
+  --cm-muted: light-dark(#5b5b5b, #98989f);
+  --cm-accent: light-dark(#7a1f1f, #f19a92);
   --cm-swara-color: var(--cm-ink);
-  --cm-lyric-color: #23408e;
+  --cm-lyric-color: light-dark(#23408e, #cfcfd4); /* dark: off-white */
   --cm-gamaka-color: var(--cm-ink);
   --cm-lyric-scale: 0.95;
   --cm-gamaka-scale: 0.8;
@@ -29,7 +31,7 @@
   color: var(--cm-ink);
   font-family: var(--cm-latin), var(--cm-indic);
   line-height: 1.3;
-  background: #fff;
+  background: light-dark(#fff, #1c1c1e);
 }
 
 .cm-sheet *,
@@ -301,7 +303,7 @@
   color: var(--cm-lyric-color);
 }
 .cm-missing {
-  color: #c0392b;
+  color: light-dark(#c0392b, #ff6961);
   font-weight: 700;
 }
 .cm-t {
@@ -312,12 +314,13 @@
 
 .cm-pagebreak {
   height: 0;
-  border-top: 1px dashed #c9c2b4;
+  border-top: 1px dashed light-dark(#c9c2b4, #4a4a4e);
   margin: 1em 0;
 }
 
 @media print {
   .cm-sheet {
+    color-scheme: light;
     background: none;
   }
   .cm-pagebreak {
