@@ -14,9 +14,9 @@
   --cm-ink: light-dark(#1a1a1a, #f2f2f7);
   --cm-muted: light-dark(#5b5b5b, #98989f);
   --cm-accent: light-dark(#7a1f1f, #f19a92);
-  --cm-swara-color: light-dark(#1a1a1a, #a3e4b5); /* dark: light green */
-  --cm-lyric-color: light-dark(#23408e, #f5d77a); /* dark: light yellow */
-  --cm-gamaka-color: var(--cm-swara-color);
+  --cm-swara-color: var(--cm-ink);
+  --cm-lyric-color: light-dark(#23408e, #cfcfd4); /* dark: off-white */
+  --cm-gamaka-color: var(--cm-ink);
   --cm-lyric-scale: 0.95;
   --cm-gamaka-scale: 0.8;
   --cm-max: 14pt;

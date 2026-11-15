@@ -13,7 +13,7 @@
  * always fits the screen or the printed page.
  */
 import { parseFontStyle, styleFamilies } from './fonts';
-import { DARK_INK, DARK_LYRIC, DARK_SWARA, esc, forDark } from './heading';
+import { DARK_INK, DARK_LYRIC, esc, forDark } from './heading';
 import type { HeadingBlock, Lang, LangSpec, MetaItem, NotationDoc, NoteEvent, Row, StaffBlock } from './types';
 
 const EPS = 1e-6;
@@ -103,10 +103,10 @@ function staffStyle(staff: StaffBlock): string {
   const gp = staff.prefs.gamaka;
   const styles: string[] = [];
   if (sp.size) styles.push('--cm-max:' + num(sp.size * 1.3) + 'pt');
-  if (sp.color) styles.push('--cm-swara-color:' + forDark(sp.color, DARK_SWARA));
+  if (sp.color) styles.push('--cm-swara-color:' + forDark(sp.color, DARK_INK));
   if (lp.color) styles.push('--cm-lyric-color:' + forDark(lp.color, DARK_LYRIC));
   if (lp.size) styles.push('--cm-lyric-scale:' + num(lp.size / (sp.size || 10)));
-  if (gp.color) styles.push('--cm-gamaka-color:' + forDark(gp.color, DARK_SWARA));
+  if (gp.color) styles.push('--cm-gamaka-color:' + forDark(gp.color, DARK_INK));
   if (gp.size) styles.push('--cm-gamaka-scale:' + num(gp.size / (sp.size || 10)));
   return styles.join(';');
 }
