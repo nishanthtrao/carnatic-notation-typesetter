@@ -14,12 +14,13 @@
   --font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI Variable Display', 'Segoe UI', system-ui, sans-serif;
   --mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, 'Cascadia Mono', Consolas, 'Noto Sans Mono', monospace;
   /* editor syntax colours (light): Apple system colours, accessible shades */
+  --hl-swara: var(--label);
   --hl-lyric: #23408e;
   --hl-orange: #b25000;
   --hl-pink: #c2185b;
   --hl-indigo: #5149d6;
   --hl-teal: #0b7a85;
-  --hl-green: #1f7a35;
+  --hl-blue: #0a5cc2;
   --hl-brown: #85633a;
   --hl-red: #c41a16;
   --hl-purple: #8944ab;
@@ -56,12 +57,13 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --hl-lyric: #cfcfd4;
+    --hl-swara: #a3e4b5;
+    --hl-lyric: #f5d77a;
     --hl-orange: #ff9f0a;
     --hl-pink: #ff6ba1;
     --hl-indigo: #8c88ff;
     --hl-teal: #5ac8d8;
-    --hl-green: #30d158;
+    --hl-blue: #64a8ff;
     --hl-brown: #c8a170;
     --hl-red: #ff6961;
     --hl-purple: #bf5af2;
@@ -319,7 +321,7 @@ textarea#input {
   color: var(--label);
 }
 /* syntax colours: Apple system colours, darker shades on light backgrounds */
-.hl-swara { color: var(--label); }
+.hl-swara { color: var(--hl-swara); }
 .hl-lyric { color: var(--hl-lyric); }
 .hl-s { color: var(--accent); }
 .hl-l { color: var(--hl-lyric); }
@@ -330,7 +332,7 @@ textarea#input {
 .hl-kw-song { color: var(--hl-indigo); }
 .hl-kw-lines { color: var(--accent); }
 .hl-kw-script { color: var(--hl-teal); }
-.hl-kw-layout { color: var(--hl-green); }
+.hl-kw-layout { color: var(--hl-blue); }
 .hl-kw-look { color: var(--hl-brown); }
 .hl-string { color: var(--hl-red); }
 .hl-number { color: var(--hl-purple); }

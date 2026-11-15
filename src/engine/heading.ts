@@ -26,7 +26,8 @@ export const SAFE_COLOR = /^(#[0-9a-f]{3,8}|[a-z]+|rgba?\(\s*[\d.\s,%]+\))$/i;
 
 /** The sheet's text colours on a dark background (see notation.css). */
 export const DARK_INK = '#f2f2f7';
-export const DARK_LYRIC = '#cfcfd4';
+export const DARK_SWARA = '#a3e4b5';
+export const DARK_LYRIC = '#f5d77a';
 
 // Named colours too dark to read on a dark sheet (the rest are left alone).
 const DARK_NAMED: Record<string, string> = {
