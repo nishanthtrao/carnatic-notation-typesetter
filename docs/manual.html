@@ -113,6 +113,7 @@
     <p><b>Comments.</b> A line starting with <code>#</code>, <code>%</code> or <code>//</code> is a comment. To comment out several lines at once, wrap them in <code>&lt;!--</code> and <code>--&gt;</code>, as in HTML; this can span any number of lines. <span class="ext">new</span> In the editor, <b>Ctrl+/</b> (<b>⌘/</b> on a Mac) comments or uncomments the selected lines. A comment can't follow other text on the same line, because <code>#</code> is also used in ordinary text such as <code>caraNam #5</code>.</p>
     <pre class="ex"># Pallavi only for now
 Tala: Adi
+DefaultSpeed: 0
 S: s r g m | p , | m g ||
 &lt;!--
 S: this line is not ready yet
@@ -144,7 +145,7 @@ S: "label" notations</pre>
       <tr><td><code>_</code> &nbsp; <code>__</code></td><td>Empty space of one or two mātras, with nothing shown (for indenting to the eḍuppu).</td></tr>
       <tr><td><code>=</code></td><td>"Same as the previous line", lasting one whole akshara.</td></tr>
       <tr><td><code>( … )</code></td><td>Everything inside is twice as fast and gets a speed line. Nest them for faster speeds.</td></tr>
-      <tr><td><code>|</code> &nbsp; <code>||</code></td><td>Optional, only for your own readability: the typesetter places tala markers itself (except in <code>Tala: Manual</code>).</td></tr>
+      <tr><td><code>|</code> &nbsp; <code>||</code></td><td>Optional, only for your own readability: the typesetter places tala markers itself (except in <code>Tala: Manual</code>). When you do type <code>||</code>, it is checked against the tala: one that does not fall at the end of an avartanam gets a warning saying how many mātras it is off by, which helps to find a miscounted swara. <span class="ext">new</span></td></tr>
       <tr><td><code>"1)"</code></td><td>A quoted label at the start is shown to the left of the line (sangati numbers, etc.).</td></tr>
     </table>
     <pre class="ex">Tala: Adi

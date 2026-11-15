@@ -65,7 +65,7 @@ function SyntaxHelp() {
         <Ex code={<code>=</code>}>Same as before, for one akshara</Ex>
         <Ex code={<><code>p~</code> &nbsp;<code>n(w)</code></>}>Gamaka after a swara: <code>~ ~~ ^ / // \ \\</code>, or any text in brackets</Ex>
         <Ex code={<code>p-</code>}>End of a phrase (where to breathe)</Ex>
-        <Ex code={<><code>|</code> &nbsp;<code>||</code></>}>Bar lines. Optional: the tala places them for you</Ex>
+        <Ex code={<><code>|</code> &nbsp;<code>||</code></>}>Bar lines. Optional: the tala places them for you. A <code>||</code> that doesn't match the tala gets a warning</Ex>
         <Ex code={<code>S: "1)" s r g</code>}>A label at the start of the line, in quotes</Ex>
       </ul>
 

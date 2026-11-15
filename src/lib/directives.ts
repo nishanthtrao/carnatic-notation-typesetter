@@ -48,6 +48,7 @@ export const DIRECTIVES: DirectiveInfo[] = (
     ['LineBreak', 'LineBreak', 'New line (manual tala mode)', 'layout'],
     ['Pagebreak', 'Pagebreak', 'New page when printing', 'layout'],
     ['Orientation', 'Orientation: Landscape', 'Portrait or landscape page', 'layout'],
+    ['AvartanamsPerLine', 'AvartanamsPerLine: 4', 'How many avartanams on each line (1–8)', 'layout'],
   ] as [string, string, string, GroupId][]
 ).map(([name, template, help, group]) => ({ name, template, help, group }));
 
@@ -57,7 +58,7 @@ export const GROUP_ORDER: string[] = [
   'S', 'L', 'SmartLyricMode',
   'Tala', 'DefaultSpeed', 'Gati', 'SpeedMarks', 'PhraseEnds',
   'Language', 'LanguageFont',
-  'Layout', 'SongBreak', 'LineBreak', 'Pagebreak', 'Orientation',
+  'Layout', 'AvartanamsPerLine', 'SongBreak', 'LineBreak', 'Pagebreak', 'Orientation',
   'SwaraPrefs', 'LyricPrefs', 'GamakaPrefs', 'HeadingPrefs',
 ];
 

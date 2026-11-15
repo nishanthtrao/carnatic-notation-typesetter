@@ -183,6 +183,9 @@ export function parse(input: string): NotationDoc {
   };
 
   let seg: Segment | null = null;
+  // Typed bars are checked against the tala: the time (in aksharas) that the
+  // last mismatched bar was found at, so one miscount is reported once.
+  let barSync = 0;
   let lastSwaraLine: SwaraLine | null = null;
   let metaBlock: { type: 'meta'; items: MetaItem[] } | null = null;
 
@@ -190,8 +193,27 @@ export function parse(input: string): NotationDoc {
     if (!st.explicitSpeed) st.speed = st.songSpeed = st.layout === 'gitam' ? 0 : 1;
   };
 
+  /** A typed | or || that does not fall where the tala puts one: the message, or null. */
+  const checkBar = (tok: string, time: number, segments: number[], perAk: number): string | null => {
+    const avarta = segments.reduce((a, b) => a + b, 0);
+    if (!(avarta > 0)) return null;
+    const pos = (((time - barSync) % avarta) + avarta) % avarta;
+    const stops = tok === '||' ? [0, avarta] : segments.reduce((acc, n) => [...acc, acc[acc.length - 1] + n], [0]);
+    let best = Infinity;
+    for (const stop of stops) if (Math.abs(pos - stop) < Math.abs(best)) best = pos - stop;
+    if (Math.abs(best) < 1e-6) return null;
+    barSync += best; // later bars are checked from this one, so one miscount is reported once
+    const matras = Math.round(Math.abs(best) * perAk * 4) / 4;
+    const where = tok === '||' ? 'the end of the avartanam' : 'a beat of the tala';
+    return (
+      'This "' + tok + '" is ' + matras + (matras === 1 ? ' mātra ' : ' mātras ') + (best > 0 ? 'after ' : 'before ') + where +
+      ' (' + Math.round(avarta * perAk * 4) / 4 + ' mātras per avartanam here): check the count before it.'
+    );
+  };
+
   const openSeg = (): Segment => {
     if (seg) return seg;
+    barSync = 0;
     seg = {
       type: 'staff',
       tala: st.tala,
@@ -289,6 +311,7 @@ export function parse(input: string): NotationDoc {
     if (label !== null) s.labels.push({ t: s.time, text: label });
     const per = () => perAkshara(st.speed, st.gati);
     const pathStack: number[] = [];
+    const barMsgs: string[] = [];
     for (const tok of tokens) {
       if (typeof tok === 'object') {
         warn(no, 'Ignored "' + tok.bad + '" — not a swara, pause, ( ) or tala marker');
@@ -296,6 +319,11 @@ export function parse(input: string): NotationDoc {
       }
       if (tok === '|' || tok === '||') {
         if (!s.tala || s.tala.manual === 2) s.markers.push({ t: s.time, kind: tok });
+        else if (s.tala.segments && tok === '||') {
+          // only || is checked: older notation often uses | loosely, for phrasing
+          const m = checkBar(tok, s.time, s.tala.segments, per());
+          if (m) barMsgs.push(m);
+        }
         continue;
       }
       if (tok === '(') {
@@ -335,6 +363,8 @@ export function parse(input: string): NotationDoc {
       sline.entries.push(ev);
     }
     if (pathStack.length) warn(no, 'Missing ")" — speed change not closed on this line');
+    if (barMsgs.length)
+      warn(no, barMsgs[0] + (barMsgs.length > 1 ? ' ' + (barMsgs.length - 1) + ' more bar' + (barMsgs.length > 2 ? 's' : '') + ' on this line also miss.' : ''));
     lastSwaraLine = sline;
   };
 
