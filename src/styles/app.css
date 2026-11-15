@@ -13,6 +13,17 @@
   --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI Variable Text', 'Segoe UI', system-ui, Roboto, 'Noto Sans', sans-serif;
   --font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI Variable Display', 'Segoe UI', system-ui, sans-serif;
   --mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, 'Cascadia Mono', Consolas, 'Noto Sans Mono', monospace;
+  /* editor syntax colours (light): Apple system colours, accessible shades */
+  --hl-lyric: #23408e;
+  --hl-orange: #b25000;
+  --hl-pink: #c2185b;
+  --hl-indigo: #5149d6;
+  --hl-teal: #0b7a85;
+  --hl-green: #1f7a35;
+  --hl-brown: #85633a;
+  --hl-red: #c41a16;
+  --hl-purple: #8944ab;
+  --hl-gray: #8a8a8e;
 
   /* semantic colours (light) */
   --window: #f5f5f7;
@@ -45,6 +56,16 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
+    --hl-lyric: #cfcfd4;
+    --hl-orange: #ff9f0a;
+    --hl-pink: #ff6ba1;
+    --hl-indigo: #8c88ff;
+    --hl-teal: #5ac8d8;
+    --hl-green: #30d158;
+    --hl-brown: #c8a170;
+    --hl-red: #ff6961;
+    --hl-purple: #bf5af2;
+    --hl-gray: #7c7c82;
     --window: #1e1e20;
     --canvas: #141416;
     --surface: #2a2a2d;
@@ -222,12 +243,12 @@ button { font: inherit; color: inherit; }
 .paper {
   max-width: 900px;
   margin: 0 auto;
-  background: #fff;
+  background: light-dark(#fff, #1c1c1e); /* the same as the sheet (notation.css) */
   border-radius: 4px;
   box-shadow: var(--shadow-page);
   padding: clamp(16px, 4.5vw, 52px) clamp(14px, 5vw, 60px);
   min-height: 100%;
-  color: #1a1a1a;
+  color: light-dark(#1a1a1a, #f2f2f7);
 }
 .paper.landscape { max-width: 1240px; }
 .cm-staff[data-line] { cursor: pointer; }
@@ -253,22 +274,68 @@ button { font: inherit; color: inherit; }
   min-width: 0;
   background: var(--surface);
 }
-textarea#input {
+/* The editor: a transparent textarea over a <pre> that draws the same text
+   with syntax colours (src/lib/highlight.ts). Both must share every metric. */
+.code {
+  position: relative;
   flex: 1;
   min-height: 0;
-  width: 100%;
+  display: flex;
+  background: var(--surface);
+}
+textarea#input, .code .hl {
   margin: 0;
   padding: 14px 16px 28px;
   border: 0;
-  background: var(--surface);
-  color: var(--label);
   font: 13px/1.6 var(--mono);
+  letter-spacing: normal;
   tab-size: 4;
-  resize: none;
   white-space: pre;
+  word-wrap: normal;
+  font-variant-ligatures: none;
+}
+textarea#input {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  background: transparent;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  resize: none;
   overflow: auto;
   caret-color: var(--accent);
 }
+.code .hl {
+  position: absolute;
+  inset: 0;
+  /* extra room at the end so it can always scroll as far as the textarea,
+     whose scroll range also grows by its scroll bars */
+  padding-bottom: 60px;
+  padding-right: 48px;
+  overflow: hidden;
+  pointer-events: none;
+  color: var(--label);
+}
+/* syntax colours: Apple system colours, darker shades on light backgrounds */
+.hl-swara { color: var(--label); }
+.hl-lyric { color: var(--hl-lyric); }
+.hl-s { color: var(--accent); }
+.hl-l { color: var(--hl-lyric); }
+.hl-colon, .hl-punct { color: var(--label-2); }
+.hl-pause { color: var(--label-2); }
+.hl-bar, .hl-speed, .hl-kw-rhythm { color: var(--hl-orange); }
+.hl-gamaka, .hl-phrase { color: var(--hl-pink); }
+.hl-kw-song { color: var(--hl-indigo); }
+.hl-kw-lines { color: var(--accent); }
+.hl-kw-script { color: var(--hl-teal); }
+.hl-kw-layout { color: var(--hl-green); }
+.hl-kw-look { color: var(--hl-brown); }
+.hl-string { color: var(--hl-red); }
+.hl-number { color: var(--hl-purple); }
+.hl-comment { color: var(--hl-gray); }
+.hl-bad { text-decoration: underline wavy var(--hl-red); text-decoration-skip-ink: none; text-underline-offset: 3px; }
 textarea#input:focus-visible { outline: none; }
 textarea#input::selection { background: var(--accent-soft); }
 
@@ -417,7 +484,7 @@ textarea#input::selection { background: var(--accent-soft); }
   .workspace.view-notation .editor-pane { display: none; }
   .workspace.view-text .preview-pane { display: none; }
   .preview-pane { padding: 12px; }
-  textarea#input { font-size: 16px; } /* stops iOS zooming on focus */
+  textarea#input, .code .hl { font-size: 16px; } /* stops iOS zooming on focus */
 }
 
 /* ---- Sheets (dialogs) ------------------------------------------------------- */
@@ -613,11 +680,12 @@ select optgroup {
 
 /* ---- Print: only the notation page -------------------------------------------- */
 @media print {
+  :root { color-scheme: light; } /* print black on white, whatever the screen shows */
   body { display: block; overflow: visible; background: #fff; height: auto; }
   .titlebar, .splitter, .editor-pane, .toast, dialog { display: none !important; }
   .workspace { display: block; }
   .preview-pane { overflow: visible; padding: 0; background: none; display: block !important; }
-  .paper { box-shadow: none; padding: 0; max-width: none; min-height: 0; border-radius: 0; }
+  .paper { box-shadow: none; padding: 0; max-width: none; min-height: 0; border-radius: 0; color-scheme: light; }
   .cm-staff[data-line] { cursor: default; }
 }
 
@@ -872,8 +940,6 @@ select optgroup {
   padding: 10px 12px 4px;
   min-height: 3em;
   border-radius: var(--radius);
-  background: #fff;
-  color: #222;
   container-type: inline-size;
 }
 .scale-preview .cm-empty { color: #888; font-size: 13px; text-align: center; margin: 6px 0; }

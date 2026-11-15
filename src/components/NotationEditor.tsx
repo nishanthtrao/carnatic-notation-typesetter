@@ -1,6 +1,7 @@
 import { convertPasted, hasIndic } from '../lib/paste-convert';
 import { toggleLineComments } from '../lib/comments';
-import { forwardRef, useImperativeHandle, useRef } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
+import { highlight } from '../lib/highlight';
 import { complete } from '../lib/directives';
 
 export interface LineInfo {
@@ -41,6 +42,28 @@ const KEYS: [string, string, string?][] = [
 
 export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationEditor({ initialValue, onInput, onShortcut, onPasteConverted }, ref) {
   const ta = useRef<HTMLTextAreaElement>(null);
+  const hl = useRef<HTMLPreElement>(null);
+
+  // Syntax colours: the text is drawn again, coloured, in a <pre> behind the
+  // textarea (whose own text is transparent), scrolled in step with it.
+  const sync = () => {
+    if (!hl.current || !ta.current) return;
+    hl.current.scrollTop = ta.current.scrollTop;
+    hl.current.scrollLeft = ta.current.scrollLeft;
+  };
+  const frame = useRef(0);
+  const paint = () => {
+    cancelAnimationFrame(frame.current);
+    frame.current = requestAnimationFrame(() => {
+      if (!hl.current || !ta.current) return;
+      hl.current.innerHTML = highlight(ta.current.value);
+      sync();
+    });
+  };
+  useEffect(() => {
+    paint();
+    return () => cancelAnimationFrame(frame.current);
+  }, []);
 
   const lineInfo = (): LineInfo => {
     const el = ta.current!;
@@ -66,6 +89,7 @@ export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationE
     if (!ok || el.value.slice(start, start + text.length) !== text) {
       el.setRangeText(text, start, end, 'end');
       onInput(el.value);
+      paint();
     }
   };
 
@@ -74,6 +98,7 @@ export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationE
     setValue: (text) => {
       ta.current!.value = text;
       ta.current!.scrollTop = 0;
+      paint();
     },
     replaceRange,
     insertAtCursor: (text) => {
@@ -93,6 +118,7 @@ export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationE
       el.setSelectionRange(pos, pos + (lines[n - 1] || '').length);
       const lh = parseFloat(getComputedStyle(el).lineHeight) || 20;
       el.scrollTop = Math.max(0, (n - 4) * lh);
+      sync();
     },
     focus: () => ta.current!.focus(),
     get scrollTop() {
@@ -100,6 +126,7 @@ export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationE
     },
     set scrollTop(v: number) {
       ta.current!.scrollTop = v;
+      sync();
     },
   }));
 
@@ -134,6 +161,8 @@ export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationE
           Letters
         </button>
       </div>
+      <div className="code">
+      <pre ref={hl} className="hl" aria-hidden="true" />
       <textarea
         ref={ta}
         id="input"
@@ -144,7 +173,11 @@ export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationE
         autoCorrect="off"
         wrap="off"
         aria-label="Notation input"
-        onInput={(e) => onInput(e.currentTarget.value)}
+        onInput={(e) => {
+          paint();
+          onInput(e.currentTarget.value);
+        }}
+        onScroll={sync}
         onPaste={(e) => {
           const original = e.clipboardData.getData('text/plain');
           if (!original || !hasIndic(original)) return; // ordinary paste
@@ -183,6 +216,7 @@ export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationE
           }
         }}
       />
+      </div>
     </>
   );
 });
