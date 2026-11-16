@@ -31,6 +31,17 @@ test('scale labels and raga name follow an Indian-script language', () => {
   expect(metaOf('Raga: mOhanam')[0]).toMatchObject({ label: 'Rāgam', value: 'mOhanam' });
 });
 
+test('the composer line is labelled in the script it is shown in', () => {
+  const composer = (lang: string) => metaOf(`Language: ${lang}\nComposer: tyAgarAja`)[0];
+  expect(composer('Kannada')).toMatchObject({ label: 'ರಚನೆ', text: 'ತ್ಯಾಗರಾಜ' });
+  expect(composer('Telugu').label).toBe('రచన');
+  expect(composer('Tamil').label).toBe('இயற்றியவர்');
+  expect(composer('Malayalam').label).toBe('രചന');
+  expect(composer('Sanskrit').label).toBe('रचना');
+  expect(composer('English').label).toBe('Composer');
+  expect(metaOf('Composer: tyAgarAja')[0].label).toBe('Composer');
+});
+
 test('Assist opens the scale form on raga and scale lines', () => {
   for (const line of ['Arohana: s r g', 'avarohanam:', 'Raga: kAnaDa', '  Ragam: x'])
     expect(assistModeFor(line)).toMatchObject({ kind: 'form', name: 'Scale' });

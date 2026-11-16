@@ -30,15 +30,18 @@ const SWARA_META = new Set(['arohana', 'arohanam', 'avarohana', 'avarohanam']);
 // The labels as Carnatic books write them in each script: Kannada drops the
 // final -m (ರಾಗ, ಆರೋಹಣ), Telugu writes రాగం but ఆరోహణ/అవరోహణ, Tamil spells
 // ஆரோகணம் with க, Malayalam keeps -ം, Devanagari uses the plain stems.
-const META_NATIVE: Partial<Record<Lang, Record<'raga' | 'aro' | 'ava', string>>> = {
-  kannada: { raga: 'ರಾಗ', aro: 'ಆರೋಹಣ', ava: 'ಅವರೋಹಣ' },
-  telugu: { raga: 'రాగం', aro: 'ఆరోహణ', ava: 'అవరోహణ' },
-  tamil: { raga: 'ராகம்', aro: 'ஆரோகணம்', ava: 'அவரோகணம்' },
-  malayalam: { raga: 'രാഗം', aro: 'ആരോഹണം', ava: 'അവരോഹണം' },
-  devanagari: { raga: 'राग', aro: 'आरोहण', ava: 'अवरोहण' },
+// The composer line reads "composition (of)": ರಚನೆ, రచన, രചന, रचना; Tamil
+// books write இயற்றியவர் ("composed by"). Not "vāggēyakāra", which only some
+// composers were.
+const META_NATIVE: Partial<Record<Lang, Record<'raga' | 'aro' | 'ava' | 'composer', string>>> = {
+  kannada: { raga: 'ರಾಗ', aro: 'ಆರೋಹಣ', ava: 'ಅವರೋಹಣ', composer: 'ರಚನೆ' },
+  telugu: { raga: 'రాగం', aro: 'ఆరోహణ', ava: 'అవరోహణ', composer: 'రచన' },
+  tamil: { raga: 'ராகம்', aro: 'ஆரோகணம்', ava: 'அவரோகணம்', composer: 'இயற்றியவர்' },
+  malayalam: { raga: 'രാഗം', aro: 'ആരോഹണം', ava: 'അവരോഹണം', composer: 'രചന' },
+  devanagari: { raga: 'राग', aro: 'आरोहण', ava: 'अवरोहण', composer: 'रचना' },
 };
-const META_KIND: Record<string, 'raga' | 'aro' | 'ava'> = {
-  raga: 'raga', ragam: 'raga', arohana: 'aro', arohanam: 'aro', avarohana: 'ava', avarohanam: 'ava',
+const META_KIND: Record<string, 'raga' | 'aro' | 'ava' | 'composer'> = {
+  raga: 'raga', ragam: 'raga', arohana: 'aro', arohanam: 'aro', avarohana: 'ava', avarohanam: 'ava', composer: 'composer',
 };
 
 /** Swaras per akshara for a default speed (0–2) and gati. */
