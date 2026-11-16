@@ -1,7 +1,8 @@
 # Render Blueprint: Render -> New -> Blueprint -> pick this repository.
 #
-# A free static site on Render's CDN: always on (no sleeping, no cold start),
-# rebuilt and redeployed on every push to main.
+# A free static site on Render's CDN: always on (no sleeping, no cold start).
+# Deploys are started by GitHub on every merge to main, through the service's
+# deploy hook (.github/workflows/deploy.yml), after the tests pass there.
 #
 # The Dockerfile is kept for hosting the site as a container elsewhere
 # (docker build -t cmnt . && docker run -p 8080:10000 cmnt). Render cannot turn
