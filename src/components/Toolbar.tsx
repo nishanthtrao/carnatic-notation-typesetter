@@ -3,7 +3,7 @@ import { Icon } from './Icons';
 
 export type Command =
   | 'new' | 'open' | 'save' | 'saveAs' | 'history' | 'assist' | 'letters' | 'update' | 'align' | 'photo'
-  | 'examples' | 'share' | 'exportPdf' | 'print';
+  | 'examples' | 'share' | 'exportPdf' | 'print' | 'tour';
 
 interface Item {
   cmd: Command | 'help';
@@ -35,6 +35,7 @@ const GROUPS: Item[][] = [
     { cmd: 'share', label: 'Share', title: 'Copy a link to this notation', icon: 'share', only: 'web' },
     { cmd: 'exportPdf', label: 'PDF', title: 'Export as PDF (⌘E)', icon: 'pdf', only: 'desktop' },
     { cmd: 'print', label: 'Print', title: 'Print (⌘P)', icon: 'print', secondary: 'phone' },
+    { cmd: 'tour', label: 'Tour', title: 'A quick guided tour: what each button does', icon: 'tour', secondary: true },
     { cmd: 'help', label: 'Help', title: 'Manual and syntax reference', icon: 'help', secondary: true },
   ],
 ];
@@ -50,7 +51,7 @@ export function Toolbar({ onCommand, desktop }: { onCommand: (c: Command) => voi
         <div key={gi} className={'tb-group' + (group.every((it) => it.secondary) ? ' all-secondary' : '')} role="group">
           {group.map((it) =>
             it.cmd === 'help' ? (
-              <a key={it.cmd} className="tb-btn tb-secondary" href={HELP_URL} target="_blank" rel="noopener" title={it.title} aria-label={it.label}>
+              <a key={it.cmd} data-tour="help" className="tb-btn tb-secondary" href={HELP_URL} target="_blank" rel="noopener" title={it.title} aria-label={it.label}>
                 <Icon name={it.icon} />
                 <span className="tb-label">{it.label}</span>
               </a>
@@ -58,6 +59,7 @@ export function Toolbar({ onCommand, desktop }: { onCommand: (c: Command) => voi
               <button
                 key={it.cmd}
                 type="button"
+                data-tour={it.cmd}
                 className={'tb-btn' + (it.prominent ? ' prominent' : '') + (it.secondary === 'phone' ? ' tb-secondary-phone' : it.secondary ? ' tb-secondary' : '')}
                 title={it.title}
                 aria-label={it.label}
@@ -114,6 +116,7 @@ function MoreMenu({ items, onCommand }: { items: Item[]; onCommand: (c: Command)
       <button
         ref={button}
         type="button"
+        data-tour="more"
         className="tb-btn tb-more"
         title="More commands"
         aria-label="More"

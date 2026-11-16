@@ -173,7 +173,7 @@ export function Preview({ doc, onJumpToLine, landscape }: { doc: NotationDoc; on
           </div>
         </div>
       </div>
-      <div className="zoom-pill" role="group" aria-label="Zoom">
+      <div className="zoom-pill" data-tour="zoom" role="group" aria-label="Zoom">
         <button type="button" title="Zoom out (⌘/Ctrl + scroll)" aria-label="Zoom out" disabled={zoom <= MIN} onClick={() => step(-1)}>
           <Icon name="zoomout" />
         </button>

@@ -34,4 +34,6 @@ export const KEYS = {
   auto: 'cmnt.v2.auto',
   recognition: 'cmnt.v3.recognition',
   apiKey: 'cmnt.v3.apikey',
+  /** set once the tour has been seen or skipped */
+  tour: 'cmnt.v3.tour',
 };

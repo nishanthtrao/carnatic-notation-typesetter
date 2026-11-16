@@ -19,6 +19,7 @@ const P: Record<string, string> = {
   sidebyside: 'M3 4h14v12H3z M10 4v12',
   stacked: 'M3 4h14v12H3z M3 10h14',
   warn: 'M10 3l8 14H2z M10 8v4 M10 14.5v.5',
+  tour: 'M10 2.5a7.5 7.5 0 1 0 0 15a7.5 7.5 0 0 0 0-15z M12.9 7.1l-1.7 4.1l-4.1 1.7l1.7-4.1z',
   check: 'M4 10.5l4 4 8-9',
   history: 'M3.5 10a6.5 6.5 0 1 0 2-4.7 M3 3v3.5h3.5 M10 6.5V10l2.5 2',
   more: 'M4.5 10h.01 M10 10h.01 M15.5 10h.01',
