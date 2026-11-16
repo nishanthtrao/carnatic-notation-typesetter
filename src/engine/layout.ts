@@ -222,9 +222,7 @@ export function layoutSegment(seg: Segment): void {
       }
     }
 
-    if (seg.phraseEnds.space > 0) {
-      for (const ev of rowEvents) if (ev.phraseEnd) gaps.push({ t: ev.t + ev.dur, size: 'phrase' });
-    }
+    for (const ev of rowEvents) if (ev.phraseEnd && (seg.phraseEnds.space > 0 || (ev.phraseLen || 1) > 1)) gaps.push({ t: ev.t + ev.dur, size: 'phrase' });
 
     // speed lines: runs of events sharing the same ( ) group at each depth
     const groups: SpeedGroup[] = [];
@@ -246,7 +244,7 @@ export function layoutSegment(seg: Segment): void {
           flush();
           run = { id, start: ev.t, end: ev.t + ev.dur };
         }
-        if (ev.phraseEnd && showPhrase) flush();
+        if (ev.phraseEnd && (showPhrase || (ev.phraseLen || 1) > 1)) flush();
       }
       flush();
     }

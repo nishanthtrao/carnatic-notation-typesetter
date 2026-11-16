@@ -14,7 +14,7 @@ const GROUP: Record<string, GroupId> = Object.fromEntries(DIRECTIVES.map((d) => 
 Object.assign(GROUP, { ragam: 'song', arohanam: 'song', avarohanam: 'song', section: 'song', text: 'song', pagesize: 'layout' });
 
 const SCALE = /^(arohana|arohanam|avarohana|avarohanam)$/;
-const PAUSE = /^(,|;|__|_|-|=)(-)?$/;
+const PAUSE = /^(,|;|__|_|-|=)(-+)?$/;
 
 /** One token of an S: line (or a scale line). */
 function swaraToken(tok: string): string {
