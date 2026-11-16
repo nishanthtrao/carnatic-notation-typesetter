@@ -161,10 +161,12 @@ function measureAll(el: HTMLElement, reqs: Map<string, MeasureReq>): Map<string,
     html += '<div class="cm-staff" style="font-size:100px;' + r.style + '">' + inner + '</div>';
   }
   box.innerHTML = html;
+  // the sheet may be drawn scaled (zoomed preview): measure in its own units
+  const scale = el.offsetWidth ? el.getBoundingClientRect().width / el.offsetWidth || 1 : 1;
   el.appendChild(box);
   const out = new Map<string, number>();
   Array.from(box.children).forEach((div, i) => {
-    out.set(keys[i], (div.firstElementChild as HTMLElement).getBoundingClientRect().width / 100);
+    out.set(keys[i], (div.firstElementChild as HTMLElement).getBoundingClientRect().width / scale / 100);
   });
   box.remove();
   return out;

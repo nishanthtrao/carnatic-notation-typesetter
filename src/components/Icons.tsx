@@ -20,12 +20,17 @@ const P: Record<string, string> = {
   stacked: 'M3 4h14v12H3z M3 10h14',
   warn: 'M10 3l8 14H2z M10 8v4 M10 14.5v.5',
   check: 'M4 10.5l4 4 8-9',
+  history: 'M3.5 10a6.5 6.5 0 1 0 2-4.7 M3 3v3.5h3.5 M10 6.5V10l2.5 2',
+  more: 'M4.5 10h.01 M10 10h.01 M15.5 10h.01',
+  zoomin: 'M8.5 15a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13z M13.2 13.2L18 18 M8.5 6v5 M6 8.5h5',
+  zoomout: 'M8.5 15a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13z M13.2 13.2L18 18 M6 8.5h5',
+  fit: 'M3 7V3h4 M13 3h4v4 M17 13v4h-4 M7 17H3v-4',
   settings: 'M10 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z M10 2v2 M10 16v2 M2 10h2 M16 10h2 M4.3 4.3l1.4 1.4 M14.3 14.3l1.4 1.4 M4.3 15.7l1.4-1.4 M14.3 5.7l1.4-1.4',
 };
 
 export function Icon({ name }: { name: keyof typeof P | string }) {
   return (
-    <svg viewBox="0 0 20 20" aria-hidden="true" className="ico">
+    <svg viewBox="0 0 20 20" aria-hidden="true" className={"ico ico-" + name}>
       <path d={P[name] || ''} />
     </svg>
   );
