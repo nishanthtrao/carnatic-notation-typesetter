@@ -18,20 +18,40 @@ import type { HeadingBlock, Lang, LangSpec, MetaItem, NotationDoc, NoteEvent, Ro
 
 const EPS = 1e-6;
 
-// Spacing, in em of the notation font.
-const SP = {
-  swara: 0.42, // gap after a swara in the default speed
-  fast: 0.16, // gap after a swara inside ( )
-  lyric: 0.45, // minimum gap after a lyric fragment
-  empty: 0.55, // width of _ (doubled for __)
-  bar: 1.15, // box for |
-  dbar: 1.45, // box for ||
-  akshara: 0.75, // gap between aksharas (gitam / varnam layouts)
-  anga: 1.0, // gap between angas without a marker (capu talas)
+// Spacing, in em of the notation font, at the usual "Spacing: Normal".
+const SP_BASE = {
+  swara: 0.3, // gap after a swara in the default speed
+  fast: 0.12, // gap after a swara inside ( )
+  lyric: 0.32, // minimum gap after a lyric fragment
+  empty: 0.45, // width of _ (doubled for __)
+  bar: 0.95, // box for |
+  dbar: 1.25, // box for ||
+  akshara: 0.6, // gap between aksharas (gitam / varnam layouts)
+  anga: 0.85, // gap between angas without a marker (capu talas)
   label: 0.7, // gap after the sangati label
   cellMin: 0.3,
   phrase: 0.8, // space per extra hyphen (p--, p---) when PhraseEnds sets no spacing
 };
+type Spacing = typeof SP_BASE;
+/**
+ * The gaps for a staff's "Spacing:" (1 is the usual). Gaps between swaras and
+ * lyrics follow it directly; bars and anga gaps follow it more gently so they
+ * stay readable when tight. Labels and explicit phrase gaps stay as they are.
+ */
+function spacingFor(f: number): Spacing {
+  const soft = Math.sqrt(f);
+  return {
+    ...SP_BASE,
+    swara: SP_BASE.swara * f,
+    fast: SP_BASE.fast * f,
+    lyric: SP_BASE.lyric * f,
+    empty: SP_BASE.empty * soft,
+    bar: SP_BASE.bar * soft,
+    dbar: SP_BASE.dbar * soft,
+    akshara: SP_BASE.akshara * soft,
+    anga: SP_BASE.anga * soft,
+  };
+}
 
 type IndicSwara = 'devanagari' | 'telugu' | 'kannada' | 'malayalam' | 'tamil';
 export const SWARA_TEXT: Record<IndicSwara, Record<string, [string, string]>> = {
@@ -215,10 +235,11 @@ function layoutDoc(doc: NotationDoc, el: HTMLElement): Geometry {
 
   let maxLabel = 0;
   for (const g of rowsGeo.values()) if (g.labelKey) maxLabel = Math.max(maxLabel, W(g.labelKey));
-  const labelW = maxLabel ? maxLabel + SP.label : 0;
+  const labelW = maxLabel ? maxLabel + SP_BASE.label : 0;
   let maxTotal = 0;
 
   for (const st of staffs) {
+    const SP = spacingFor(st.spacing || 1);
     const phraseEm = st.phraseEnds.space ? st.phraseEnds.space / 16 : 0;
     for (const row of st.rows) {
       const g = rowsGeo.get(row)!;

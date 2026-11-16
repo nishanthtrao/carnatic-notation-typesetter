@@ -37,6 +37,7 @@ export const DIRECTIVES: DirectiveInfo[] = (
     ['SmartLyricMode', 'SmartLyricMode', 'Lyrics skip pauses on their own', 'lines'],
     ['Gati', 'Gati: tisra', 'Change the gati (nadai)', 'rhythm'],
     ['SpeedMarks', 'SpeedMarks: above', 'Speed lines above or below', 'rhythm'],
+    ['Spacing', 'Spacing: Tight', 'Room between swaras and lyrics: tight, normal or wide', 'layout'],
     ['PhraseEnds', 'PhraseEnds: Show,10', 'How phrase ends (p-) look', 'rhythm'],
     ['SwaraPrefs', 'SwaraPrefs: 12', 'Swara size and colour', 'look'],
     ['LyricPrefs', 'LyricPrefs: 12', 'Lyric size and colour', 'look'],
@@ -57,7 +58,7 @@ export const GROUP_ORDER: string[] = [
   'S', 'L', 'SmartLyricMode',
   'Tala', 'DefaultSpeed', 'Gati', 'SpeedMarks', 'PhraseEnds',
   'Language', 'LanguageFont',
-  'Layout', 'SongBreak', 'LineBreak', 'Pagebreak', 'Orientation',
+  'Layout', 'Spacing', 'SongBreak', 'LineBreak', 'Pagebreak', 'Orientation',
   'SwaraPrefs', 'LyricPrefs', 'GamakaPrefs', 'HeadingPrefs',
 ];
 
@@ -91,6 +92,7 @@ const VALUE_COMPLETIONS: Record<string, () => string[]> = {
   speedmarks: () => ['above', 'below'],
   phraseends: () => ['Hide', 'Show', 'Handle', 'HandleThick'],
   orientation: () => ['Portrait', 'Landscape'],
+  spacing: () => ['Tight', 'Normal', 'Wide'],
   defaultspeed: () => ['0', '1', '2'],
   languagefont: () => ['All', ...LANG_OPTIONS.map(([v]) => v)],
 };
