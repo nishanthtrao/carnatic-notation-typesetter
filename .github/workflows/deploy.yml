@@ -90,3 +90,18 @@ jobs:
           done
           echo "::error title=Not live after 15 minutes::The site still shows ${live:-nothing}. Check the deploy's log in the Render dashboard (Events)."
           exit 1
+
+      - name: Check the security headers
+        run: |
+          # A warning, not a failure: Render applies render.yaml's headers when its
+          # Blueprint syncs, which may need a manual sync in the Render dashboard.
+          headers=$(curl --silent --head --max-time 20 "$SITE/" | tr -d '\r' | tr 'A-Z' 'a-z')
+          missing=""
+          for h in content-security-policy strict-transport-security x-frame-options x-content-type-options referrer-policy permissions-policy cross-origin-opener-policy; do
+            echo "$headers" | grep -q "^$h:" || missing="$missing $h"
+          done
+          if [ -n "$missing" ]; then
+            echo "::warning title=Security headers missing::$missing. In Render, open the Blueprint and press Manual Sync (or add them under the service's Settings, Headers)."
+          else
+            echo "All security headers are present."
+          fi
