@@ -7,6 +7,7 @@ import { examples, newSongTemplate, parse, type Example, type NotationDoc } from
 import { NotationEditor, type EditorHandle } from '../components/NotationEditor';
 import { Preview } from '../components/Preview';
 import { Splitter } from '../components/Splitter';
+import { Tour } from '../components/Tour';
 import { Toolbar, type Command } from '../components/Toolbar';
 import { useToast } from '../components/Toast';
 import { IssuesBadge, IssuesList } from '../components/Warnings';
@@ -115,6 +116,17 @@ function Editor({ initial }: { initial: Initial }) {
   const [docState, setDocState] = useState({ name: '', dirty: initial.dirty });
   const [status, setStatus] = useState(initial.message);
   const [dialog, setDialog] = useState<DialogName>(null);
+  // the guided tour: offered once on a first visit, and from the Tour button
+  const [tour, setTour] = useState(false);
+  useEffect(() => {
+    if (store.get(KEYS.tour) || desk || location.hash.length > 1) return;
+    const t = setTimeout(() => setTour(true), 600);
+    return () => clearTimeout(t);
+  }, []);
+  const closeTour = useCallback(() => {
+    setTour(false);
+    store.set(KEYS.tour, '1');
+  }, []);
   const [assist, setAssist] = useState<AssistMode | null>(null);
 
   // When a dialog closes, put the cursor back in the editor if that is where the
@@ -324,6 +336,7 @@ function Editor({ initial }: { initial: Initial }) {
       },
       examples: () => setDialog('examples'),
       history: () => setDialog('history'),
+      tour: () => setTour(true),
       about: () => setDialog('about'),
       letters: () => {
         const ed = editor.current;
@@ -513,7 +526,7 @@ function Editor({ initial }: { initial: Initial }) {
             <div className="tb-sub">Carnatic Notation Typesetter</div>
           </div>
         </div>
-        <div className="segmented view-switch" role="tablist" aria-label="Show">
+        <div className="segmented view-switch" data-tour="view" role="tablist" aria-label="Show">
           <button type="button" role="tab" aria-selected={view === 'notation'} onClick={() => setView('notation')}>Notation</button>
           <button type="button" role="tab" aria-selected={view === 'text'} onClick={() => setView('text')}>Text</button>
         </div>
@@ -573,12 +586,13 @@ function Editor({ initial }: { initial: Initial }) {
           </button>
         </div>
       )}
+      <Tour open={tour && !dialog} onClose={closeTour} onView={setView} />
       <main
         className={'workspace layout-' + layout + ' view-' + view}
         ref={appRef}
         style={{ ['--split-x' as string]: splitX + '%', ['--split-y' as string]: splitY + '%' }}
       >
-        <section className="preview-pane" aria-label="Notation preview">
+        <section className="preview-pane" data-tour="preview" aria-label="Notation preview">
           <Preview zoomable doc={doc} landscape={doc.page.orientation === 'landscape'} onJumpToLine={(n) => { setView('text'); setTimeout(() => editor.current?.goToLine(n), 0); }} />
         </section>
 
@@ -597,7 +611,7 @@ function Editor({ initial }: { initial: Initial }) {
           }}
         />
 
-        <section className="editor-pane" aria-label="Notation input">
+        <section className="editor-pane" data-tour="editor" aria-label="Notation input">
           <NotationEditor
             ref={editor}
             initialValue={initial.text}

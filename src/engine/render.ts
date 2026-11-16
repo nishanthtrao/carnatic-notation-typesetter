@@ -30,6 +30,7 @@ const SP = {
   anga: 1.0, // gap between angas without a marker (capu talas)
   label: 0.7, // gap after the sangati label
   cellMin: 0.3,
+  phrase: 0.8, // space per extra hyphen (p--, p---) when PhraseEnds sets no spacing
 };
 
 type IndicSwara = 'devanagari' | 'telugu' | 'kannada' | 'malayalam' | 'tamil';
@@ -242,6 +243,9 @@ function layoutDoc(doc: NotationDoc, el: HTMLElement): Geometry {
           lyr.forEach((it, li) => {
             if (it) lyrEnd[li] = start + W(g.lyricKeys.get(it)!) + SP.lyric;
           });
+          // p-- p---: each hyphen after the first adds a step of space after the swara and its lyrics
+          const extra = ev.phraseEnd ? ((ev.phraseLen || 1) - 1) * (phraseEm || SP.phrase) : 0;
+          if (extra > 0) x = Math.max(x, ...lyrEnd.filter((v) => v !== undefined)) + extra;
           natural = Math.max(natural, x, ...lyrEnd.filter((v) => v !== undefined));
         }
         return { evs, natural: Math.max(natural, evs.length ? 0 : SP.cellMin), x: 0, w: 0, key: iv.key, sep: iv.sep };

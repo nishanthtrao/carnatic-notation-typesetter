@@ -14,9 +14,11 @@ import { GATIS, isTalaError, parseGati, parseTala } from './talas';
 import { LANGS, normaliseLang, parseLangSpec, transliterate } from './translit';
 import type { Block, JatiName, Lang, LangSpec, MetaItem, NotationDoc, NoteEvent, PhraseEnds, Prefs, Tala } from './types';
 
-// swara + optional variant (extension) + stayi + gamaka + phrase end
-export const SWARA_RE = /^(sa|ri|ga|ma|pa|dha|da|ni|[srgmpdn]|[SRGMPDN])([1-3])?(['`]*)(~~|~|\^|\/\/|\/|\\\\|\\|\([^)]*\))?(-)?$/;
-const PAUSE_RE = /^(,|;|__|_|-)(-)?$/;
+// swara + optional variant (extension) + stayi + gamaka + phrase end.
+// A dheerga swara is sa ri ga…, S R G…, or (extension) sA rI gA… with the
+// long vowel in capitals. Extra hyphens after a phrase end add space (extension).
+export const SWARA_RE = /^(sA|rI|gA|mA|pA|dhA|dA|nI|sa|ri|ga|ma|pa|dha|da|ni|[srgmpdn]|[SRGMPDN])([1-3])?(['`]*)(~~|~|\^|\/\/|\/|\\\\|\\|\([^)]*\))?(-+)?$/;
+const PAUSE_RE = /^(,|;|__|_|-)(-+)?$/;
 const PAUSE_MATRAS: Record<string, number> = { ',': 1, ';': 2, _: 1, __: 2, '-': 1 };
 const LYRIC_PAUSE_OK: Record<string, boolean> = { '-': true, '.': true, _: true };
 
@@ -28,15 +30,18 @@ const SWARA_META = new Set(['arohana', 'arohanam', 'avarohana', 'avarohanam']);
 // The labels as Carnatic books write them in each script: Kannada drops the
 // final -m (ರಾಗ, ಆರೋಹಣ), Telugu writes రాగం but ఆరోహణ/అవరోహణ, Tamil spells
 // ஆரோகணம் with க, Malayalam keeps -ം, Devanagari uses the plain stems.
-const META_NATIVE: Partial<Record<Lang, Record<'raga' | 'aro' | 'ava', string>>> = {
-  kannada: { raga: 'ರಾಗ', aro: 'ಆರೋಹಣ', ava: 'ಅವರೋಹಣ' },
-  telugu: { raga: 'రాగం', aro: 'ఆరోహణ', ava: 'అవరోహణ' },
-  tamil: { raga: 'ராகம்', aro: 'ஆரோகணம்', ava: 'அவரோகணம்' },
-  malayalam: { raga: 'രാഗം', aro: 'ആരോഹണം', ava: 'അവരോഹണം' },
-  devanagari: { raga: 'राग', aro: 'आरोहण', ava: 'अवरोहण' },
+// The composer line reads "composition (of)": ರಚನೆ, రచన, രചന, रचना; Tamil
+// books write இயற்றியவர் ("composed by"). Not "vāggēyakāra", which only some
+// composers were.
+const META_NATIVE: Partial<Record<Lang, Record<'raga' | 'aro' | 'ava' | 'composer', string>>> = {
+  kannada: { raga: 'ರಾಗ', aro: 'ಆರೋಹಣ', ava: 'ಅವರೋಹಣ', composer: 'ರಚನೆ' },
+  telugu: { raga: 'రాగం', aro: 'ఆరోహణ', ava: 'అవరోహణ', composer: 'రచన' },
+  tamil: { raga: 'ராகம்', aro: 'ஆரோகணம்', ava: 'அவரோகணம்', composer: 'இயற்றியவர்' },
+  malayalam: { raga: 'രാഗം', aro: 'ആരോഹണം', ava: 'അവരോഹണം', composer: 'രചന' },
+  devanagari: { raga: 'राग', aro: 'आरोहण', ava: 'अवरोहण', composer: 'रचना' },
 };
-const META_KIND: Record<string, 'raga' | 'aro' | 'ava'> = {
-  raga: 'raga', ragam: 'raga', arohana: 'aro', arohanam: 'aro', avarohana: 'ava', avarohanam: 'ava',
+const META_KIND: Record<string, 'raga' | 'aro' | 'ava' | 'composer'> = {
+  raga: 'raga', ragam: 'raga', arohana: 'aro', arohanam: 'aro', avarohana: 'ava', avarohanam: 'ava', composer: 'composer',
 };
 
 /** Swaras per akshara for a default speed (0–2) and gati. */
@@ -59,7 +64,7 @@ export type SwaraToken = string | { bad: string };
 /** Split a raw swara-line token into simpler tokens (lenient tokenizer). */
 function expandToken(tok: string, out: SwaraToken[]): void {
   if (!tok) return;
-  if (['|', '||', '(', ')', '=', '=-'].includes(tok)) {
+  if (['|', '||', '(', ')', '='].includes(tok) || /^=-+$/.test(tok)) {
     out.push(tok);
     return;
   }
@@ -121,11 +126,13 @@ export function swaraInfo(m: RegExpMatchArray) {
   return {
     note: letter,
     long: name.length > 1 || isUpper,
-    display: isUpper ? DHIRGHA[letter] : name,
+    // sA rI… are shown like sa ri…
+    display: isUpper ? DHIRGHA[letter] : name.toLowerCase(),
     variant: m[2] || null,
     octave: (m[3].match(/'/g) || []).length - (m[3].match(/`/g) || []).length,
     gamaka: m[4] || null,
     phraseEnd: !!m[5],
+    phraseLen: m[5] ? m[5].length : 0,
   };
 }
 
@@ -313,8 +320,8 @@ export function parse(input: string): NotationDoc {
       if (sm) {
         const info = swaraInfo(sm);
         ev = { kind: 'swara', t: 0, dur: ((info.long ? 2 : 1) * factor) / per(), path: [], lyrics: [], lang: st.lang, ...info };
-      } else if (tok === '=' || tok === '=-') {
-        ev = { kind: 'same', t: 0, dur: 1, path: [], lyrics: [], phraseEnd: tok === '=-' };
+      } else if (/^=-*$/.test(tok)) {
+        ev = { kind: 'same', t: 0, dur: 1, path: [], lyrics: [], phraseEnd: tok.length > 1, phraseLen: tok.length - 1 };
       } else {
         const pm = tok.match(PAUSE_RE)!;
         const p = pm[1];
@@ -326,6 +333,7 @@ export function parse(input: string): NotationDoc {
           path: [],
           lyrics: [],
           phraseEnd: !!pm[2],
+          phraseLen: pm[2] ? pm[2].length : 0,
         };
       }
       ev.t = s.time;

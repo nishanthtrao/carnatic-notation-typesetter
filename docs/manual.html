@@ -71,6 +71,7 @@
       <tr><td>New</td><td>Asks for the song name, raga, tala, composer, layout and language, and writes the starting directives for you.</td></tr>
       <tr><td>Open / Save</td><td>Open a notation file from your device, or save the song as a file on your device (<kbd>⌘</kbd>/<kbd>Ctrl</kbd>+<kbd>S</kbd>). In Chrome and Edge, Save asks where to save the first time and then saves over that file; <kbd>⌘</kbd>/<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> saves a copy somewhere else. Other browsers download the file. The typesetter always opens on a new song; if you left unsaved work last time, a bar at the top offers to <b>Restore</b> or <b>Discard</b> it. Shared links open the shared notation.</td></tr>
       <tr><td>History <span class="ext">new</span></td><td>Earlier versions of this notation. A version is kept every two minutes while you work, each time you save, and before anything replaces the notation (opening a file, an example, a new song or a photo). Pick one to see it typeset, then press <b>Restore this version</b>; what you had is kept as a version too, so nothing is lost. Versions are kept only in this browser (up to 60) and can be cleared from the same window.</td></tr>
+      <tr><td>Tour <span class="ext">new</span></td><td>A one-minute guided tour that points at each button and says what it does. It is offered once on your first visit; press <b>Tour</b> any time to see it again. <kbd>Esc</kbd> closes it, and the arrow keys move between steps.</td></tr>
       <tr><td>Assist</td><td>Help with the directive on the current line. On an empty line it lists all directives, grouped by what they are for (song details, notation lines, tala and speed, language and fonts, lines and pages, sizes and colours); a name ending in … opens a form; on any directive that takes a value (<code>Tala</code>, <code>Gati</code>, <code>Layout</code>, <code>DefaultSpeed</code>, <code>Language</code>, <code>LanguageFont</code>, <code>Heading</code>, <code>SpeedMarks</code>, <code>PhraseEnds</code>, the four <code>…Prefs</code>, <code>Title</code>, <code>Orientation</code>, and <code>Raga</code>/<code>Arohana</code>/<code>Avarohana</code>) it opens a form with drop-downs and options to edit it; on an <code>S:</code>/<code>L:</code> line it shows a syntax summary.</td></tr>
       <tr><td>Letters</td><td>Similar-sounding letters (ര or റ? ள or ழ?) in your song's script, with how to type each, and other spellings of the word at the cursor. See <i>Letters kit</i> below.</td></tr>
       <tr><td>Align</td><td>Pads your input with spaces so each lyric sits under its swara, which makes the text much easier to read and check.</td></tr>
@@ -139,6 +140,7 @@ S: "label" notations</pre>
       <tr><th>Write</th><th>Meaning</th></tr>
       <tr><td><code>s r g m p d n</code></td><td>A swara lasting one mātra in the current speed.</td></tr>
       <tr><td><code>sa ri ga ma pa da ni</code></td><td>A dhīrgha (long) swara lasting two mātras. <code>dha</code> also works.</td></tr>
+      <tr><td><code>sA rI gA mA pA dA nI</code> <span class="ext">new</span></td><td>The same dhīrgha swaras with the long vowel in capitals, which is easier to spot while writing; <code>dhA</code> also works. They print exactly like <code>sa ri ga…</code>, and take variants, dots and gamakas the same way: <code>rI2</code>, <code>sA'</code>, <code>mA~</code>.</td></tr>
       <tr><td><code>s'</code> &nbsp; <code>p`</code></td><td>Tara stayi (dot above) and mandra stayi (dot below). Repeat for two octaves: <code>s''</code>. Works with long swaras too: <code>sa'</code>.</td></tr>
       <tr><td><code>,</code> &nbsp; <code>;</code></td><td>Pause or continuation of one mātra and two mātras.</td></tr>
       <tr><td><code>_</code> &nbsp; <code>__</code></td><td>Empty space of one or two mātras, with nothing shown (for indenting to the eḍuppu).</td></tr>
@@ -165,6 +167,11 @@ S: m~ , ma~~ , r g^ m s m/ g r s ma// g r n d\ p m n da\\ p s' n(w) n d</pre>
 
     <h3>Phrase ends</h3>
     <p>A hyphen after a swara (<code>p-</code>) marks the end of a phrase, for example where to breathe. By default it is invisible; see <a href="#speedmarks">PhraseEnds</a> to show it or add space after it.</p>
+    <p><b>More hyphens, more space</b> <span class="ext">new</span>: <code>p--</code> leaves a gap after the swara and its lyric, and <code>p---</code> a bigger one, so you can show clearly where the sahitya divides. It takes no time in the tala and works after pauses too (<code>,--</code>). A speed line is broken at such a gap. If <code>PhraseEnds</code> sets a spacing, each extra hyphen adds that spacing again.</p>
+    <pre class="ex">Tala: Adi
+SmartLyricMode
+S: s r g m-- p d n s | s' n d--- p | m g r s ||
+L: sA ma ja va ra ga ma na sA ma ja va ra ga ma na</pre>
 
     <h3>Same as before</h3>
     <pre class="ex">DefaultSpeed: 1
@@ -328,11 +335,13 @@ L: sa ri ga ma pa da ni sa sa ni da pa ma ga ri sa</pre>
     <p>Everything above follows the v1.5 manual. These extras are new; files that use them won't work on the old site.</p>
     <table class="t">
       <tr><th>Write</th><th>Meaning</th></tr>
-      <tr><td><code>Raga: mOhanam</code>, <code>Composer: …</code>, <code>Arohana: s r2 g3 p d2 s'</code>, <code>Avarohana: …</code></td><td>A centred information line; ārōhaṇam/avarōhaṇam are drawn as swaras, so <code>s'</code> and <code>n`</code> get their dots and <code>r2</code> its subscript. With an Indian-script <code>Language</code>, the labels and the raga and composer names are written in that script. <b>Assist</b> on any of these lines opens a scale builder: start from a well-known raga, tap swaras (choose the upper or lower octave first for a dot), reverse the ārōhaṇam for the avarōhaṇam, and see a preview.</td></tr>
+      <tr><td><code>Raga: mOhanam</code>, <code>Composer: …</code>, <code>Arohana: s r2 g3 p d2 s'</code>, <code>Avarohana: …</code></td><td>A centred information line; ārōhaṇam/avarōhaṇam are drawn as swaras, so <code>s'</code> and <code>n`</code> get their dots and <code>r2</code> its subscript. With an Indian-script <code>Language</code>, the labels and the raga and composer names are written in that script; the composer line is labelled as a composition, the way books in each language do: ರಚನೆ (Kannada), రచన (Telugu), இயற்றியவர் (Tamil), രചന (Malayalam), रचना (Devanagari). <b>Assist</b> on any of these lines opens a scale builder: start from a well-known raga, tap swaras (choose the upper or lower octave first for a dot), reverse the ārōhaṇam for the avarōhaṇam, and see a preview.</td></tr>
       <tr><td><code>Section: pallavi</code> &nbsp; <code>Text: …</code></td><td>Quick headings without quotes or attributes.</td></tr>
       <tr><td><code>r1 r2 g3 …</code></td><td>Swara variants shown with a subscript number.</td></tr>
       <tr><td><code>srgm</code></td><td>Plain swaras may be written joined; same as <code>s r g m</code>.</td></tr>
       <tr><td><code>S R G</code></td><td>A capital letter is a dhīrgha swara, like <code>sa ri ga</code>.</td></tr>
+      <tr><td><code>sA rI gA</code></td><td>Dhīrgha swaras with the long vowel in capitals, like <code>sa ri ga</code>.</td></tr>
+      <tr><td><code>p--</code> &nbsp; <code>p---</code></td><td>More space after a phrase end: each hyphen after the first adds a step.</td></tr>
       <tr><td><code>Tala: 4+2+2</code></td><td>A custom tala given as anga lengths in aksharas.</td></tr>
       <tr><td><code>AvartanamsPerLine: 2</code></td><td>Put more than one avartanam on each line.</td></tr>
       <tr><td><code>PageSize: Letter</code></td><td>Paper size when printing (A4, A5, A3, Letter, Legal).</td></tr>

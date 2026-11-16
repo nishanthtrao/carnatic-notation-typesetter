@@ -6,14 +6,14 @@ import { Icon } from './Icons';
 export function IssuesBadge({ list, open, onToggle }: { list: Warning[]; open: boolean; onToggle: () => void }) {
   if (!list.length) {
     return (
-      <span className="issues ok" title="No problems found">
+      <span className="issues ok" data-tour="issues" title="No problems found">
         <Icon name="check" />
         No issues
       </span>
     );
   }
   return (
-    <button type="button" className={'issues bad' + (open ? ' open' : '')} onClick={onToggle} aria-expanded={open} title="Show problems">
+    <button type="button" data-tour="issues" className={'issues bad' + (open ? ' open' : '')} onClick={onToggle} aria-expanded={open} title="Show problems">
       <Icon name="warn" />
       {list.length === 1 ? '1 issue' : list.length + ' issues'}
     </button>
