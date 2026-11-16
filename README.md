@@ -4,7 +4,7 @@ Typeset Carnatic music notation (swaras, lyrics, tala markers, speed lines, gama
 
 > **Credit:** the Carnatic Music Notation Typesetter and its input format were created by **Arun K** ([original project](https://sourceforge.net/projects/cmnt/), [his page about it](http://arunk.freepgs.com/wordpress/cm-typesetter/about/)). This is an **unofficial, community-maintained rebuild** of his v1.5 Beta, made because the original site is no longer maintained. It is not affiliated with or endorsed by Arun K. See [NOTICE.md](NOTICE.md) for full credits and the list of changes.
 
-**Live site:** https://carnatic-notation-typesetter.onrender.com
+**Live site:** https://carnatic-typesetter.onrender.com
 
 It reads the **same input format** as the original, so notation files written for the old site open unchanged.
 
@@ -60,7 +60,8 @@ npm run app          # build and run the desktop app
 
 The site is a static build in `dist/`.
 
-- **Render (set up):** `render.yaml` is a Blueprint for a free **static site** on Render's CDN: always on, no cold starts, rebuilt (tests included) on every push to `main`. On [render.com](https://render.com), choose **New → Blueprint** and pick this repository.
+- **Render (set up):** `render.yaml` is a Blueprint for a free **static site** on Render's CDN: always on, no cold starts. On [render.com](https://render.com), choose **New → Blueprint** and pick this repository.
+- **Deploying:** every merge or push to `main` runs `.github/workflows/deploy.yml`: the tests and the build, then Render's deploy hook, then it waits until the live site shows the new version (a red ✗ in the Actions tab if anything fails). One-time setup: copy the deploy hook URL from the Render service's Settings into a GitHub repository secret named `RENDER_DEPLOY_HOOK`. It can also be run by hand: Actions → Deploy → Run workflow.
 - **Docker anywhere** (the site in an nginx container, for hosts that run containers): `docker build -t cmnt .` then `docker run --rm -p 8080:10000 cmnt`, and open http://localhost:8080. The container listens on `$PORT` (default 10000) and answers `/healthz` for health checks.
 - **GitHub Pages:** go to **Settings → Pages**, set **Source** to **GitHub Actions**, then run **Actions → Website → Run workflow** (`.github/workflows/pages.yml`).
 - **Netlify / Cloudflare Pages:** build command `npm run build`, output directory `dist`.

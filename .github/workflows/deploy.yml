@@ -1,0 +1,86 @@
+# Deploys the website to Render every time main changes (a merge or a push),
+# once the tests and the build pass, then waits until the new version is live.
+#
+# Render only deploys by itself for services connected through its GitHub
+# integration. This service was set up from the repository's public address,
+# so GitHub tells Render to deploy, through the service's deploy hook.
+#
+# One-time setup:
+#   1. Render: carnatic-typesetter -> Settings -> Deploy Hook -> copy the URL.
+#   2. GitHub: repository Settings -> Secrets and variables -> Actions ->
+#      New repository secret. Name: RENDER_DEPLOY_HOOK, value: that URL.
+# The URL is a key: anyone who has it can start deploys. Keep it in the secret
+# only; if it leaks, regenerate it in Render and update the secret.
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # also from the Actions tab: Deploy -> Run workflow
+
+permissions:
+  contents: read
+
+# One deploy at a time; a merge made while one is running waits its turn.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+env:
+  SITE: https://carnatic-typesetter.onrender.com
+
+jobs:
+  test:
+    name: Test and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm test
+      - run: npm run build
+      # The build's own fingerprint, which the live site shows once it has this version.
+      - id: version
+        run: echo "version=$(grep -oP "VERSION = '\K[^']+" dist/sw.js)" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    name: Deploy to Render
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Ask Render to deploy
+        env:
+          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "::error title=Deploy hook missing::Add the RENDER_DEPLOY_HOOK secret (see the top of .github/workflows/deploy.yml)."
+            exit 1
+          fi
+          curl --fail --silent --show-error --max-time 30 -X POST "$HOOK" -o /dev/null
+          echo "Render is building version ${{ needs.test.outputs.version }}."
+
+      - name: Wait until the new version is live
+        env:
+          VERSION: ${{ needs.test.outputs.version }}
+        run: |
+          # Render builds the same code with the same lockfile, so the live
+          # site shows the same fingerprint once the deploy has finished.
+          for i in $(seq 1 60); do
+            live=$(curl --fail --silent --max-time 20 "$SITE/sw.js?check=$(date +%s)" | grep -oP "VERSION = '\K[^']+" || true)
+            if [ "$live" = "$VERSION" ]; then
+              echo "Live on $SITE: version $VERSION"
+              echo "Deployed version \`$VERSION\` to $SITE" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            echo "Still live: ${live:-unreachable}; waiting for $VERSION ($i/60)"
+            sleep 15
+          done
+          echo "::error title=Not live after 15 minutes::The site still shows ${live:-nothing}. Check the deploy's log in the Render dashboard (Events)."
+          exit 1
