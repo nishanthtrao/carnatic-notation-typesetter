@@ -16,15 +16,20 @@ name: Deploy
 on:
   push:
     branches: [main]
+  # Pull requests into main are tested too (not deployed), so that a ruleset
+  # can require "Test and build" to pass before anything is merged.
+  pull_request:
+    branches: [main]
   workflow_dispatch: # also from the Actions tab: Deploy -> Run workflow
 
 permissions:
   contents: read
 
 # One deploy at a time; a merge made while one is running waits its turn.
+# A pull request's newer push replaces its older test run.
 concurrency:
-  group: deploy
-  cancel-in-progress: false
+  group: ${{ github.event_name == 'pull_request' && format('test-{0}', github.ref) || 'deploy' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   SITE: https://carnatic-typesetter.onrender.com
@@ -52,6 +57,7 @@ jobs:
   deploy:
     name: Deploy to Render
     needs: test
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
