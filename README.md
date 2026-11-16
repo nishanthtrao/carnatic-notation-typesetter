@@ -10,7 +10,7 @@ It reads the **same input format** as the original, so notation files written fo
 
 - **Built with** React and TypeScript (Vite), with a framework-independent, fully typed notation engine.
 - **Design** follows Apple's Human Interface Guidelines: a unified title bar and toolbar, text and notation side by side, light and dark mode, sheets for dialogs, and a phone layout that switches between Notation and Text.
-- **Read Photo** turns a photo or scan of handwritten or printed notation (English letters, Tamil, Telugu, Kannada, Malayalam or Devanagari) into editable input, using Claude's vision with the user's own Anthropic API key.
+- **Read Photo** turns a photo or scan of handwritten or printed notation (English letters, Tamil, Telugu, Kannada, Malayalam or Devanagari) into editable input, using an AI model of the user's choice: their own API key for Claude, Gemini (free tier), OpenAI or OpenRouter, or no key at all by pasting into the AI chat app they already use.
 - **Manual:** `docs/manual.html`, with live rendered examples.
 
 ## Project layout
@@ -31,7 +31,7 @@ src/
   app/App.tsx            the editor: layout, commands, files, autosave, desktop bridge
   components/            title bar toolbar, editor, preview, splitter, issues badge, modal, toast
   dialogs/               New song, Assist, Examples, Share, Read Photo, Settings, confirm
-  recognition/           Read Photo: prompt, Anthropic API call, image preparation, settings
+  recognition/           Read Photo: prompt, AI services (providers.ts), image preparation, settings
   lib/                   alignment, TAB completion, share links, storage, desktop bridge types
   styles/                notation.css (the page), app.css (the editor), fonts.css
   assets/fonts/          bundled fonts, three styles per language: Noto Serif, Anek (sans), Nunito + Baloo (rounded); SIL OFL
@@ -93,14 +93,15 @@ Build locally with `npm run dist:win`, `npm run dist:mac` (on a Mac only) or `np
 
 How it works:
 
-1. The photos are rotated if needed, scaled to at most 2,576 px on the long edge and sent to the Anthropic Messages API with instructions describing this input format (`src/recognition/prompt.ts`).
+1. The photos are rotated if needed, scaled to at most 2,576 px on the long edge and sent with instructions describing this input format (`src/recognition/prompt.ts`) to the service the user chose: Claude (Anthropic), Gemini (Google), OpenAI or OpenRouter.
 2. The reply is checked with the typesetter's own parser. If it has problems, the model is asked once to correct them.
 3. The user reviews the text next to the photo and a live preview, then inserts it.
 
-- **API key:** each user supplies their own. Without one, nothing is sent anywhere.
-- **Models:** Claude Sonnet 5.5 (default), Opus 5.5 (most accurate) and Haiku 5.5 (cheapest).
-- **Cost:** a page costs a few US cents with Sonnet.
-- **Where the code is:** the API call is in `src/recognition/claude.ts`. The website's Content-Security-Policy allows connections only to `api.anthropic.com`.
+- **No API key:** "My AI chat app" gives the user the same instructions to paste into Claude, ChatGPT, Gemini or similar, with their photo. They paste the reply back to be checked and reviewed the same way. Nothing is sent anywhere by the site.
+- **API keys:** each user supplies their own, one per service. Without one, nothing is sent anywhere.
+- **Models:** each service has a short list of suggestions (`PROVIDERS` in `src/recognition/providers.ts`). "Find models" fetches the live list from the service, and any model ID can be typed in, so new models work without a code change.
+- **Cost:** a page costs a few US cents with the recommended paid models. Gemini has a free tier, and OpenRouter has some free models.
+- **Where the code is:** the requests for each service are built and read in `src/recognition/providers.ts`; the reading and correction round is in `recognize.ts`. The website's Content-Security-Policy allows connections only to those four services (`API_HOSTS`; `tests/headers.test.ts` keeps them in step).
 - **Improving accuracy:** edit `SYSTEM_PROMPT` in `prompt.ts`. The tests check that its worked example is valid input.
 
 ## Maintaining it

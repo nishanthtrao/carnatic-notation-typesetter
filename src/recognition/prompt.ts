@@ -119,3 +119,20 @@ export function repairInstruction(problems: string[]): string {
     '\nCheck them against the image and reply again with the complete corrected transcription in the same <notation> and <notes> format.'
   );
 }
+
+/** For a chat app: chat windows show markdown, so ask for a code block instead of tags. */
+const CHAT_FORMAT =
+  'Formatting for this chat: instead of the <notation> and <notes> tags, put the whole notation inside ONE fenced code block (```), and after it list your uncertainties as bullet points (or "- none"). Nothing else.';
+
+/**
+ * Everything to paste into an AI chat app (Claude, ChatGPT, Gemini…) along
+ * with the photos, for people who have a subscription but no API key.
+ */
+export function chatAppPrompt(hints: RecognitionHints, pages: number): string {
+  return SYSTEM_PROMPT + '\n\n# This request\n' + (pages ? userInstruction(hints, pages) : userInstruction(hints, 1).replace('this page', 'the attached page(s)')) + '\n\n' + CHAT_FORMAT;
+}
+
+/** A follow-up to paste into the same chat when the typesetter finds problems. */
+export function chatRepairPrompt(problems: string[]): string {
+  return repairInstruction(problems).replace('in the same <notation> and <notes> format', 'as one code block followed by your notes, as before');
+}

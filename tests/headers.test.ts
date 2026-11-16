@@ -24,3 +24,9 @@ test('Render and nginx send the same security headers', () => {
   const nginx = names(read('deploy/security-headers.conf'), /^add_header ([\w-]+)/gm);
   expect(nginx).toEqual(render);
 });
+
+test('the photo reader can reach exactly the AI services it supports', async () => {
+  const { API_HOSTS } = await import('../src/recognition/providers');
+  const connect = metaCsp().match(/connect-src ([^;]+)/)![1].split(' ').filter((s) => s.startsWith('https://'));
+  expect(connect.sort()).toEqual([...API_HOSTS].sort());
+});

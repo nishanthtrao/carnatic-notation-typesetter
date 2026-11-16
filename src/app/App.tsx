@@ -579,7 +579,7 @@ function Editor({ initial }: { initial: Initial }) {
         style={{ ['--split-x' as string]: splitX + '%', ['--split-y' as string]: splitY + '%' }}
       >
         <section className="preview-pane" aria-label="Notation preview">
-          <Preview doc={doc} landscape={doc.page.orientation === 'landscape'} onJumpToLine={(n) => { setView('text'); setTimeout(() => editor.current?.goToLine(n), 0); }} />
+          <Preview zoomable doc={doc} landscape={doc.page.orientation === 'landscape'} onJumpToLine={(n) => { setView('text'); setTimeout(() => editor.current?.goToLine(n), 0); }} />
         </section>
 
         <Splitter

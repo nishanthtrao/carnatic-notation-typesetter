@@ -3,10 +3,11 @@ import { Modal } from '../components/Modal';
 import { Icon } from '../components/Icons';
 import { Preview } from '../components/Preview';
 import { parse } from '../engine';
-import { estimateCost, MODELS, recognizeNotation, RecognitionError, type RecognitionResult } from '../recognition/claude';
+import { checkReply, recognizeNotation, RecognitionError, type RecognitionResult } from '../recognition/recognize';
 import { prepareImage } from '../recognition/image';
-import type { RecognitionHints } from '../recognition/prompt';
-import { loadApiKey, loadModel } from '../recognition/settings';
+import { chatAppPrompt, chatRepairPrompt, type RecognitionHints } from '../recognition/prompt';
+import { estimateCost, PROVIDER_ORDER, PROVIDERS, type ApiProviderId, type ProviderId } from '../recognition/providers';
+import { loadApiKeys, loadSettings, modelInfo, saveSettings, type ApiKeys, type RecognitionSettings } from '../recognition/settings';
 import { Field, Select } from './common';
 
 const MAX_PAGES = 5;
@@ -18,7 +19,41 @@ interface Page {
   rotation: number;
 }
 
-type Step = { kind: 'pick' } | { kind: 'reading'; stage: string; started: number } | { kind: 'review'; result: RecognitionResult };
+type Step =
+  | { kind: 'pick' }
+  | { kind: 'reading'; stage: string; started: number }
+  /** chat app: copy the instructions out, paste the reply in */
+  | { kind: 'chat'; followUp?: boolean }
+  | { kind: 'review'; result: RecognitionResult; viaChat?: boolean };
+
+const CHAT_APPS: [string, string][] = [
+  ['Claude', 'https://claude.ai/new'],
+  ['ChatGPT', 'https://chatgpt.com/'],
+  ['Gemini', 'https://gemini.google.com/app'],
+];
+
+/** Copy text, also where the async clipboard is unavailable (older browsers, some frames). */
+async function copyText(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+    document.body.appendChild(ta);
+    ta.select();
+    let ok = false;
+    try {
+      ok = document.execCommand('copy');
+    } catch {
+      /* not allowed */
+    }
+    ta.remove();
+    return ok;
+  }
+}
 
 interface Props {
   open: boolean;
@@ -45,18 +80,32 @@ export function PhotoImportDialog({ open, onClose, onOpenSettings, settingsVersi
   const [hints, setHints] = useState<RecognitionHints>({ script: 'auto', tala: '', raga: '', notes: '' });
   const [step, setStep] = useState<Step>({ kind: 'pick' });
   const [error, setError] = useState('');
-  const [apiKey, setApiKey] = useState('');
-  const [model, setModel] = useState(loadModel());
+  const [keys, setKeys] = useState<ApiKeys>({});
+  const [settings, setSettings] = useState<RecognitionSettings>(() => loadSettings());
   const [text, setText] = useState('');
+  const [reply, setReply] = useState('');
+  const [copied, setCopied] = useState<'' | 'prompt' | 'fix' | 'failed'>('');
   const [now, setNow] = useState(Date.now());
   const abort = useRef<AbortController | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!open) return;
-    loadApiKey().then(setApiKey);
-    setModel(loadModel());
+    loadApiKeys().then((k) => {
+      setKeys(k);
+      setSettings(loadSettings(k));
+    });
   }, [open, settingsVersion]);
+
+  const provider = settings.provider;
+  const api = provider === 'chat' ? null : (provider as ApiProviderId);
+  const apiKey = api ? keys[api] || '' : '';
+  const model = api ? settings.models[api] || PROVIDERS[api].models[0].id : '';
+  const choose = (p: ProviderId) => {
+    const next = { ...settings, provider: p };
+    setSettings(next);
+    saveSettings(next);
+  };
 
   // images dropped on the main window: add each batch once
   const consumed = useRef<File[] | undefined>(undefined);
@@ -106,6 +155,8 @@ export function PhotoImportDialog({ open, onClose, onOpenSettings, settingsVersi
     setStep({ kind: 'pick' });
     setError('');
     setText('');
+    setReply('');
+    setCopied('');
   };
 
   const close = () => {
@@ -115,6 +166,11 @@ export function PhotoImportDialog({ open, onClose, onOpenSettings, settingsVersi
 
   const read = async () => {
     setError('');
+    if (!api) {
+      setCopied('');
+      setStep({ kind: 'chat' });
+      return;
+    }
     if (!apiKey) {
       onOpenSettings();
       return;
@@ -126,6 +182,7 @@ export function PhotoImportDialog({ open, onClose, onOpenSettings, settingsVersi
       const images = [];
       for (const p of pages) images.push(await prepareImage(p.file, p.rotation));
       const result = await recognizeNotation({
+        provider: api,
         apiKey,
         model,
         images,
@@ -146,7 +203,38 @@ export function PhotoImportDialog({ open, onClose, onOpenSettings, settingsVersi
   };
 
   const doc = useMemo(() => parse(text), [text]);
-  const modelLabel = MODELS.find((m) => m.id === model)?.label.split(' — ')[0] || model;
+  const info = api ? modelInfo(api, model, settings) : undefined;
+  const modelLabel = info?.label.split(' — ')[0] || model;
+  const prompt = chatAppPrompt(hints, pages.length);
+
+  const copyPrompt = async () => setCopied((await copyText(prompt)) ? 'prompt' : 'failed');
+  // phones: hand the photos (and the instructions) straight to the AI app
+  const canShare = pages.length > 0 && typeof navigator !== 'undefined' && !!navigator.canShare && navigator.canShare({ files: pages.map((p) => p.file) });
+  const share = async () => {
+    const ok = await copyText(prompt);
+    setCopied(ok ? 'prompt' : 'failed');
+    try {
+      await navigator.share({ files: pages.map((p) => p.file), text: prompt });
+    } catch {
+      /* cancelled; the instructions are still copied */
+    }
+  };
+  const checkPasted = () => {
+    const result = checkReply(reply);
+    if (!result.notation.trim()) {
+      setError('That doesn’t look like notation. Copy the whole reply from the app and paste it here.');
+      return;
+    }
+    setError('');
+    setText(result.notation);
+    setStep({ kind: 'review', result, viaChat: true });
+  };
+  const askForFixes = async () => {
+    const ok = await copyText(chatRepairPrompt(doc.warnings.slice(0, 30).map((w) => 'line ' + w.line + ': ' + w.message)));
+    setCopied(ok ? 'fix' : 'failed');
+    setReply('');
+    setStep({ kind: 'chat', followUp: true });
+  };
 
   // ---- review ------------------------------------------------------------------
   if (step.kind === 'review') {
@@ -159,7 +247,7 @@ export function PhotoImportDialog({ open, onClose, onOpenSettings, settingsVersi
         wide
         footer={
           <>
-            <button type="button" onClick={() => setStep({ kind: 'pick' })}>Back</button>
+            <button type="button" onClick={() => setStep(step.viaChat ? { kind: 'chat' } : { kind: 'pick' })}>Back</button>
             <button type="button" onClick={() => { onUse(text, 'insert'); close(); }}>Insert at cursor</button>
             <button type="button" className="primary" onClick={() => { onUse(text, 'replace'); close(); }}>Replace all</button>
           </>
@@ -194,11 +282,100 @@ export function PhotoImportDialog({ open, onClose, onOpenSettings, settingsVersi
               <>
                 <b>Problems the typesetter found</b>
                 <ul>{doc.warnings.slice(0, 10).map((w, i) => <li key={i}>Line {w.line}: {w.message}</li>)}</ul>
+                {step.viaChat && (
+                  <p style={{ margin: '6px 0 0' }}>
+                    <button type="button" className="inline-btn" onClick={askForFixes}>Ask the app to fix these…</button> copies a request to paste into the same chat.
+                  </p>
+                )}
               </>
             )}
           </div>
         )}
-        <p className="hint">Read with {modelLabel} · about ${estimateCost(model, r.usage).toFixed(3)}</p>
+        <p className="hint">
+          {step.viaChat
+            ? 'Read in your AI chat app.'
+            : (() => {
+                const cost = estimateCost(info?.price, r.usage);
+                return 'Read with ' + modelLabel + (cost !== undefined ? ' · about $' + cost.toFixed(3) : ' · ' + (r.usage.input + r.usage.output).toLocaleString() + ' tokens');
+              })()}
+        </p>
+      </Modal>
+    );
+  }
+
+  // ---- chat app ------------------------------------------------------------------
+  if (step.kind === 'chat') {
+    return (
+      <Modal
+        title={step.followUp ? 'Ask for corrections' : 'Read it in your AI app'}
+        open={open}
+        onClose={close}
+        wide
+        footer={
+          <>
+            <button type="button" onClick={() => setStep({ kind: 'pick' })}>Back</button>
+            <span className="spacer" />
+            <button type="button" onClick={close}>Cancel</button>
+            <button type="button" className="primary" disabled={!reply.trim()} onClick={checkPasted}>Check the notation</button>
+          </>
+        }
+      >
+        <ol className="chat-steps">
+          {step.followUp ? (
+            <li>
+              <b>{copied === 'fix' ? 'The correction request is copied.' : 'Copy the correction request.'}</b> Paste it into the same chat as before and send it.
+              {copied === 'failed' && <span className="err-text"> Copying didn’t work here; go back and try again.</span>}
+            </li>
+          ) : (
+            <>
+              <li>
+                <b>Copy the instructions.</b> They tell the AI exactly how to write the notation for this typesetter.
+                <div className="chat-actions">
+                  <button type="button" className={copied === 'prompt' ? 'done' : ''} onClick={copyPrompt}>
+                    <Icon name={copied === 'prompt' ? 'check' : 'copy'} />
+                    {copied === 'prompt' ? 'Copied' : 'Copy instructions'}
+                  </button>
+                  {canShare && (
+                    <button type="button" onClick={share}>
+                      <Icon name="share" />
+                      Send photo{pages.length > 1 ? 's' : ''} to an app
+                    </button>
+                  )}
+                </div>
+                {copied === 'failed' && <p className="err-text">Copying didn’t work here. Select the instructions below and copy them yourself.</p>}
+                <details className="chat-prompt" open={copied === 'failed'}>
+                  <summary>Show the instructions</summary>
+                  <textarea className="mono-box" readOnly rows={6} value={prompt} onFocus={(e) => e.currentTarget.select()} aria-label="Instructions for the AI" />
+                </details>
+              </li>
+              <li>
+                <b>Open your AI app</b> in a new chat, attach {pages.length > 1 ? 'your ' + pages.length + ' photos (in order)' : 'your photo'} and paste the instructions. A model that can think or reason
+                more carefully reads handwriting better.
+                <div className="chat-actions">
+                  {CHAT_APPS.map(([name, url]) => (
+                    <a key={name} className="chat-app" href={url} target="_blank" rel="noopener">
+                      {name}
+                    </a>
+                  ))}
+                </div>
+              </li>
+            </>
+          )}
+          <li>
+            <b>Copy the whole reply</b> (most apps have a copy button under it) and paste it here.
+            <textarea
+              className="mono-box chat-reply"
+              rows={8}
+              value={reply}
+              placeholder="Paste the reply here"
+              spellCheck={false}
+              wrap="off"
+              aria-label="The reply from the AI app"
+              onChange={(e) => setReply(e.target.value)}
+            />
+          </li>
+        </ol>
+        {error && <p className="err-text" role="alert">{error}</p>}
       </Modal>
     );
   }
@@ -228,8 +405,8 @@ export function PhotoImportDialog({ open, onClose, onOpenSettings, settingsVersi
           <button type="button" onClick={onOpenSettings}><Icon name="settings" />Settings</button>
           <span className="spacer" />
           <button type="button" onClick={close}>Cancel</button>
-          <button type="button" className="primary" disabled={!!apiKey && !pages.length} onClick={read}>
-            {apiKey ? 'Read notation' : 'Add API key…'}
+          <button type="button" className="primary" disabled={!!api && !!apiKey && !pages.length} onClick={read}>
+            {!api ? 'Next' : apiKey ? 'Read notation' : 'Add API key…'}
           </button>
         </>
       }
@@ -278,6 +455,14 @@ export function PhotoImportDialog({ open, onClose, onOpenSettings, settingsVersi
       </div>
 
       <div className="form-grid" style={{ marginTop: 12 }}>
+        <Field id="p-provider" label="Read with">
+          <Select
+            id="p-provider"
+            value={provider}
+            onChange={(v) => choose(v as ProviderId)}
+            options={PROVIDER_ORDER.map((id) => [id, id === 'chat' ? 'My AI chat app (no API key)' : PROVIDERS[id].name + (keys[id as ApiProviderId] ? '' : ' — needs an API key')])}
+          />
+        </Field>
         <Field id="p-script" label="Lyrics written in">
           <Select
             id="p-script"
@@ -299,8 +484,14 @@ export function PhotoImportDialog({ open, onClose, onOpenSettings, settingsVersi
 
       {error && <p className="err-text" role="alert">{error}</p>}
       <p className="hint">
-        {apiKey ? <>Uses {modelLabel} with your API key. </> : <>Needs your own Anthropic API key — press <b>Settings</b>. </>}
-        The photo is sent to Anthropic to be read. Clear, flat, well-lit photos of one page each work best.
+        {!api ? (
+          <>Adding the photo here is optional; it lets you compare it with the result. You’ll copy instructions into Claude, ChatGPT, Gemini or similar and paste the reply back. </>
+        ) : apiKey ? (
+          <>Uses {modelLabel} with your API key; the photo is sent to {PROVIDERS[api].company} to be read. </>
+        ) : (
+          <>Needs your own {PROVIDERS[api].name} API key — press <b>Settings</b>, or choose “My AI chat app” to use an app you already have. </>
+        )}
+        Clear, flat, well-lit photos of one page each work best.
       </p>
     </Modal>
   );

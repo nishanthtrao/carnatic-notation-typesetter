@@ -6,8 +6,9 @@ import { join, relative, resolve } from 'node:path';
 import type { Plugin } from 'vite';
 
 // Content-Security-Policy for production builds (the dev server needs inline
-// scripts, so it is only added at build time). Only Anthropic's API may be
-// contacted, for the optional photo reader.
+// scripts, so it is only added at build time). Only the AI services the
+// optional photo reader supports may be contacted (API_HOSTS in
+// src/recognition/providers.ts; tests/headers.test.ts keeps them in step).
 const CSP = [
   "default-src 'self'",
   "script-src 'self'",
@@ -16,7 +17,7 @@ const CSP = [
   "font-src 'self' data:",
   "manifest-src 'self'",
   "worker-src 'self'",
-  "connect-src 'self' blob: data: https://api.anthropic.com",
+  "connect-src 'self' blob: data: https://api.anthropic.com https://api.openai.com https://generativelanguage.googleapis.com https://openrouter.ai",
   "object-src 'none'",
   "base-uri 'none'",
 ].join('; ');
