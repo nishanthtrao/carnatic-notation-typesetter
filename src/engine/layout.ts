@@ -83,6 +83,74 @@ function rowBounds(seg: Segment): number[] {
   return bounds;
 }
 
+/**
+ * Times at which the tala draws a bar: every avartanam's end, and every
+ * anga's end where the tala shows inner bars, up to `total`.
+ */
+function barTimes(seg: Segment, total: number): number[] {
+  const tala = seg.tala;
+  if (!tala || !tala.segments || !(tala.beats > 0)) return [];
+  const out: number[] = [];
+  for (let a = 0; a * tala.beats < total - EPS; a++) {
+    let acc = 0;
+    for (const sgm of tala.segments) {
+      acc += sgm;
+      if (acc < tala.beats - EPS && !tala.innerBars) continue;
+      out.push(a * tala.beats + acc);
+    }
+  }
+  return out;
+}
+
+/**
+ * A swara or pause that runs across a bar is written as it is in Carnatic
+ * notation: the part before the bar, then a karvai (,) after it. A dhirgha
+ * swara `sa` becomes `s ||` `,` and a `;` becomes `, ||` `,`. The lyric and
+ * the gamaka stay with the swara; a phrase end moves to where the note ends.
+ */
+export function splitAcrossBars(seg: Segment): void {
+  const bars = barTimes(seg, seg.time);
+  if (!bars.length) return;
+  const out: NoteEvent[] = [];
+  for (const ev of seg.events) {
+    const splittable = ev.kind === 'swara' || ev.kind === 'karvai' || ev.kind === 'empty';
+    const end = ev.t + ev.dur;
+    const cuts = splittable ? bars.filter((b) => b > ev.t + EPS && b < end - EPS) : [];
+    if (!cuts.length) {
+      out.push(ev);
+      continue;
+    }
+    // one matra of this note (a dhirgha swara or a ; is two)
+    const unit = ev.kind === 'swara' ? (ev.long ? ev.dur / 2 : ev.dur) : ev.text === ';' || ev.text === '__' ? ev.dur / 2 : ev.dur;
+    const points = [ev.t, ...cuts, end];
+    for (let i = 0; i < points.length - 1; i++) {
+      const t = points[i];
+      const dur = points[i + 1] - t;
+      const last = i === points.length - 2;
+      if (i === 0) {
+        const first: NoteEvent = { ...ev, t, dur, phraseEnd: false };
+        if (ev.kind === 'swara' && ev.long) {
+          first.long = false;
+          first.display = ev.note;
+        } else if (ev.kind !== 'swara') first.text = ev.kind === 'karvai' ? ',' : '_';
+        out.push(first);
+      } else {
+        const two = Math.abs(dur - 2 * unit) < EPS;
+        out.push({
+          kind: ev.kind === 'empty' ? 'empty' : 'karvai',
+          text: ev.kind === 'empty' ? (two ? '__' : '_') : two ? ';' : ',',
+          t,
+          dur,
+          path: ev.path,
+          lyrics: [],
+          phraseEnd: last && ev.phraseEnd,
+        });
+      }
+    }
+  }
+  seg.events = out;
+}
+
 export function layoutSegment(seg: Segment): void {
   const tala = seg.tala && seg.tala.segments ? seg.tala : null;
   const manual = seg.tala ? seg.tala.manual : 0;
@@ -90,6 +158,7 @@ export function layoutSegment(seg: Segment): void {
   const total = seg.time;
   seg.rows = [];
   if (!seg.events.length && !seg.labels.length) return;
+  splitAcrossBars(seg);
 
   const bounds = rowBounds(seg);
   const showPhrase = seg.phraseEnds.style !== 'hide' || seg.phraseEnds.space > 0;
