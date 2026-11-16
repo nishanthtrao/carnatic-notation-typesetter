@@ -38,6 +38,20 @@ services:
       - path: /*
         name: Permissions-Policy
         value: camera=(), microphone=(), geolocation=()
+      # The same policy as the <meta> tag that vite.config.ts writes into each
+      # page, plus frame-ancestors, which only works as a header. Keep the two
+      # in step (tests/headers.test.ts checks).
+      - path: /*
+        name: Content-Security-Policy
+        value: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; manifest-src 'self'; worker-src 'self'; connect-src 'self' blob: data: https://api.anthropic.com; object-src 'none'; base-uri 'none'; frame-ancestors 'self'"
+      # browsers always use https for this site
+      - path: /*
+        name: Strict-Transport-Security
+        value: max-age=31536000
+      # other sites' windows cannot reach into this one
+      - path: /*
+        name: Cross-Origin-Opener-Policy
+        value: same-origin
       # built assets have content hashes in their names
       - path: /assets/*
         name: Cache-Control

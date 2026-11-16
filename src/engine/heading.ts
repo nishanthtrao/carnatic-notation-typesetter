@@ -184,7 +184,8 @@ function inline(text: string, lang: LangSpec | null): string {
     else if (tk.v === '[br]') html += '<br>';
     else if (tk.v.startsWith('[img:')) {
       const url = tk.v.slice(5, -1).trim();
-      if (/^https?:\/\//i.test(url)) html += '<img class="cm-img" alt="" src="' + esc(url) + '">';
+      // no-referrer: the picture's server is not told which page (or shared song) showed it
+      if (/^https?:\/\//i.test(url)) html += '<img class="cm-img" alt="" referrerpolicy="no-referrer" src="' + esc(url) + '">';
     } else {
       const tag = TAG[tk.v];
       html += open[tk.v] ? '</' + tag + '>' : '<' + tag + '>';
