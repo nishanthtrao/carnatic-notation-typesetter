@@ -5,44 +5,52 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%237a1f1f'/%3E%3Ctext x='16' y='22' font-family='Georgia,serif' font-size='17' font-style='italic' text-anchor='middle' fill='%23fff'%3Esa%3C/text%3E%3Ccircle cx='19' cy='6.5' r='1.8' fill='%23fff'/%3E%3C/svg%3E">
   <title>Manual · Carnatic Music Notation Typesetter</title>
+  <meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1e1e20" media="(prefers-color-scheme: dark)">
+  <meta name="description" content="How to write songs for the Carnatic Music Notation Typesetter: swaras, lyrics, tala, layout, languages and the editor.">
+  <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
   <link rel="stylesheet" href="../src/styles/fonts.css">
   <link rel="stylesheet" href="../src/styles/notation.css">
-  <style>
-    :root { --ink: #23201b; --muted: #6d665b; --accent: #7a1f1f; --line: #ddd5c6; --bg: #f7f4ee; }
-    * { box-sizing: border-box; }
-    body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
-    header { background: linear-gradient(#f6f3ec, #e9e3d6); border-bottom: 1px solid var(--line); padding: 14px 20px; }
-    header a { color: var(--accent); }
-    .wrap { max-width: 880px; margin: 0 auto; padding: 0 20px 60px; }
-    h1 { font: italic 600 28px/1.25 'Noto Serif', Georgia, serif; margin: 0; }
-    h2 { font: italic 600 22px 'Noto Serif', Georgia, serif; margin: 2.2em 0 0.4em; padding-top: 0.6em; border-top: 1px solid var(--line); color: var(--accent); }
-    h3 { font: 600 17px 'Noto Serif', Georgia, serif; margin: 1.6em 0 0.3em; }
-    code, pre, kbd { font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 0.88em; }
-    code { background: #ece5d6; padding: 0.05em 0.3em; border-radius: 3px; }
-    pre { background: #fff; border: 1px solid var(--line); border-radius: 8px 8px 0 0; padding: 10px 12px; margin: 0.8em 0 0; overflow: auto; line-height: 1.45; }
-    .out { background: #fff; border: 1px solid var(--line); border-top: 1px dashed var(--line); border-radius: 0 0 8px 8px; padding: 10px 14px 6px; margin-bottom: 1em; }
-    pre.plain { border-radius: 8px; margin-bottom: 1em; }
-    table.t { border-collapse: collapse; width: 100%; margin: 0.6em 0 1em; font-size: 0.94em; background: #fff; }
-    table.t th, table.t td { border: 1px solid var(--line); padding: 5px 8px; text-align: left; vertical-align: top; }
-    table.t th { background: #efe9dc; font-weight: 600; }
-    nav.toc { columns: 2 220px; background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 10px 16px; margin: 1.2em 0; font-size: 0.95em; }
-    nav.toc a { color: var(--ink); text-decoration: none; display: block; padding: 1px 0; }
-    nav.toc a:hover { color: var(--accent); }
-    .note { background: #fff8ec; border-left: 3px solid #d9a441; padding: 8px 12px; border-radius: 0 6px 6px 0; margin: 1em 0; }
-    .ext { font-size: 0.75em; font-weight: 600; color: #fff; background: #5b7a3a; border-radius: 4px; padding: 1px 6px; vertical-align: 0.15em; font-style: normal; font-family: system-ui, sans-serif; }
-    a { color: var(--accent); }
-  </style>
+  <link rel="stylesheet" href="../src/styles/docs.css">
 </head>
 <body>
-  <header>
-    <div class="wrap" style="padding-bottom:0">
-      <h1>Carnatic Music Notation Typesetter — Manual</h1>
-      <div><a href="../index.html">← Back to the editor</a></div>
-    </div>
+  <header class="bar">
+    <a class="app" href="../index.html" aria-label="Carnatic Notation Typesetter: open the editor">
+      <img src="../icons/icon-192.png" alt="">
+      <span class="names"><b>Carnatic Notation Typesetter</b><span>Manual</span></span>
+    </a>
+    <a class="open" href="../index.html">Open <span class="long">the </span>editor</a>
   </header>
 
-  <div class="wrap">
-    <p>The typesetter turns a simple text description of a song into a notation sheet laid out like a Carnatic music book: swaras and lyrics aligned against the tala, speed lines, stayi dots, gamaka signs and headings, in English, English with diacritics, Sanskrit, Telugu, Kannada, Malayalam or Tamil.</p>
+  <div class="layout">
+    <details class="toc" open>
+      <summary>Contents</summary>
+      <nav aria-label="Contents">
+        <p class="label">On this page</p>
+        <a href="#editor">Using the editor</a>
+        <a href="#photo">Reading handwritten notation</a>
+        <a href="#basics">Input basics</a>
+        <a href="#swaras">Swaras (S:)</a>
+        <a href="#lyrics">Lyrics (L:) and SmartLyricMode</a>
+        <a href="#tala">Tala</a>
+        <a href="#manual-modes">Manual modes, LineBreak, SongBreak</a>
+        <a href="#layout">Layout and DefaultSpeed</a>
+        <a href="#gati">Gati</a>
+        <a href="#speedmarks">SpeedMarks and PhraseEnds</a>
+        <a href="#heading">Heading, Title, Pagebreak, Orientation</a>
+        <a href="#language">Language and LanguageFont</a>
+        <a href="#prefs">Size and colour preferences</a>
+        <a href="#extensions">Additions to the original</a>
+        <a href="#credits">Credits and licence</a>
+      </nav>
+    </details>
+
+    <main>
+    <div class="hero">
+      <p class="eyebrow">Manual</p>
+      <h1>Carnatic Music Notation Typesetter</h1>
+      <p class="lede">The typesetter turns a simple text description of a song into a notation sheet laid out like a Carnatic music book: swaras and lyrics aligned against the tala, speed lines, stayi dots, gamaka signs and headings, in English, English with diacritics, Sanskrit, Telugu, Kannada, Malayalam or Tamil.</p>
+    </div>
     <div class="note credit-note">
       <b>Credit:</b> the <i>Carnatic Music Notation Typesetter</i> and its input format were created by <b>Arun K</b>
       (<a href="https://sourceforge.net/projects/cmnt/">original project</a>, <a href="http://arunk.freepgs.com/wordpress/cm-typesetter/about/">his page about it</a>).
@@ -51,23 +59,6 @@
     </div>
     <p>It reads the same input format, so notation files written for the old site work here unchanged. Small additions are marked <span class="ext">new</span>.</p>
 
-    <nav class="toc" aria-label="Contents">
-      <a href="#editor">Using the editor</a>
-      <a href="#photo">Reading handwritten notation</a>
-      <a href="#basics">Input basics</a>
-      <a href="#swaras">Swaras (S:)</a>
-      <a href="#lyrics">Lyrics (L:) and SmartLyricMode</a>
-      <a href="#tala">Tala</a>
-      <a href="#manual-modes">Manual modes, LineBreak, SongBreak</a>
-      <a href="#layout">Layout and DefaultSpeed</a>
-      <a href="#gati">Gati</a>
-      <a href="#speedmarks">SpeedMarks and PhraseEnds</a>
-      <a href="#heading">Heading, Title, Pagebreak, Orientation</a>
-      <a href="#language">Language and LanguageFont</a>
-      <a href="#prefs">Size and colour preferences</a>
-      <a href="#extensions">Additions in 2.0</a>
-      <a href="#credits">Credits and licence</a>
-    </nav>
 
     <h2 id="editor">Using the editor</h2>
     <p>The window has the text you type on one side and the typeset page on the other. On a computer they sit side by side; press <b>Layout</b> in the toolbar to put the text under the page instead, and drag the divider to resize. On a phone, switch between <b>Notation</b> and <b>Text</b> at the top. Click any line of the page to jump to its <code>S:</code> line.</p>
@@ -88,7 +79,7 @@
     <p><b>TAB completion:</b> type the start of a directive name and press <kbd>Tab</kbd> (<code>t</code> → <code>Tala: </code>). After <code>Tala:</code>, <code>Language:</code>, <code>Layout:</code>, <code>Gati:</code> and a few others, <kbd>Tab</kbd> completes the value too (<code>Tala: k</code> → <code>KhandaCapu</code>). On phones and tablets, a row of swara keys above the text saves switching keyboards.</p>
     <p><b>Pasting Indian-script text</b> <span class="ext">new</span>: paste lyrics or swaras written in Devanagari, Telugu, Kannada, Malayalam or Tamil and they are converted into the typing scheme (ബ്രോവ ഭാരമാ → <code>brOva bhAramA</code>; on an <code>S:</code> line സ രി ഗ → <code>s r g</code>), so the song can be printed in any language. Press <b>Keep original</b> on the message that appears to undo it. Some scripts write several sounds with one letter (Tamil க is ka, kha, ga and gha); those come out plain unless the text marks them (க³ → <code>ga</code>), so check such words.</p>
     <p><b>Letters kit</b> <span class="ext">new</span>: press the <b>Letters</b> button in the toolbar when you can't work out how to type a letter. It shows groups of similar-sounding letters (the r, l, n, t, d and s sounds, aspirated letters and long vowels) drawn in your song's script, with the code to type for each, e.g. Malayalam ര is <code>r</code> but റ is <code>_r</code>, and ഴ is <code>zh</code>. With the cursor on a word in a lyric or heading, it also lists the other spellings of that word that differ by one similar sound, e.g. <code>ra</code>: ര റ രാ. Tap one to use it, or tap a letter to type its code at the cursor.</p>
-    <p>The editor follows your device's light or dark appearance; the notation page always stays white, like paper.</p>
+    <p>The editor and the notation page follow your device's light or dark appearance. Printing is always black on white.</p>
 
     <h2 id="photo">Reading handwritten notation <span class="ext">new</span></h2>
     <p><b>Read Photo</b> reads a photo or scan of notation — handwritten or printed, with swaras and lyrics in English letters, Tamil, Telugu, Kannada, Malayalam or Devanagari — and writes it as input for this typesetter. You check and correct the result, then insert it.</p>
@@ -325,7 +316,7 @@ Tala: Adi
 S: s r g m p d n s' s' n d p m g r s
 L: sa ri ga ma pa da ni sa sa ni da pa ma ga ri sa</pre>
 
-    <h2 id="extensions">Additions in 2.0</h2>
+    <h2 id="extensions">Additions to the original</h2>
     <p>Everything above follows the v1.5 manual. These extras are new; files that use them won't work on the old site.</p>
     <table class="t">
       <tr><th>Write</th><th>Meaning</th></tr>
@@ -352,6 +343,7 @@ S: rgmp mg rgmg rgmp</pre>
     <p>The original <i>Carnatic Music Notation Typesetter</i>, its input format and the v1.5 Beta manual were created by <b>Arun K</b> and published under the GNU General Public License v2 (<a href="https://sourceforge.net/projects/cmnt/">sourceforge.net/projects/cmnt</a>; <a href="http://arunk.freepgs.com/wordpress/cm-typesetter/about/">arunk.freepgs.com</a>). Most examples in this manual come from his manual.</p>
     <p>This version is an unofficial rebuild, not affiliated with or endorsed by Arun K. Its code was written from scratch to the same specification and is free software under the same licence, the GNU GPL version 2. The changes from the original are listed in <a href="https://github.com/nishanthtrao/carnatic-notation-typesetter/blob/main/NOTICE.md">NOTICE.md</a>; the source code is on <a href="https://github.com/nishanthtrao/carnatic-notation-typesetter">GitHub</a>.</p>
     <p>Fonts: Noto Serif, Anek, Nunito and the Baloo 2 family, under the SIL Open Font License 1.1.</p>
+    </main>
   </div>
 
   <script type="module" src="../src/manual.ts"></script>

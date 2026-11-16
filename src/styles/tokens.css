@@ -1,0 +1,107 @@
+/*
+ * Carnatic Music Notation Typesetter — design tokens
+ * SPDX-License-Identifier: GPL-2.0-only
+ *
+ * Shared by the editor (app.css) and the manual (docs.css): Apple system
+ * fonts, semantic colours that adapt to light and dark mode, radii and
+ * shadows, and the syntax colours of the notation text.
+ */
+:root {
+  color-scheme: light dark;
+  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI Variable Text', 'Segoe UI', system-ui, Roboto, 'Noto Sans', sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI Variable Display', 'Segoe UI', system-ui, sans-serif;
+  --mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, 'Cascadia Mono', Consolas, 'Noto Sans Mono', monospace;
+  /* editor syntax colours (light): Apple system colours, accessible shades */
+  --hl-swara: var(--label);
+  --hl-lyric: #23408e;
+  --hl-orange: #b25000;
+  --hl-pink: #c2185b;
+  --hl-indigo: #5149d6;
+  --hl-teal: #0b7a85;
+  --hl-blue: #0a5cc2;
+  --hl-brown: #85633a;
+  --hl-red: #c41a16;
+  --hl-purple: #8944ab;
+  --hl-gray: #8a8a8e;
+
+  /* semantic colours (light) */
+  --window: #f5f5f7;
+  --canvas: #e9e9ee;
+  --surface: #ffffff;
+  --material: rgba(246, 246, 248, 0.78);
+  --material-strong: rgba(250, 250, 252, 0.92);
+  --label: #1d1d1f;
+  --label-2: rgba(60, 60, 67, 0.64);
+  --label-3: rgba(60, 60, 67, 0.38);
+  --separator: rgba(60, 60, 67, 0.16);
+  --fill: rgba(118, 118, 128, 0.12);
+  --fill-2: rgba(118, 118, 128, 0.2);
+  --accent: #9b2335;
+  --accent-hover: #86192a;
+  --accent-soft: rgba(155, 35, 53, 0.1);
+  --on-accent: #fff;
+  --green: #248a3d;
+  --orange: #c4620a;
+  --orange-soft: rgba(255, 149, 0, 0.14);
+  --focus: rgba(0, 113, 227, 0.55);
+  --shadow-page: 0 1px 2px rgba(0, 0, 0, 0.08), 0 8px 28px rgba(0, 0, 0, 0.08);
+  --shadow-sheet: 0 0 0 0.5px rgba(0, 0, 0, 0.12), 0 22px 70px rgba(0, 0, 0, 0.28);
+  --radius: 10px;
+  --radius-sm: 7px;
+  --radius-lg: 14px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --hl-swara: #a3e4b5;
+    --hl-lyric: #f5d77a;
+    --hl-orange: #ff9f0a;
+    --hl-pink: #ff6ba1;
+    --hl-indigo: #8c88ff;
+    --hl-teal: #5ac8d8;
+    --hl-blue: #64a8ff;
+    --hl-brown: #c8a170;
+    --hl-red: #ff6961;
+    --hl-purple: #bf5af2;
+    --hl-gray: #7c7c82;
+    --window: #1e1e20;
+    --canvas: #141416;
+    --surface: #2a2a2d;
+    --material: rgba(40, 40, 43, 0.78);
+    --material-strong: rgba(44, 44, 47, 0.94);
+    --label: #f5f5f7;
+    --label-2: rgba(235, 235, 245, 0.62);
+    --label-3: rgba(235, 235, 245, 0.32);
+    --separator: rgba(84, 84, 88, 0.62);
+    --fill: rgba(118, 118, 128, 0.24);
+    --fill-2: rgba(118, 118, 128, 0.34);
+    --accent: #e8636f;
+    --accent-hover: #f07984;
+    --accent-soft: rgba(232, 99, 111, 0.16);
+    --on-accent: #1d0b0e;
+    --green: #30d158;
+    --orange: #ff9f0a;
+    --orange-soft: rgba(255, 159, 10, 0.16);
+    --shadow-page: 0 1px 2px rgba(0, 0, 0, 0.5), 0 10px 34px rgba(0, 0, 0, 0.5);
+    --shadow-sheet: 0 0 0 0.5px rgba(255, 255, 255, 0.12), 0 24px 80px rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* Syntax colours of the notation text (src/lib/highlight.ts), in the editor and the manual's examples */
+.hl-swara { color: var(--hl-swara); }
+.hl-lyric { color: var(--hl-lyric); }
+.hl-s { color: var(--accent); }
+.hl-l { color: var(--hl-lyric); }
+.hl-colon, .hl-punct { color: var(--label-2); }
+.hl-pause { color: var(--label-2); }
+.hl-bar, .hl-speed, .hl-kw-rhythm { color: var(--hl-orange); }
+.hl-gamaka, .hl-phrase { color: var(--hl-pink); }
+.hl-kw-song { color: var(--hl-indigo); }
+.hl-kw-lines { color: var(--accent); }
+.hl-kw-script { color: var(--hl-teal); }
+.hl-kw-layout { color: var(--hl-blue); }
+.hl-kw-look { color: var(--hl-brown); }
+.hl-string { color: var(--hl-red); }
+.hl-number { color: var(--hl-purple); }
+.hl-comment { color: var(--hl-gray); }
+.hl-bad { text-decoration: underline wavy var(--hl-red); text-decoration-skip-ink: none; text-underline-offset: 3px; }
