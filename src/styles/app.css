@@ -137,10 +137,48 @@ button { font: inherit; color: inherit; }
 }
 .view-switch { display: none; }
 
-/* compact toolbar: icons only */
+/* the More (⋯) menu holds the less-used commands once the window is narrow */
+.tb-more-group { display: none; }
+.ico-more { stroke-width: 2.6; }
+.menu {
+  position: fixed;
+  z-index: 50;
+  min-width: 240px;
+  max-width: min(340px, calc(100vw - 16px));
+  padding: 5px;
+  border-radius: 12px;
+  background: light-dark(rgba(252, 252, 253, 0.97), rgba(44, 44, 46, 0.97));
+  -webkit-backdrop-filter: saturate(180%) blur(30px);
+  backdrop-filter: saturate(180%) blur(30px);
+  box-shadow: var(--shadow-sheet), 0 0 0 0.5px var(--separator);
+  animation: menu-in 0.14s ease-out;
+}
+@keyframes menu-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+.menu [role='menuitem'] {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: var(--label);
+  text-align: left;
+}
+.menu [role='menuitem']:hover, .menu [role='menuitem']:focus-visible { background: var(--accent); color: var(--on-accent); outline: none; }
+.menu [role='menuitem'] > span { display: flex; flex-direction: column; min-width: 0; }
+.menu b { font-weight: 500; font-size: 13px; }
+.menu small { font-size: 11.5px; color: var(--label-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (min-width: 761px) { .menu .menu-phone { display: none; } }
+.menu [role='menuitem']:hover small, .menu [role='menuitem']:focus-visible small { color: inherit; opacity: 0.85; }
+
+/* compact toolbar: icons only, less-used commands under More */
 @media (max-width: 1180px) {
   .tb-btn:not(.prominent) .tb-label { display: none; }
   .tb-btn:not(.prominent) { min-width: 34px; height: 32px; }
+  .tb-secondary, .tb-group.all-secondary { display: none; }
+  .tb-more-group { display: flex; }
 }
 
 /* ---- Workspace ------------------------------------------------------------ */
@@ -159,11 +197,18 @@ button { font: inherit; color: inherit; }
 .splitter { grid-area: split; }
 
 .preview-pane {
-  overflow: auto;
-  padding: 28px;
+  position: relative;
+  display: flex;
   min-height: 0;
   min-width: 0;
   background: var(--canvas);
+}
+.preview-scroll {
+  flex: 1;
+  overflow: auto;
+  padding: 28px 28px 64px;
+  min-height: 0;
+  min-width: 0;
   -webkit-overflow-scrolling: touch;
 }
 .paper {
@@ -177,6 +222,43 @@ button { font: inherit; color: inherit; }
   color: light-dark(#1a1a1a, #f2f2f7);
 }
 .paper.landscape { max-width: 1240px; }
+
+/* zoom: the page is drawn scaled, inside a box the size of the scaled page */
+.zoom-box.fit { display: contents; }
+.zoom-box:not(.fit) { margin: 0 auto; }
+.paper.zoomed { transform-origin: 0 0; min-height: 0; max-width: none; margin: 0; }
+.zoom-pill {
+  position: absolute;
+  right: 16px;
+  bottom: 14px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  border-radius: 999px;
+  background: var(--material-strong);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12), 0 0 0 0.5px var(--separator);
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+.zoom-pill:hover, .zoom-pill:focus-within, .preview-pane:hover .zoom-pill { opacity: 1; }
+.zoom-pill button {
+  display: inline-grid;
+  place-items: center;
+  min-width: 30px;
+  height: 28px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--label);
+}
+.zoom-pill button:hover:not(:disabled) { background: var(--fill); }
+.zoom-pill button:disabled { opacity: 0.35; }
+.zoom-pill .ico { width: 16px; height: 16px; }
+.zoom-pill .zoom-value { min-width: 48px; font: 500 12px/1 var(--font); font-variant-numeric: tabular-nums; }
 .cm-staff[data-line] { cursor: pointer; }
 .cm-staff.flash { animation: flash 0.9s ease-out; }
 @keyframes flash { from { background: #fff1c9; } to { background: transparent; } }
@@ -201,19 +283,24 @@ button { font: inherit; color: inherit; }
   background: var(--surface);
 }
 /* The editor: a transparent textarea over a <pre> that draws the same text
-   with syntax colours (src/lib/highlight.ts). Both must share every metric. */
+   with syntax colours (src/lib/highlight.ts), and a strip of line numbers.
+   All three must share the same line height. */
 .code {
+  --code-size: 13px;
+  --code-line: 20.8px; /* 1.6 × the size, in pixels so every part agrees */
+  --digits: 2;
   position: relative;
   flex: 1;
   min-height: 0;
   display: flex;
   background: var(--surface);
 }
+.code-area { position: relative; flex: 1; min-width: 0; display: flex; }
 textarea#input, .code .hl {
   margin: 0;
-  padding: 14px 16px 28px;
+  padding: 14px 16px 28px 10px;
   border: 0;
-  font: 13px/1.6 var(--mono);
+  font: var(--code-size)/var(--code-line) var(--mono);
   letter-spacing: normal;
   tab-size: 4;
   white-space: pre;
@@ -243,6 +330,36 @@ textarea#input {
   overflow: hidden;
   pointer-events: none;
   color: var(--label);
+}
+
+/* line numbers, with a marker on lines that have a problem */
+.gutter {
+  flex: none;
+  width: calc(var(--digits) * 0.62em + 26px);
+  overflow: hidden;
+  padding-top: 14px;
+  font: 11px/var(--code-line) var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--label-3);
+  text-align: right;
+  user-select: none;
+  -webkit-user-select: none;
+  border-right: 0.5px solid var(--separator);
+  background: var(--surface);
+}
+.gutter .numbers { will-change: transform; }
+.gutter .ln { position: relative; height: var(--code-line); padding-right: 8px; cursor: default; }
+.gutter .ln.cur { color: var(--label); }
+.gutter .ln.issue { color: var(--orange); font-weight: 600; cursor: pointer; }
+.gutter .ln.issue::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: calc(50% - 3.5px);
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--orange);
 }
 textarea#input:focus-visible { outline: none; }
 textarea#input::selection { background: var(--accent-soft); }
@@ -373,14 +490,12 @@ textarea#input::selection { background: var(--accent-soft); }
     flex: 1 0 100%;
     margin-left: 0;
     gap: 6px;
-    /* the row scrolls sideways: fade the right edge so that is visible */
-    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
-    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
-    padding-right: 24px;
+    justify-content: space-between;
   }
   .tb-btn.prominent .tb-label { display: none; }
   .tb-btn.prominent { padding: 0 12px; }
   .tb-group + .tb-group { padding-left: 6px; }
+  .tb-secondary-phone { display: none; }
   .layout-toggle { display: none; }
   .workspace.layout-side, .workspace.layout-stack {
     grid-template-columns: minmax(0, 1fr);
@@ -391,8 +506,9 @@ textarea#input::selection { background: var(--accent-soft); }
   .preview-pane, .editor-pane { grid-area: main; }
   .workspace.view-notation .editor-pane { display: none; }
   .workspace.view-text .preview-pane { display: none; }
-  .preview-pane { padding: 12px; }
-  textarea#input, .code .hl { font-size: 16px; } /* stops iOS zooming on focus */
+  .preview-scroll { padding: 12px 12px 60px; }
+  .zoom-pill { opacity: 1; right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); }
+  .code { --code-size: 16px; --code-line: 25.6px; } /* 16px stops iOS zooming on focus */
 }
 
 /* ---- Sheets (dialogs) ------------------------------------------------------- */
@@ -593,6 +709,10 @@ select optgroup {
   .titlebar, .splitter, .editor-pane, .toast, dialog { display: none !important; }
   .workspace { display: block; }
   .preview-pane { overflow: visible; padding: 0; background: none; display: block !important; }
+  .preview-scroll { overflow: visible; padding: 0; }
+  .zoom-pill { display: none !important; }
+  .zoom-box { display: contents !important; }
+  .paper.zoomed { transform: none !important; width: auto !important; }
   .paper { box-shadow: none; padding: 0; max-width: none; min-height: 0; border-radius: 0; color-scheme: light; }
   .cm-staff[data-line] { cursor: default; }
 }
@@ -877,4 +997,50 @@ select optgroup {
 .syn-what { color: var(--label); line-height: 1.4; }
 @media (max-width: 520px) {
   .syn-list li { grid-template-columns: 1fr; gap: 2px; }
+}
+
+/* ---- Version history ---- */
+.history { display: grid; grid-template-columns: minmax(200px, 0.75fr) minmax(0, 2fr); gap: 14px; min-height: 0; }
+.history-list, .history-list ul { list-style: none; margin: 0; padding: 0; }
+.history-list { max-height: min(62vh, 560px); overflow: auto; padding-right: 4px; }
+.history-day + .history-day { margin-top: 10px; }
+.history-day-name { display: block; position: sticky; top: 0; padding: 4px 8px; font-size: 11px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; color: var(--label-2); background: var(--material-strong); }
+.history-list button {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1px 10px;
+  width: 100%;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--label);
+  text-align: left;
+}
+.history-list button:hover { background: var(--fill); }
+.history-list button.on { background: var(--accent); color: var(--on-accent); }
+.history-time { font-variant-numeric: tabular-nums; font-weight: 600; font-size: 13px; }
+.history-title { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.history-reason { grid-column: 2; font-size: 11.5px; color: var(--label-2); }
+.history-list button.on .history-reason { color: inherit; opacity: 0.85; }
+.history-view { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.history-view .hint { margin: 0 0 8px; }
+.history-sheet {
+  max-height: min(56vh, 520px);
+  overflow: auto;
+  padding: 18px 22px;
+  border-radius: var(--radius);
+  background: light-dark(#fff, #1c1c1e);
+  color: light-dark(#1a1a1a, #f2f2f7);
+  box-shadow: 0 0 0 0.5px var(--separator);
+}
+.history-empty { padding: 10px 0 4px; }
+.history-empty p { margin: 0 0 6px; }
+.history-note { margin-top: 12px; }
+.dlg menu button.danger { background: #ff3b30; color: #fff; font-weight: 600; }
+.dlg menu button.danger:hover { background: #d70015; }
+@media (max-width: 760px) {
+  .history { grid-template-columns: minmax(0, 1fr); }
+  .history-list { max-height: 30vh; }
+  .history-sheet { max-height: 38vh; padding: 12px 14px; }
 }

@@ -23,6 +23,8 @@ import { NewSongDialog } from '../dialogs/NewSongDialog';
 import { PhotoImportDialog } from '../dialogs/PhotoImportDialog';
 import { SettingsDialog } from '../dialogs/SettingsDialog';
 import { ShareDialog } from '../dialogs/ShareDialog';
+import { HistoryDialog } from '../dialogs/HistoryDialog';
+import { addSnapshot } from '../lib/history';
 import { alignText } from '../lib/align';
 import { desk, inFrame, type DesktopFile } from '../lib/desktop';
 import { readShareHash, SharedLinkTooLarge } from '../lib/share';
@@ -30,7 +32,7 @@ import { canPickFiles, downloadText, pickFileToOpen, pickFileToSave, writeFile, 
 import { KEYS, store } from '../lib/storage';
 import APP_ICON from '../assets/app-icon.png';
 
-type DialogName = 'new' | 'examples' | 'share' | 'photo' | 'settings' | 'copy' | 'about' | 'letters' | null;
+type DialogName = 'new' | 'examples' | 'share' | 'photo' | 'settings' | 'copy' | 'about' | 'letters' | 'history' | null;
 
 interface Initial {
   text: string;
@@ -183,6 +185,8 @@ function Editor({ initial }: { initial: Initial }) {
       if (autoUpdate) update();
       store.set(KEYS.draft, text);
       store.set(KEYS.draftMeta, JSON.stringify({ path: file.current?.path ?? null, dirty: dirty.current }));
+      // version history: one automatic version per few minutes of work
+      if (dirty.current) addSnapshot(text, { skip: newSongTemplate });
       if (desk && dirty.current) desk.saveDraft(text);
     }, 300);
     return () => clearTimeout(t);
@@ -217,6 +221,8 @@ function Editor({ initial }: { initial: Initial }) {
 
   /** Replace the whole notation (open, example, new song). */
   const setAll = useCallback((t: string, msg: string, f: { path: string; name: string } | null = null, handle: FileHandle | null = null) => {
+    // keep what is being replaced in the version history
+    addSnapshot(textRef.current, { reason: 'Before replacing', skip: newSongTemplate });
     webHandle.current = handle;
     editor.current?.setValue(t);
     textRef.current = t;
@@ -232,7 +238,7 @@ function Editor({ initial }: { initial: Initial }) {
 
   const confirmReplace = useCallback(async () => {
     if (!dirty.current || !textRef.current.trim()) return true;
-    return confirm({ title: 'Replace the current notation?', message: 'Your changes since you last saved will be replaced. Save first if you want to keep them.', ok: 'Replace' });
+    return confirm({ title: 'Replace the current notation?', message: 'Your changes since you last saved will be replaced. A copy stays in History if you need it back.', ok: 'Replace' });
   }, [confirm]);
 
   // ---- commands -------------------------------------------------------------------
@@ -244,6 +250,7 @@ function Editor({ initial }: { initial: Initial }) {
       file.current = r;
       dirty.current = false;
       notifyState();
+      addSnapshot(textRef.current, { reason: 'Saved' });
       say('Saved ' + r.name);
       return true;
     }
@@ -262,12 +269,14 @@ function Editor({ initial }: { initial: Initial }) {
       }
       dirty.current = false;
       notifyState();
+      addSnapshot(textRef.current, { reason: 'Saved' });
       say('Saved ' + file.current.name);
       return true;
     }
     const saved = downloadText(name + '.txt', textRef.current);
     dirty.current = false;
     notifyState();
+    addSnapshot(textRef.current, { reason: 'Saved' });
     say('Saved ' + saved + ' to your downloads');
     if (inFrame) setDialog('copy');
     return true;
@@ -314,6 +323,7 @@ function Editor({ initial }: { initial: Initial }) {
         setDialog('photo');
       },
       examples: () => setDialog('examples'),
+      history: () => setDialog('history'),
       about: () => setDialog('about'),
       letters: () => {
         const ed = editor.current;
@@ -436,6 +446,7 @@ function Editor({ initial }: { initial: Initial }) {
   const usePhotoResult = async (t: string, mode: 'insert' | 'replace') => {
     if (mode === 'replace') {
       if (!(await confirmReplace())) return;
+      addSnapshot(textRef.current, { reason: 'Before replacing', skip: newSongTemplate });
       editor.current!.replaceRange(0, editor.current!.getValue().length, t);
       file.current = null;
       notifyState();
@@ -590,6 +601,8 @@ function Editor({ initial }: { initial: Initial }) {
           <NotationEditor
             ref={editor}
             initialValue={initial.text}
+            issues={doc.warnings}
+            onIssue={(w) => toast('Line ' + w.line + ': ' + w.message)}
             onInput={onInput}
             onShortcut={(cmd) => commands[cmd]()}
             onPasteConverted={({ start, original, converted, scriptName, languageWord }) => {
@@ -688,6 +701,22 @@ function Editor({ initial }: { initial: Initial }) {
           }}
         />
       )}
+      <HistoryDialog
+        open={dialog === 'history'}
+        onClose={() => setDialog(null)}
+        current={text}
+        onRestore={(snap) => {
+          addSnapshot(textRef.current, { reason: 'Before restoring', skip: newSongTemplate });
+          afterClose.current = () => {
+            const ed = editor.current!;
+            ed.replaceRange(0, ed.getValue().length, snap.text); // undoable, like typing
+            ed.scrollTop = 0;
+            update();
+            say('Restored the version from ' + new Date(snap.t).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }));
+          };
+          setDialog(null);
+        }}
+      />
       <ExamplesDialog open={dialog === 'examples'} onClose={() => setDialog(null)} onPick={openExample} />
       <ShareDialog open={dialog === 'share'} onClose={() => setDialog(null)} text={text} />
       <CopyTextDialog

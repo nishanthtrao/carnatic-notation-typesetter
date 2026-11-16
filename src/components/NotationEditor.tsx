@@ -25,8 +25,18 @@ export interface EditorHandle {
   scrollTop: number;
 }
 
+/** A problem on a line, shown as a marker beside its number. */
+export interface LineIssue {
+  line: number;
+  message: string;
+}
+
 interface Props {
   initialValue: string;
+  /** problems found by the parser, marked in the line-number strip */
+  issues?: LineIssue[];
+  /** a marked line number was clicked */
+  onIssue?: (issue: LineIssue) => void;
   onInput: (text: string) => void;
   onShortcut: (cmd: 'update' | 'save' | 'saveAs' | 'letters') => void;
   /** pasted Indian-script text was converted; original kept for "Keep original" */
@@ -40,16 +50,54 @@ const KEYS: [string, string, string?][] = [
   ['S:', '\nS: '], ['L:', '\nL: '],
 ];
 
-export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationEditor({ initialValue, onInput, onShortcut, onPasteConverted }, ref) {
+export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationEditor({ initialValue, issues = [], onIssue, onInput, onShortcut, onPasteConverted }, ref) {
   const ta = useRef<HTMLTextAreaElement>(null);
   const hl = useRef<HTMLPreElement>(null);
+  const gutter = useRef<HTMLDivElement>(null);
+  const numbers = useRef<HTMLDivElement>(null);
+  const code = useRef<HTMLDivElement>(null);
+  const issuesRef = useRef(issues);
+  issuesRef.current = issues;
 
   // Syntax colours: the text is drawn again, coloured, in a <pre> behind the
   // textarea (whose own text is transparent), scrolled in step with it.
+  // Line numbers are drawn the same way, in a strip on the left.
   const sync = () => {
     if (!hl.current || !ta.current) return;
     hl.current.scrollTop = ta.current.scrollTop;
     hl.current.scrollLeft = ta.current.scrollLeft;
+    if (numbers.current) numbers.current.style.transform = 'translateY(' + -ta.current.scrollTop + 'px)';
+  };
+  /** The line-number strip, with a marker on each line that has a problem. */
+  const paintNumbers = () => {
+    if (!numbers.current || !ta.current) return;
+    const count = ta.current.value.split('\n').length;
+    const byLine = new Map<number, string[]>();
+    for (const w of issuesRef.current) byLine.set(w.line, [...(byLine.get(w.line) || []), w.message]);
+    const cur = currentLine();
+    let html = '';
+    for (let n = 1; n <= count; n++) {
+      const msgs = byLine.get(n);
+      const cls = 'ln' + (msgs ? ' issue' : '') + (n === cur ? ' cur' : '');
+      const title = msgs ? ' title="' + msgs.join('\n').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;') + '"' : '';
+      html += '<div class="' + cls + '" data-line="' + n + '"' + title + '>' + n + '</div>';
+    }
+    numbers.current.innerHTML = html;
+    code.current?.style.setProperty('--digits', String(Math.max(2, String(count).length)));
+    shownLine.current = cur;
+  };
+  const currentLine = () => {
+    const el = ta.current;
+    return el ? el.value.slice(0, el.selectionStart).split('\n').length : 0;
+  };
+  // highlight the number of the line the cursor is on
+  const shownLine = useRef(0);
+  const markCurrent = () => {
+    const n = currentLine();
+    if (n === shownLine.current || !numbers.current) return;
+    numbers.current.children[shownLine.current - 1]?.classList.remove('cur');
+    numbers.current.children[n - 1]?.classList.add('cur');
+    shownLine.current = n;
   };
   const frame = useRef(0);
   const paint = () => {
@@ -57,6 +105,7 @@ export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationE
     frame.current = requestAnimationFrame(() => {
       if (!hl.current || !ta.current) return;
       hl.current.innerHTML = highlight(ta.current.value);
+      paintNumbers();
       sync();
     });
   };
@@ -64,6 +113,10 @@ export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationE
     paint();
     return () => cancelAnimationFrame(frame.current);
   }, []);
+  // the problems change after each parse: redraw the markers
+  useEffect(() => {
+    paintNumbers();
+  }, [issues]);
 
   const lineInfo = (): LineInfo => {
     const el = ta.current!;
@@ -119,6 +172,7 @@ export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationE
       const lh = parseFloat(getComputedStyle(el).lineHeight) || 20;
       el.scrollTop = Math.max(0, (n - 4) * lh);
       sync();
+      markCurrent();
     },
     focus: () => ta.current!.focus(),
     get scrollTop() {
@@ -161,7 +215,28 @@ export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationE
           Letters
         </button>
       </div>
-      <div className="code">
+      <div className="code" ref={code}>
+      <div
+        className="gutter"
+        ref={gutter}
+        aria-hidden="true"
+        onClick={(e) => {
+          const el = (e.target as HTMLElement).closest<HTMLElement>('.ln');
+          if (!el) return;
+          const n = +el.dataset.line!;
+          const lines = ta.current!.value.split('\n');
+          let pos = 0;
+          for (let i = 0; i < n - 1; i++) pos += lines[i].length + 1;
+          ta.current!.focus();
+          ta.current!.setSelectionRange(pos, pos + lines[n - 1].length);
+          markCurrent();
+          const found = issuesRef.current.find((w) => w.line === n);
+          if (found) onIssue?.(found);
+        }}
+      >
+        <div className="numbers" ref={numbers} />
+      </div>
+      <div className="code-area">
       <pre ref={hl} className="hl" aria-hidden="true" />
       <textarea
         ref={ta}
@@ -178,6 +253,9 @@ export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationE
           onInput(e.currentTarget.value);
         }}
         onScroll={sync}
+        onSelect={markCurrent}
+        onKeyUp={markCurrent}
+        onPointerUp={markCurrent}
         onPaste={(e) => {
           const original = e.clipboardData.getData('text/plain');
           if (!original || !hasIndic(original)) return; // ordinary paste
@@ -216,6 +294,7 @@ export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationE
           }
         }}
       />
+      </div>
       </div>
     </>
   );
