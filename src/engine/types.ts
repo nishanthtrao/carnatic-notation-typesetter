@@ -59,6 +59,8 @@ export interface NoteEvent {
   path: number[];
   lyrics: (Lyric | undefined)[];
   phraseEnd: boolean;
+  /** hyphens written after the phrase end (p- is 1, p-- is 2…); each one after the first adds space */
+  phraseLen?: number;
   // swaras
   note?: string;
   long?: boolean;

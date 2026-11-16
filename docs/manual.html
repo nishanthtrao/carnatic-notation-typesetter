@@ -135,6 +135,7 @@ S: "label" notations</pre>
       <tr><th>Write</th><th>Meaning</th></tr>
       <tr><td><code>s r g m p d n</code></td><td>A swara lasting one mātra in the current speed.</td></tr>
       <tr><td><code>sa ri ga ma pa da ni</code></td><td>A dhīrgha (long) swara lasting two mātras. <code>dha</code> also works.</td></tr>
+      <tr><td><code>sA rI gA mA pA dA nI</code> <span class="ext">new</span></td><td>The same dhīrgha swaras with the long vowel in capitals, which is easier to spot while writing; <code>dhA</code> also works. They print exactly like <code>sa ri ga…</code>, and take variants, dots and gamakas the same way: <code>rI2</code>, <code>sA'</code>, <code>mA~</code>.</td></tr>
       <tr><td><code>s'</code> &nbsp; <code>p`</code></td><td>Tara stayi (dot above) and mandra stayi (dot below). Repeat for two octaves: <code>s''</code>. Works with long swaras too: <code>sa'</code>.</td></tr>
       <tr><td><code>,</code> &nbsp; <code>;</code></td><td>Pause or continuation of one mātra and two mātras.</td></tr>
       <tr><td><code>_</code> &nbsp; <code>__</code></td><td>Empty space of one or two mātras, with nothing shown (for indenting to the eḍuppu).</td></tr>
@@ -161,6 +162,11 @@ S: m~ , ma~~ , r g^ m s m/ g r s ma// g r n d\ p m n da\\ p s' n(w) n d</pre>
 
     <h3>Phrase ends</h3>
     <p>A hyphen after a swara (<code>p-</code>) marks the end of a phrase, for example where to breathe. By default it is invisible; see <a href="#speedmarks">PhraseEnds</a> to show it or add space after it.</p>
+    <p><b>More hyphens, more space</b> <span class="ext">new</span>: <code>p--</code> leaves a gap after the swara and its lyric, and <code>p---</code> a bigger one, so you can show clearly where the sahitya divides. It takes no time in the tala and works after pauses too (<code>,--</code>). A speed line is broken at such a gap. If <code>PhraseEnds</code> sets a spacing, each extra hyphen adds that spacing again.</p>
+    <pre class="ex">Tala: Adi
+SmartLyricMode
+S: s r g m-- p d n s | s' n d--- p | m g r s ||
+L: sA ma ja va ra ga ma na sA ma ja va ra ga ma na</pre>
 
     <h3>Same as before</h3>
     <pre class="ex">DefaultSpeed: 1
@@ -329,6 +335,8 @@ L: sa ri ga ma pa da ni sa sa ni da pa ma ga ri sa</pre>
       <tr><td><code>r1 r2 g3 …</code></td><td>Swara variants shown with a subscript number.</td></tr>
       <tr><td><code>srgm</code></td><td>Plain swaras may be written joined; same as <code>s r g m</code>.</td></tr>
       <tr><td><code>S R G</code></td><td>A capital letter is a dhīrgha swara, like <code>sa ri ga</code>.</td></tr>
+      <tr><td><code>sA rI gA</code></td><td>Dhīrgha swaras with the long vowel in capitals, like <code>sa ri ga</code>.</td></tr>
+      <tr><td><code>p--</code> &nbsp; <code>p---</code></td><td>More space after a phrase end: each hyphen after the first adds a step.</td></tr>
       <tr><td><code>Tala: 4+2+2</code></td><td>A custom tala given as anga lengths in aksharas.</td></tr>
       <tr><td><code>AvartanamsPerLine: 2</code></td><td>Put more than one avartanam on each line.</td></tr>
       <tr><td><code>PageSize: Letter</code></td><td>Paper size when printing (A4, A5, A3, Letter, Legal).</td></tr>
