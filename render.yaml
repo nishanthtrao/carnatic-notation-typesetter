@@ -43,7 +43,7 @@ services:
       # in step (tests/headers.test.ts checks).
       - path: /*
         name: Content-Security-Policy
-        value: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; manifest-src 'self'; worker-src 'self'; connect-src 'self' blob: data: https://api.anthropic.com; object-src 'none'; base-uri 'none'; frame-ancestors 'self'"
+        value: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; manifest-src 'self'; worker-src 'self'; connect-src 'self' blob: data: https://api.anthropic.com https://api.openai.com https://generativelanguage.googleapis.com https://openrouter.ai; object-src 'none'; base-uri 'none'; frame-ancestors 'self'"
       # browsers always use https for this site
       - path: /*
         name: Strict-Transport-Security

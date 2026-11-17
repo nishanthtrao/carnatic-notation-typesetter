@@ -22,13 +22,14 @@ interface Anchor {
  * the DOM. Zooming scales the page as drawn (the layout stays the same, the
  * way it will print); printing ignores it.
  */
-export function Preview({ doc, onJumpToLine, landscape }: { doc: NotationDoc; onJumpToLine?: (line: number) => void; landscape?: boolean }) {
+export function Preview({ doc, onJumpToLine, landscape, zoomable }: { doc: NotationDoc; onJumpToLine?: (line: number) => void; landscape?: boolean; zoomable?: boolean }) {
   const sheet = useRef<HTMLDivElement>(null);
   const paper = useRef<HTMLDivElement>(null);
   const box = useRef<HTMLDivElement>(null);
   const scroller = useRef<HTMLDivElement>(null);
   const handle = useRef<RenderHandle | null>(null);
   const [zoom, setZoomState] = useState(() => {
+    if (!zoomable) return 1;
     const z = parseFloat(store.get(ZOOM_KEY) || '1');
     return Number.isFinite(z) ? clamp(z) : 1;
   });
@@ -125,7 +126,7 @@ export function Preview({ doc, onJumpToLine, landscape }: { doc: NotationDoc; on
   // ⌘/Ctrl + wheel, and pinch on a trackpad (which arrives as Ctrl + wheel)
   useEffect(() => {
     const sc = scroller.current;
-    if (!sc) return;
+    if (!sc || !zoomable) return;
     const wheel = (e: WheelEvent) => {
       if (!e.ctrlKey && !e.metaKey) return;
       e.preventDefault();
@@ -173,17 +174,19 @@ export function Preview({ doc, onJumpToLine, landscape }: { doc: NotationDoc; on
           </div>
         </div>
       </div>
-      <div className="zoom-pill" data-tour="zoom" role="group" aria-label="Zoom">
-        <button type="button" title="Zoom out (⌘/Ctrl + scroll)" aria-label="Zoom out" disabled={zoom <= MIN} onClick={() => step(-1)}>
-          <Icon name="zoomout" />
-        </button>
-        <button type="button" className="zoom-value" title="Back to fit the window" aria-label={'Zoom ' + Math.round(zoom * 100) + '%, reset to fit'} onClick={() => setZoom(1)}>
-          {fit ? 'Fit' : Math.round(zoom * 100) + '%'}
-        </button>
-        <button type="button" title="Zoom in (⌘/Ctrl + scroll)" aria-label="Zoom in" disabled={zoom >= MAX} onClick={() => step(1)}>
-          <Icon name="zoomin" />
-        </button>
-      </div>
+      {zoomable && (
+        <div className="zoom-pill" data-tour="zoom" role="group" aria-label="Zoom">
+          <button type="button" title="Zoom out (⌘/Ctrl + scroll)" aria-label="Zoom out" disabled={zoom <= MIN} onClick={() => step(-1)}>
+            <Icon name="zoomout" />
+          </button>
+          <button type="button" className="zoom-value" title="Back to fit the window" aria-label={'Zoom ' + Math.round(zoom * 100) + '%, reset to fit'} onClick={() => setZoom(1)}>
+            {fit ? 'Fit' : Math.round(zoom * 100) + '%'}
+          </button>
+          <button type="button" title="Zoom in (⌘/Ctrl + scroll)" aria-label="Zoom in" disabled={zoom >= MAX} onClick={() => step(1)}>
+            <Icon name="zoomin" />
+          </button>
+        </div>
+      )}
     </>
   );
 }

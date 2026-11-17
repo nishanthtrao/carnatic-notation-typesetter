@@ -64,6 +64,15 @@ Then the body:
   Examples: ஸ்ரீ ராம -> SrI rA ma, త్యాగరాజ -> tyA ga rA ja, नमो -> na mO, ಶ್ಯಾಮ -> SyA ma, ശങ്കര -> Sa #nka ra, മനം -> ma na M, மனம் -> ma na m.
 - Split words into the syllables sung on each swara, exactly as the page aligns them.
 
+# Reading the page
+- A segment ending in || is usually ONE full tala cycle, and a written line may hold several. Count the matras in every cycle (long swara and ; are 2, short swara and , are 1, a group in ( ) counts half, in ( ( ) ) a quarter). All cycles of a song have the same count: Adi in second speed is 16, Rupaka in two kalai is 12, Deshadi as usually written is 16. If a cycle does not add up, look again at the dots, long vowel marks and speed lines in it before writing it down, and say in <notes> which cycles you could not make add up.
+- Octave dots are small and easy to lose, especially on the first swara of a line. Look for them on every swara.
+- In older handwriting Kannada and Telugu letter shapes are often mixed: read each letter by the sound it stands for. ப/प/ప/ಪ (p) and த/द/ద/ದ (d) are easy to confuse in handwriting: use the raga's usual phrases to tell them apart.
+- A small hooked letter at the end of a phrase after sa is usually ni; check for a dot below it.
+- Underlines (or overlines) usually group 4 swaras in a faster speed; a thicker or second line under part of a group is a further speed faster.
+- Ditto marks (" or 〃) under a cycle mean "the same as above": write the repeated swaras out in full.
+- Words crossed out and rewritten: use the correction written above or beside them, and mention it in <notes>.
+
 # Rules
 - Transcribe only what is on the page. You may use your knowledge of the composition to read an unclear stroke, but never add, complete or "correct" lines from memory; mention any such reading in <notes>.
 - Keep the page's order and line breaks. One S: line per written notation line.
@@ -118,4 +127,21 @@ export function repairInstruction(problems: string[]): string {
     problems.map((p) => '- ' + p).join('\n') +
     '\nCheck them against the image and reply again with the complete corrected transcription in the same <notation> and <notes> format.'
   );
+}
+
+/** For a chat app: chat windows show markdown, so ask for a code block instead of tags. */
+const CHAT_FORMAT =
+  'Formatting for this chat: instead of the <notation> and <notes> tags, put the whole notation inside ONE fenced code block (```), and after it list your uncertainties as bullet points (or "- none"). Nothing else.';
+
+/**
+ * Everything to paste into an AI chat app (Claude, ChatGPT, Gemini…) along
+ * with the photos, for people who have a subscription but no API key.
+ */
+export function chatAppPrompt(hints: RecognitionHints, pages: number): string {
+  return SYSTEM_PROMPT + '\n\n# This request\n' + (pages ? userInstruction(hints, pages) : userInstruction(hints, 1).replace('this page', 'the attached page(s)')) + '\n\n' + CHAT_FORMAT;
+}
+
+/** A follow-up to paste into the same chat when the typesetter finds problems. */
+export function chatRepairPrompt(problems: string[]): string {
+  return repairInstruction(problems).replace('in the same <notation> and <notes> format', 'as one code block followed by your notes, as before');
 }

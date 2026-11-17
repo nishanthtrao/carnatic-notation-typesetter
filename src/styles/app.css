@@ -581,7 +581,8 @@ select optgroup {
 .hint { color: var(--label-2); font-size: 12.5px; margin: 10px 0 0; }
 .hint code, .dlg code { font: 12px var(--mono); background: var(--fill); padding: 1px 4px; border-radius: 4px; }
 .key-row { display: flex; gap: 6px; }
-.key-row input { flex: 1; min-width: 0; }
+.key-row input, .key-row select { flex: 1; min-width: 0; }
+.key-row button { white-space: nowrap; flex: none; }
 .ok-text { color: var(--green); font-size: 13px; }
 .err-text { color: #d70015; font-size: 13px; }
 @media (prefers-color-scheme: dark) { .err-text { color: #ff6961; } }
@@ -634,6 +635,7 @@ select optgroup {
 .review-text { min-height: 200px; flex: 1; }
 .review-preview { max-height: 32vh; overflow: auto; border-radius: var(--radius); background: var(--canvas); padding: 8px; }
 .review-preview .paper { padding: 12px 16px; min-height: 0; }
+.review-preview .preview-scroll { padding: 0; overflow: visible; }
 .review-notes { margin-top: 12px; background: var(--orange-soft); border-radius: var(--radius); padding: 10px 14px; font-size: 12.5px; }
 .review-notes b { font-weight: 600; }
 .review-notes ul { margin: 4px 0 6px; padding-left: 18px; }
@@ -1045,6 +1047,57 @@ select optgroup {
   .history-sheet { max-height: 38vh; padding: 12px 14px; }
 }
 
+/* ---- Photo reader: choosing a service, and the chat-app steps ---- */
+.provider-list { display: flex; flex-direction: column; gap: 6px; }
+.provider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: 0 0 0 0.5px var(--separator);
+  cursor: default;
+}
+.provider.on { box-shadow: 0 0 0 2px var(--accent); }
+.provider input { accent-color: var(--accent); width: 15px; height: 15px; flex: none; margin: 0; }
+.provider > span { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.provider b { font-weight: 600; font-size: 13px; }
+.provider small { color: var(--label-2); font-size: 12px; }
+.provider-badge { flex: none !important; font-size: 11px; color: var(--green); }
+.chat-explain p { margin: 8px 0 0; }
+.chat-explain b { color: var(--label); }
+
+.chat-steps { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 14px; }
+.chat-steps > li { padding-left: 4px; }
+.chat-steps > li::marker { font-weight: 600; color: var(--accent); }
+.chat-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.chat-actions button, .chat-app, .inline-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 4px 14px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--fill);
+  color: var(--label);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+}
+.chat-actions button:hover, .chat-app:hover, .inline-btn:hover { background: var(--fill-2); }
+.chat-actions button:first-child { background: var(--accent); color: var(--on-accent); font-weight: 600; }
+.chat-actions button:first-child:hover { background: var(--accent-hover); }
+.chat-actions button.done { background: var(--green); }
+.chat-actions .ico { width: 15px; height: 15px; }
+.dlg a.chat-app { color: var(--accent); }
+.chat-prompt { margin-top: 8px; }
+.chat-prompt summary { font-size: 12.5px; color: var(--label-2); cursor: default; }
+.chat-prompt textarea { margin-top: 6px; font-size: 11px; }
+.chat-reply { margin-top: 8px; min-height: 150px; }
+.inline-btn { min-height: 24px; padding: 2px 10px; font-size: 12.5px; background: var(--surface); }
+
 /* ---- Guided tour ---- */
 .tour { position: fixed; inset: 0; z-index: 80; }
 .tour-shade {
@@ -1086,3 +1139,7 @@ select optgroup {
 .tour-foot button.tour-skip { background: none; color: var(--label-2); padding: 4px 6px; }
 @media (prefers-reduced-motion: reduce) { .tour-shade, .tour-card { transition: none; } }
 @media print { .tour { display: none !important; } }
+.dlg a.chat-app.primary-link { background: var(--accent); color: var(--on-accent); font-weight: 600; }
+.dlg a.chat-app.primary-link:hover { background: var(--accent-hover); }
+.chat-switch { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--label-2); }
+.chat-switch select { min-height: 28px; font-size: 13px; }

@@ -88,21 +88,16 @@
 
     <h2 id="photo">Reading handwritten notation <span class="ext">new</span></h2>
     <p><b>Read Photo</b> reads a photo or scan of notation — handwritten or printed, with swaras and lyrics in English letters, Tamil, Telugu, Kannada, Malayalam or Devanagari — and writes it as input for this typesetter. You check and correct the result, then insert it.</p>
-    <h3>Setting it up (once)</h3>
-    <p>Reading images uses Claude, Anthropic's AI model, with <b>your own API key</b>:</p>
-    <ol>
-      <li>Create an account at <a href="https://platform.claude.com/">platform.claude.com</a>, add a little credit, and create an API key under <i>API keys</i>.</li>
-      <li>In the typesetter press <b>Read Photo</b>, then <b>Settings</b>, and paste the key. It is stored only on this device (encrypted by the operating system in the desktop app) and sent only to Anthropic.</li>
-    </ol>
-    <p>Each page costs a few US cents with the default model (Claude Sonnet 5.5); the more accurate Claude Opus 5.5 costs about twice as much. The photo is sent to Anthropic to be read; it is not stored by the typesetter.</p>
+    <p>The reading is done by an AI app you already use, with your own account there, free or paid: Claude, ChatGPT, Gemini, Copilot, Grok, Qwen or another app that accepts photos. The typesetter gives you the instructions to paste with your photo, and checks the reply. Nothing goes through this website's server, and you need no API key.</p>
     <h3>Reading a page</h3>
     <ol>
-      <li>Press <b>Read Photo</b> and choose up to five images (on a phone you can take the photo directly). You can also paste an image or drop it on the window.</li>
-      <li>Optionally tell it the script of the lyrics, the tala and raga if they are not written on the page, and anything unusual about the writer's style.</li>
-      <li>Press <b>Read notation</b>. After 10–40 seconds you see the input it wrote, a preview of the typeset result, and notes about anything it was unsure of (also left as <code>#</code> comment lines).</li>
-      <li>Fix anything that is wrong, then <b>Insert at cursor</b> or <b>Replace all</b>.</li>
+      <li>Press <b>Read Photo</b>. Choose your <b>AI app</b>; it is remembered next time. Adding the photo here is optional: it lets you compare it with the result. You can choose up to five images, take a photo on a phone, paste an image or drop it on the window.</li>
+      <li>Optionally tell it the script of the lyrics, the tala and raga if they are not written on the page, and anything unusual about the writer's style. These go into the instructions.</li>
+      <li>Press <b>Next</b>, then <b>Copy instructions</b> and <b>Open</b> your app. Start a new chat there, attach the photo (all pages, in order) and paste the instructions. If the app lets you choose a model, pick its most capable one, or one that thinks or reasons before answering: it reads handwriting much better. On a phone, <b>Send photo to an app</b> hands the photo and the instructions to the app in one go.</li>
+      <li>Copy the app's whole reply, paste it into the box and press <b>Check the notation</b>. You see the input it wrote, a preview of the typeset result, and anything it was unsure of (also left as <code>#</code> comment lines).</li>
+      <li>If the typesetter finds problems, <b>Ask the app to fix these…</b> copies a correction request: paste it into the same chat and paste the new reply back.</li>
+      <li>Fix anything that is still wrong, then <b>Insert at cursor</b> or <b>Replace all</b>.</li>
     </ol>
-    <p>The result is checked with the same parser as your typing; if it finds mistakes, the reader is asked once to correct them automatically.</p>
     <div class="note"><b>For the best results:</b> photograph in daylight, flat and square-on, one page per photo, filling the frame. Crop away anything that isn't notation. Dots above and below swaras and the lines marking faster passages are the easiest things to lose, so check those first. Lyrics written in Indian scripts are converted to the roman transliteration this typesetter uses, so you can still switch the display language afterwards.</div>
 
     <h2 id="basics">Input basics</h2>
