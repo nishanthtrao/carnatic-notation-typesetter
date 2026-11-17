@@ -43,3 +43,26 @@ describe('Spacing', () => {
     expect(complete('sp')?.insert).toBe('SpeedMarks: ');
   });
 });
+
+describe('pauses in a row', () => {
+  // imported here so the rest of the file needs no DOM-free guarantee from render
+  test('are drawn closer together than swaras, but not touching', async () => {
+    const { gapAfter, spacingFor } = await import('../src/engine/render');
+    const SP = spacingFor(1);
+    const ev = (kind: string, path: number[] = [], phraseEnd = false) => ({ kind, path, phraseEnd }) as never;
+    const pair = gapAfter(ev('karvai'), ev('karvai'), SP);
+    expect(pair).toBeLessThan(SP.swara * 0.6); // considerably closer
+    expect(pair).toBeGreaterThan(0.08); // but with a visible gap, unlike ";;" in text
+    // only between two pauses
+    expect(gapAfter(ev('karvai'), ev('swara'), SP)).toBe(SP.swara);
+    expect(gapAfter(ev('swara'), ev('karvai'), SP)).toBe(SP.swara);
+    expect(gapAfter(ev('karvai'), undefined, SP)).toBe(SP.swara);
+    // a phrase end between them keeps them apart
+    expect(gapAfter(ev('karvai', [], true), ev('karvai'), SP)).toBe(SP.swara);
+    // never wider than the usual gap in a fast passage
+    expect(gapAfter(ev('karvai', [0]), ev('karvai'), SP)).toBe(Math.min(SP.fast, SP.karvai));
+    // and it follows Spacing:
+    expect(gapAfter(ev('karvai'), ev('karvai'), spacingFor(0.7))).toBeLessThan(pair);
+    expect(gapAfter(ev('karvai'), ev('karvai'), spacingFor(1.4))).toBeGreaterThan(pair);
+  });
+});

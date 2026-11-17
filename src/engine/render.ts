@@ -22,6 +22,7 @@ const EPS = 1e-6;
 const SP_BASE = {
   swara: 0.3, // gap after a swara in the default speed
   fast: 0.12, // gap after a swara inside ( )
+  karvai: 0.16, // gap between two pauses in a row ( ; ;  , ;  , , ): closer than swaras, but not touching
   lyric: 0.32, // minimum gap after a lyric fragment
   empty: 0.45, // width of _ (doubled for __)
   bar: 0.95, // box for |
@@ -38,12 +39,13 @@ type Spacing = typeof SP_BASE;
  * lyrics follow it directly; bars and anga gaps follow it more gently so they
  * stay readable when tight. Labels and explicit phrase gaps stay as they are.
  */
-function spacingFor(f: number): Spacing {
+export function spacingFor(f: number): Spacing {
   const soft = Math.sqrt(f);
   return {
     ...SP_BASE,
     swara: SP_BASE.swara * f,
     fast: SP_BASE.fast * f,
+    karvai: SP_BASE.karvai * f,
     lyric: SP_BASE.lyric * f,
     empty: SP_BASE.empty * soft,
     bar: SP_BASE.bar * soft,
@@ -51,6 +53,16 @@ function spacingFor(f: number): Spacing {
     akshara: SP_BASE.akshara * soft,
     anga: SP_BASE.anga * soft,
   };
+}
+
+/**
+ * The gap after an event. Pauses that follow one another ( ; ;  , ;  , , ) are
+ * drawn as a group: clearly closer than swaras are, though not run together
+ * the way ";;" is in ordinary text.
+ */
+export function gapAfter(ev: Pick<NoteEvent, 'kind' | 'path' | 'phraseEnd'>, next: Pick<NoteEvent, 'kind'> | undefined, SP: Spacing): number {
+  const gap = ev.path.length ? SP.fast : SP.swara;
+  return ev.kind === 'karvai' && next?.kind === 'karvai' && !ev.phraseEnd ? Math.min(gap, SP.karvai) : gap;
 }
 
 type IndicSwara = 'devanagari' | 'telugu' | 'kannada' | 'malayalam' | 'tamil';
@@ -250,7 +262,7 @@ function layoutDoc(doc: NotationDoc, el: HTMLElement): Geometry {
         let x = 0;
         const lyrEnd: number[] = [];
         let natural = 0;
-        for (const ev of evs) {
+        for (const [n, ev] of evs.entries()) {
           const eg = evGeo.get(ev)!;
           let start = x;
           const lyr = lyricAt.map((mp) => mp.get(+ev.t.toFixed(6)));
@@ -259,7 +271,7 @@ function layoutDoc(doc: NotationDoc, el: HTMLElement): Geometry {
           });
           eg.rx = start;
           eg.w = eg.key ? W(eg.key) : ev.kind === 'empty' ? SP.empty * (ev.text === '__' ? 2 : 1) : 0;
-          x = start + eg.w + (ev.path.length ? SP.fast : SP.swara);
+          x = start + eg.w + gapAfter(ev, evs[n + 1], SP);
           if (ev.phraseEnd && phraseEm) x += phraseEm;
           lyr.forEach((it, li) => {
             if (it) lyrEnd[li] = start + W(g.lyricKeys.get(it)!) + SP.lyric;
