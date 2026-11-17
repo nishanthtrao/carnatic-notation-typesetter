@@ -1139,3 +1139,7 @@ select optgroup {
 .tour-foot button.tour-skip { background: none; color: var(--label-2); padding: 4px 6px; }
 @media (prefers-reduced-motion: reduce) { .tour-shade, .tour-card { transition: none; } }
 @media print { .tour { display: none !important; } }
+.dlg a.chat-app.primary-link { background: var(--accent); color: var(--on-accent); font-weight: 600; }
+.dlg a.chat-app.primary-link:hover { background: var(--accent-hover); }
+.chat-switch { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--label-2); }
+.chat-switch select { min-height: 28px; font-size: 13px; }

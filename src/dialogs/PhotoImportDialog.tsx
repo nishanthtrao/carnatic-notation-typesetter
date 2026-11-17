@@ -9,6 +9,8 @@ import { chatAppPrompt, chatRepairPrompt, type RecognitionHints } from '../recog
 import { estimateCost, PROVIDER_ORDER, PROVIDERS, type ApiProviderId, type ProviderId } from '../recognition/providers';
 import { loadApiKeys, loadSettings, modelInfo, saveSettings, type ApiKeys, type RecognitionSettings } from '../recognition/settings';
 import { Field, Select } from './common';
+import { PHOTO_API } from '../recognition/flags';
+import { CHAT_APPS, loadChatApp, saveChatApp, type ChatApp } from '../recognition/apps';
 
 const MAX_PAGES = 5;
 
@@ -26,11 +28,6 @@ type Step =
   | { kind: 'chat'; followUp?: boolean }
   | { kind: 'review'; result: RecognitionResult; viaChat?: boolean };
 
-const CHAT_APPS: [string, string][] = [
-  ['Claude', 'https://claude.ai/new'],
-  ['ChatGPT', 'https://chatgpt.com/'],
-  ['Gemini', 'https://gemini.google.com/app'],
-];
 
 /** Copy text, also where the async clipboard is unavailable (older browsers, some frames). */
 async function copyText(text: string): Promise<boolean> {
@@ -97,7 +94,14 @@ export function PhotoImportDialog({ open, onClose, onOpenSettings, settingsVersi
     });
   }, [open, settingsVersion]);
 
-  const provider = settings.provider;
+  // with API reading switched off, the chat apps are the only way
+  const provider = PHOTO_API ? settings.provider : 'chat';
+  const [app, setApp] = useState<ChatApp>(loadChatApp);
+  const pickApp = (id: string) => {
+    const a = CHAT_APPS.find((x) => x.id === id) || CHAT_APPS[0];
+    setApp(a);
+    saveChatApp(a);
+  };
   const api = provider === 'chat' ? null : (provider as ApiProviderId);
   const apiKey = api ? keys[api] || '' : '';
   const model = api ? settings.models[api] || PROVIDERS[api].models[0].id : '';
@@ -349,14 +353,22 @@ export function PhotoImportDialog({ open, onClose, onOpenSettings, settingsVersi
                 </details>
               </li>
               <li>
-                <b>Open your AI app</b> in a new chat, attach {pages.length > 1 ? 'your ' + pages.length + ' photos (in order)' : 'your photo'} and paste the instructions. A model that can think or reason
-                more carefully reads handwriting better.
+                <b>{app.url ? 'Open ' + app.name : 'Open your AI app'}</b> in a new chat, attach {pages.length > 1 ? 'your ' + pages.length + ' photos (in order)' : 'your photo'} and paste the instructions.
+                If the app lets you choose a model, pick its most capable one, or one that thinks or reasons before answering: it reads handwriting much better.
                 <div className="chat-actions">
-                  {CHAT_APPS.map(([name, url]) => (
-                    <a key={name} className="chat-app" href={url} target="_blank" rel="noopener">
-                      {name}
+                  {app.url && (
+                    <a className="chat-app primary-link" href={app.url} target="_blank" rel="noopener">
+                      Open {app.name} ↗
                     </a>
-                  ))}
+                  )}
+                  <label className="chat-switch">
+                    {app.url ? 'or use' : 'Use'}{' '}
+                    <select value={app.id} onChange={(e) => pickApp(e.target.value)} aria-label="AI app">
+                      {CHAT_APPS.map((a) => (
+                        <option key={a.id} value={a.id}>{a.name}</option>
+                      ))}
+                    </select>
+                  </label>
                 </div>
               </li>
             </>
@@ -402,7 +414,7 @@ export function PhotoImportDialog({ open, onClose, onOpenSettings, settingsVersi
       wide
       footer={
         <>
-          <button type="button" onClick={onOpenSettings}><Icon name="settings" />Settings</button>
+          {PHOTO_API && <button type="button" onClick={onOpenSettings}><Icon name="settings" />Settings</button>}
           <span className="spacer" />
           <button type="button" onClick={close}>Cancel</button>
           <button type="button" className="primary" disabled={!!api && !!apiKey && !pages.length} onClick={read}>
@@ -455,14 +467,21 @@ export function PhotoImportDialog({ open, onClose, onOpenSettings, settingsVersi
       </div>
 
       <div className="form-grid" style={{ marginTop: 12 }}>
-        <Field id="p-provider" label="Read with">
-          <Select
-            id="p-provider"
-            value={provider}
-            onChange={(v) => choose(v as ProviderId)}
-            options={PROVIDER_ORDER.map((id) => [id, id === 'chat' ? 'My AI chat app (no API key)' : PROVIDERS[id].name + (keys[id as ApiProviderId] ? '' : ' — needs an API key')])}
-          />
-        </Field>
+        {PHOTO_API && (
+          <Field id="p-provider" label="Read with">
+            <Select
+              id="p-provider"
+              value={provider}
+              onChange={(v) => choose(v as ProviderId)}
+              options={PROVIDER_ORDER.map((id) => [id, id === 'chat' ? 'My AI chat app (no API key)' : PROVIDERS[id].name + (keys[id as ApiProviderId] ? '' : ' — needs an API key')])}
+            />
+          </Field>
+        )}
+        {provider === 'chat' && (
+          <Field id="p-app" label="AI app">
+            <Select id="p-app" value={app.id} onChange={pickApp} options={CHAT_APPS.map((a) => [a.id, a.by ? a.name + ' (' + a.by + ')' : a.name])} />
+          </Field>
+        )}
         <Field id="p-script" label="Lyrics written in">
           <Select
             id="p-script"
@@ -485,7 +504,10 @@ export function PhotoImportDialog({ open, onClose, onOpenSettings, settingsVersi
       {error && <p className="err-text" role="alert">{error}</p>}
       <p className="hint">
         {!api ? (
-          <>Adding the photo here is optional; it lets you compare it with the result. You’ll copy instructions into Claude, ChatGPT, Gemini or similar and paste the reply back. </>
+          <>
+            The photo is read by the AI app you choose, with your own account there, free or paid. You copy the instructions into it with your photo and paste its reply back here to
+            check it. Adding the photo here is optional; it lets you compare it with the result.{' '}
+          </>
         ) : apiKey ? (
           <>Uses {modelLabel} with your API key; the photo is sent to {PROVIDERS[api].company} to be read. </>
         ) : (

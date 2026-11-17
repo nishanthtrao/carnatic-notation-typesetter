@@ -97,6 +97,7 @@ How it works:
 2. The reply is checked with the typesetter's own parser. If it has problems, the model is asked once to correct them.
 3. The user reviews the text next to the photo and a live preview, then inserts it.
 
+- **Switched off for now:** reading with an API key is built but hidden. Build with `VITE_PHOTO_API=on` (for example in the Render environment) to show it; until then Read Photo only offers the AI chat apps (`src/recognition/apps.ts`).
 - **No API key:** "My AI chat app" gives the user the same instructions to paste into Claude, ChatGPT, Gemini or similar, with their photo. They paste the reply back to be checked and reviewed the same way. Nothing is sent anywhere by the site.
 - **API keys:** each user supplies their own, one per service. Without one, nothing is sent anywhere.
 - **Models:** each service has a short list of suggestions (`PROVIDERS` in `src/recognition/providers.ts`). "Find models" fetches the live list from the service, and any model ID can be typed in, so new models work without a code change.
