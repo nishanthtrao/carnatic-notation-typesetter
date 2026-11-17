@@ -144,6 +144,7 @@ interface State {
   fullWidth: boolean;
   compact: boolean;
   spacing: number;
+  grouping: boolean;
   tala: Tala | null;
   speed: number;
   songSpeed: number;
@@ -177,6 +178,7 @@ export function parse(input: string): NotationDoc {
     fullWidth: false,
     compact: false,
     spacing: 1,
+    grouping: true,
     tala: null,
     speed: 1,
     songSpeed: 1,
@@ -211,6 +213,7 @@ export function parse(input: string): NotationDoc {
       fullWidth: st.fullWidth,
       compact: st.compact,
       spacing: st.spacing,
+      grouping: st.grouping,
       perRow: st.perRow,
       speedMarks: st.speedMarks,
       phraseEnds: { ...st.phraseEnds },
@@ -467,6 +470,18 @@ export function parse(input: string): NotationDoc {
           st.spacing = n;
           const open = seg as Segment | null;
           if (open && !open.events.length) open.spacing = n;
+          else closeSeg();
+        }
+        break;
+      }
+      case 'grouping': {
+        // the gaps that set the beats (capu talas) or aksharas (gitam, varnam) apart
+        const v = value.trim().toLowerCase();
+        if (!/^(on|off|yes|no|show|hide)$/.test(v)) warn(no, 'Grouping should be On or Off');
+        else {
+          st.grouping = /^(on|yes|show)$/.test(v);
+          const open = seg as Segment | null;
+          if (open && !open.events.length) open.grouping = st.grouping;
           else closeSeg();
         }
         break;

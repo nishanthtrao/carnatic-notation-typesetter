@@ -209,8 +209,8 @@ export function layoutSegment(seg: Segment): void {
           if (mk.kind === 'end') markers.push({ t: mk.t, kind: '||' });
           else if (mk.kind === 'angaEnd') {
             if (tala.innerBars) markers.push({ t: mk.t, kind: '|' });
-            else gaps.push({ t: mk.t, size: 'anga' });
-          } else if (mk.kind === 'akshara' && gapLayout && mk.t > EPS) gaps.push({ t: mk.t, size: 'akshara' });
+            else if (seg.grouping) gaps.push({ t: mk.t, size: 'anga' });
+          } else if (mk.kind === 'akshara' && gapLayout && seg.grouping && mk.t > EPS) gaps.push({ t: mk.t, size: 'akshara' });
         }
       }
     } else {
