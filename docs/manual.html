@@ -204,6 +204,11 @@ Tala: Manual</pre>
       <tr><td>Ata</td><td><code>Ata</code> (khaṇḍa jāti) and <code>&lt;Jati&gt;_Ata</code></td></tr>
       <tr><td>Eka</td><td><code>Eka</code> (catuśra jāti) and <code>&lt;Jati&gt;_Eka</code></td></tr>
     </table>
+    <p><b>Avartanams per line</b> <span class="ext">new</span>: <code>AvartanamsPerLine: 1</code> sets how many avartanams go on a line before a new one starts, from 1 to 8. Without it each tala has its usual number: one for most talas, two for <code>RupakaCapu</code> and <code>MisraCapu</code>, four for <code>KhandaCapu</code>. Put it after the <code>Tala</code> line; it applies from the next swara line and stays until you change it, and <code>AvartanamsPerLine: Default</code> goes back to the tala's usual number. It has no effect with <code>Manual</code> line breaks, or with <code>Dhruva2</code>, which always spreads one avartanam over two lines.</p>
+    <pre class="ex">Tala: RupakaCapu
+DefaultSpeed: 2
+AvartanamsPerLine: 1
+S: s n r s n , d n sa ri | ri ; ; sa ri pa</pre>
     <p>Jātis are <code>Tisra</code>, <code>Catusra</code>, <code>Khanda</code>, <code>Misra</code> and <code>Sankirna</code>, so all 35 sūḷādi talas are available.</p>
     <pre class="ex">Tala: MisraCapu
 DefaultSpeed: 1
@@ -350,7 +355,7 @@ L: sa ri ga ma pa da ni sa sa ni da pa ma ga ri sa</pre>
       <tr><td><code>sA rI gA</code></td><td>Dhīrgha swaras with the long vowel in capitals, like <code>sa ri ga</code>.</td></tr>
       <tr><td><code>p--</code> &nbsp; <code>p---</code></td><td>More space after a phrase end: each hyphen after the first adds a step.</td></tr>
       <tr><td><code>Tala: 4+2+2</code></td><td>A custom tala given as anga lengths in aksharas.</td></tr>
-      <tr><td><code>AvartanamsPerLine: 2</code></td><td>Put more than one avartanam on each line.</td></tr>
+      <tr><td><code>AvartanamsPerLine: 2</code></td><td>How many avartanams go on each line (1 to 8, or <code>Default</code>); see <a href="#tala">Tala</a>.</td></tr>
       <tr><td><code>PageSize: Letter</code></td><td>Paper size when printing (A4, A5, A3, Letter, Legal).</td></tr>
     </table>
     <pre class="ex">Heading: "Alankaram 1",bold,center,14
