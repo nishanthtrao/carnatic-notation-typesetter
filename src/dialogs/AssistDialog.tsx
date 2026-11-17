@@ -14,10 +14,10 @@ const PREFS = ['SwaraPrefs', 'LyricPrefs', 'HeadingPrefs', 'GamakaPrefs'] as con
 type PrefsName = (typeof PREFS)[number];
 export type FormName =
   | 'Tala' | 'Gati' | 'Layout' | 'DefaultSpeed' | 'Language' | 'LanguageFont' | 'Heading'
-  | 'SpeedMarks' | 'PhraseEnds' | 'Title' | 'Orientation' | 'Spacing' | 'Scale' | PrefsName;
+  | 'SpeedMarks' | 'PhraseEnds' | 'Title' | 'Orientation' | 'Spacing' | 'Grouping' | 'Scale' | PrefsName;
 export const FORM_NAMES: FormName[] = [
   'Tala', 'Gati', 'Layout', 'DefaultSpeed', 'Language', 'LanguageFont', 'Heading',
-  'SpeedMarks', 'PhraseEnds', 'Title', 'Orientation', 'Spacing', 'Scale', ...PREFS,
+  'SpeedMarks', 'PhraseEnds', 'Title', 'Orientation', 'Spacing', 'Grouping', 'Scale', ...PREFS,
 ];
 
 /** Raga, Arohana and Avarohana lines are edited together in the Scale form. */
@@ -183,6 +183,13 @@ function DirectiveForm({ name, value, onClose, onApply }: { name: FormName; valu
         options={[['Portrait', 'Portrait (default)'], ['Landscape', 'Landscape']]}
         hint="Used when printing or exporting a PDF." onClose={onClose} onApply={onApply} footer={footer} />
     );
+  if (name === 'Grouping') {
+    return (
+      <SimpleForm title="Grouping" label="Gaps between beats" prefix="Grouping: " initial={/^(off|no|hide)$/i.test(value.trim()) ? 'Off' : 'On'}
+        options={[['On', 'On — a gap after each beat (default)'], ['Off', 'Off — swaras run on evenly up to the bar']]}
+        hint="In capu talas the beats inside an avartanam are set apart by a gap, and in the gitam and varnam layouts every akshara is. Off removes those gaps, so only the bars divide the line. Applies from the next swara line." onClose={onClose} onApply={onApply} footer={footer} />
+    );
+  }
   if (name === 'Spacing') {
     const v = value.trim().toLowerCase();
     return (
