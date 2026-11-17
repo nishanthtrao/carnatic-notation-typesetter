@@ -14,6 +14,9 @@ import { GATIS, isTalaError, parseGati, parseTala } from './talas';
 import { LANGS, normaliseLang, parseLangSpec, transliterate } from './translit';
 import type { Block, JatiName, Lang, LangSpec, MetaItem, NotationDoc, NoteEvent, PhraseEnds, Prefs, Tala } from './types';
 
+/** Spacing: Tight and Wide, as a share of the usual spacing. Wide is the spacing of versions before "Spacing" existed. */
+export const SPACING = { tight: 0.7, wide: 1.4 };
+
 // swara + optional variant (extension) + stayi + gamaka + phrase end.
 // A dheerga swara is sa ri ga…, S R G…, or (extension) sA rI gA… with the
 // long vowel in capitals. Extra hyphens after a phrase end add space (extension).
@@ -140,6 +143,8 @@ interface State {
   layout: 'krithi' | 'varnam' | 'gitam';
   fullWidth: boolean;
   compact: boolean;
+  spacing: number;
+  grouping: boolean;
   tala: Tala | null;
   speed: number;
   songSpeed: number;
@@ -172,6 +177,8 @@ export function parse(input: string): NotationDoc {
     layout: 'krithi',
     fullWidth: false,
     compact: false,
+    spacing: 1,
+    grouping: true,
     tala: null,
     speed: 1,
     songSpeed: 1,
@@ -205,6 +212,8 @@ export function parse(input: string): NotationDoc {
       layout: st.layout,
       fullWidth: st.fullWidth,
       compact: st.compact,
+      spacing: st.spacing,
+      grouping: st.grouping,
       perRow: st.perRow,
       speedMarks: st.speedMarks,
       phraseEnds: { ...st.phraseEnds },
@@ -451,6 +460,32 @@ export function parse(input: string): NotationDoc {
         applySpeedForLayout();
         break;
       }
+      case 'spacing': {
+        // Tight, Normal, Wide, or a percentage of the usual spacing
+        const v = value.trim().toLowerCase().replace(/%$/, '');
+        const named: Record<string, number> = { tight: SPACING.tight, compact: SPACING.tight, normal: 1, wide: SPACING.wide, loose: SPACING.wide };
+        const n = v in named ? named[v] : /^\d+(\.\d+)?$/.test(v) ? parseFloat(v) / 100 : NaN;
+        if (!(n >= 0.4 && n <= 2.5)) warn(no, 'Spacing should be Tight, Normal or Wide, or a percentage from 40 to 250');
+        else {
+          st.spacing = n;
+          const open = seg as Segment | null;
+          if (open && !open.events.length) open.spacing = n;
+          else closeSeg();
+        }
+        break;
+      }
+      case 'grouping': {
+        // the gaps that set the beats (capu talas) or aksharas (gitam, varnam) apart
+        const v = value.trim().toLowerCase();
+        if (!/^(on|off|yes|no|show|hide)$/.test(v)) warn(no, 'Grouping should be On or Off');
+        else {
+          st.grouping = /^(on|yes|show)$/.test(v);
+          const open = seg as Segment | null;
+          if (open && !open.events.length) open.grouping = st.grouping;
+          else closeSeg();
+        }
+        break;
+      }
       case 'defaultspeed': {
         const v = parseInt(value, 10);
         if (![0, 1, 2].includes(v)) warn(no, 'DefaultSpeed must be 0, 1 or 2');
@@ -560,11 +595,15 @@ export function parse(input: string): NotationDoc {
         break;
       }
       case 'avartanamsperline': {
-        const v = parseInt(value, 10);
+        // how many avartanams go on a line; Default goes back to the tala's own number
+        const v = /^\s*\d+\s*$/.test(value) ? parseInt(value, 10) : NaN;
         if (v >= 1 && v <= 8) {
           closeSeg();
           st.perRow = v;
-        } else warn(no, 'AvartanamsPerLine should be 1–8');
+        } else if (/^\s*(default|auto)\s*$/i.test(value)) {
+          closeSeg();
+          st.perRow = null;
+        } else warn(no, 'AvartanamsPerLine should be a number from 1 to 8, or Default');
         break;
       }
       case 'section':

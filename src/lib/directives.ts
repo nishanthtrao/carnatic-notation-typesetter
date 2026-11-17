@@ -36,7 +36,10 @@ export const DIRECTIVES: DirectiveInfo[] = (
     ['Language', 'Language: English', 'Script for swaras and lyrics', 'script'],
     ['SmartLyricMode', 'SmartLyricMode', 'Lyrics skip pauses on their own', 'lines'],
     ['Gati', 'Gati: tisra', 'Change the gati (nadai)', 'rhythm'],
+    ['AvartanamsPerLine', 'AvartanamsPerLine: 1', 'How many avartanams (tala cycles) go on each line', 'rhythm'],
     ['SpeedMarks', 'SpeedMarks: above', 'Speed lines above or below', 'rhythm'],
+    ['Spacing', 'Spacing: Tight', 'Room between swaras and lyrics: tight, normal or wide', 'layout'],
+    ['Grouping', 'Grouping: Off', 'Gaps between the beats inside a bar (capu talas, gitam, varnam): on or off', 'layout'],
     ['PhraseEnds', 'PhraseEnds: Show,10', 'How phrase ends (p-) look', 'rhythm'],
     ['SwaraPrefs', 'SwaraPrefs: 12', 'Swara size and colour', 'look'],
     ['LyricPrefs', 'LyricPrefs: 12', 'Lyric size and colour', 'look'],
@@ -55,9 +58,9 @@ export const DIRECTIVES: DirectiveInfo[] = (
 export const GROUP_ORDER: string[] = [
   'Title', 'Heading', 'Raga', 'Arohana', 'Avarohana', 'Composer',
   'S', 'L', 'SmartLyricMode',
-  'Tala', 'DefaultSpeed', 'Gati', 'SpeedMarks', 'PhraseEnds',
+  'Tala', 'AvartanamsPerLine', 'DefaultSpeed', 'Gati', 'SpeedMarks', 'PhraseEnds',
   'Language', 'LanguageFont',
-  'Layout', 'SongBreak', 'LineBreak', 'Pagebreak', 'Orientation',
+  'Layout', 'Spacing', 'Grouping', 'SongBreak', 'LineBreak', 'Pagebreak', 'Orientation',
   'SwaraPrefs', 'LyricPrefs', 'GamakaPrefs', 'HeadingPrefs',
 ];
 
@@ -91,6 +94,9 @@ const VALUE_COMPLETIONS: Record<string, () => string[]> = {
   speedmarks: () => ['above', 'below'],
   phraseends: () => ['Hide', 'Show', 'Handle', 'HandleThick'],
   orientation: () => ['Portrait', 'Landscape'],
+  spacing: () => ['Tight', 'Normal', 'Wide'],
+  grouping: () => ['Off', 'On'],
+  avartanamsperline: () => ['1', '2', '3', '4', 'Default'],
   defaultspeed: () => ['0', '1', '2'],
   languagefont: () => ['All', ...LANG_OPTIONS.map(([v]) => v)],
 };
