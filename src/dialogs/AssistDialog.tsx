@@ -14,10 +14,10 @@ const PREFS = ['SwaraPrefs', 'LyricPrefs', 'HeadingPrefs', 'GamakaPrefs'] as con
 type PrefsName = (typeof PREFS)[number];
 export type FormName =
   | 'Tala' | 'Gati' | 'Layout' | 'DefaultSpeed' | 'Language' | 'LanguageFont' | 'Heading'
-  | 'SpeedMarks' | 'PhraseEnds' | 'Title' | 'Orientation' | 'Scale' | PrefsName;
+  | 'SpeedMarks' | 'PhraseEnds' | 'Title' | 'Orientation' | 'Spacing' | 'Scale' | PrefsName;
 export const FORM_NAMES: FormName[] = [
   'Tala', 'Gati', 'Layout', 'DefaultSpeed', 'Language', 'LanguageFont', 'Heading',
-  'SpeedMarks', 'PhraseEnds', 'Title', 'Orientation', 'Scale', ...PREFS,
+  'SpeedMarks', 'PhraseEnds', 'Title', 'Orientation', 'Spacing', 'Scale', ...PREFS,
 ];
 
 /** Raga, Arohana and Avarohana lines are edited together in the Scale form. */
@@ -183,6 +183,14 @@ function DirectiveForm({ name, value, onClose, onApply }: { name: FormName; valu
         options={[['Portrait', 'Portrait (default)'], ['Landscape', 'Landscape']]}
         hint="Used when printing or exporting a PDF." onClose={onClose} onApply={onApply} footer={footer} />
     );
+  if (name === 'Spacing') {
+    const v = value.trim().toLowerCase();
+    return (
+      <SimpleForm title="Spacing" label="Room between swaras" prefix="Spacing: " initial={/^(tight|compact)$/.test(v) ? 'Tight' : /^(wide|loose)$/.test(v) ? 'Wide' : 'Normal'}
+        options={[['Tight', 'Tight — the most on a line'], ['Normal', 'Normal (default)'], ['Wide', 'Wide — airy, as in earlier versions']]}
+        hint="How much room there is between swaras, between lyric syllables and around the bars. Applies from the next swara line. For something in between, type a percentage instead, such as Spacing: 85." onClose={onClose} onApply={onApply} footer={footer} />
+    );
+  }
   if (name === 'PhraseEnds') return <PhraseEndsForm value={value} onClose={onClose} onApply={onApply} footer={footer} />;
   if (name === 'Title') return <TitleForm value={value} onClose={onClose} onApply={onApply} footer={footer} />;
   if ((PREFS as readonly string[]).includes(name)) return <PrefsForm name={name as PrefsName} value={value} onClose={onClose} onApply={onApply} footer={footer} />;

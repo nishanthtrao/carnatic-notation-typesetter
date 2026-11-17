@@ -140,6 +140,8 @@ export interface StaffBlock {
   fullWidth: boolean;
   /** Layout: …,Compact — rows keep their natural widths (bars are not lined up across rows) */
   compact: boolean;
+  /** Spacing: — how much room between swaras, lyrics and bars; 1 is the usual */
+  spacing: number;
   perRow: number | null;
   speedMarks: 'above' | 'below';
   phraseEnds: PhraseEnds;
