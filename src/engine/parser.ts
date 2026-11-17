@@ -595,11 +595,15 @@ export function parse(input: string): NotationDoc {
         break;
       }
       case 'avartanamsperline': {
-        const v = parseInt(value, 10);
+        // how many avartanams go on a line; Default goes back to the tala's own number
+        const v = /^\s*\d+\s*$/.test(value) ? parseInt(value, 10) : NaN;
         if (v >= 1 && v <= 8) {
           closeSeg();
           st.perRow = v;
-        } else warn(no, 'AvartanamsPerLine should be 1–8');
+        } else if (/^\s*(default|auto)\s*$/i.test(value)) {
+          closeSeg();
+          st.perRow = null;
+        } else warn(no, 'AvartanamsPerLine should be a number from 1 to 8, or Default');
         break;
       }
       case 'section':

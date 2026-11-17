@@ -14,10 +14,10 @@ const PREFS = ['SwaraPrefs', 'LyricPrefs', 'HeadingPrefs', 'GamakaPrefs'] as con
 type PrefsName = (typeof PREFS)[number];
 export type FormName =
   | 'Tala' | 'Gati' | 'Layout' | 'DefaultSpeed' | 'Language' | 'LanguageFont' | 'Heading'
-  | 'SpeedMarks' | 'PhraseEnds' | 'Title' | 'Orientation' | 'Spacing' | 'Grouping' | 'Scale' | PrefsName;
+  | 'SpeedMarks' | 'PhraseEnds' | 'Title' | 'Orientation' | 'Spacing' | 'Grouping' | 'AvartanamsPerLine' | 'Scale' | PrefsName;
 export const FORM_NAMES: FormName[] = [
   'Tala', 'Gati', 'Layout', 'DefaultSpeed', 'Language', 'LanguageFont', 'Heading',
-  'SpeedMarks', 'PhraseEnds', 'Title', 'Orientation', 'Spacing', 'Grouping', 'Scale', ...PREFS,
+  'SpeedMarks', 'PhraseEnds', 'Title', 'Orientation', 'Spacing', 'Grouping', 'AvartanamsPerLine', 'Scale', ...PREFS,
 ];
 
 /** Raga, Arohana and Avarohana lines are edited together in the Scale form. */
@@ -183,6 +183,14 @@ function DirectiveForm({ name, value, onClose, onApply }: { name: FormName; valu
         options={[['Portrait', 'Portrait (default)'], ['Landscape', 'Landscape']]}
         hint="Used when printing or exporting a PDF." onClose={onClose} onApply={onApply} footer={footer} />
     );
+  if (name === 'AvartanamsPerLine') {
+    const n = parseInt(value, 10);
+    return (
+      <SimpleForm title="Avartanams per line" label="On each line" prefix="AvartanamsPerLine: " initial={n >= 1 && n <= 8 ? String(n) : /default|auto/i.test(value) ? 'Default' : '1'}
+        options={[['1', '1 avartanam'], ...[2, 3, 4, 5, 6, 7, 8].map((k): [string, string] => [String(k), k + ' avartanams']), ['Default', 'Default — the tala’s usual number']]}
+        hint="How many avartanams (tala cycles) the typesetter puts on a line before starting a new one. Most talas have one by default; Rupaka Capu and Misra Capu have two, and Khanda Capu four. Applies from the next swara line, and stays until you change it. It has no effect with Manual line breaks." onClose={onClose} onApply={onApply} footer={footer} />
+    );
+  }
   if (name === 'Grouping') {
     return (
       <SimpleForm title="Grouping" label="Gaps between beats" prefix="Grouping: " initial={/^(off|no|hide)$/i.test(value.trim()) ? 'Off' : 'On'}
@@ -390,6 +398,7 @@ function TalaForm({ value, onClose, onApply, footer }: FormProps) {
         </div>
       </div>
       <p className="hint">With manual line breaks, a new notation line starts only at <code>LineBreak</code> or <code>SongBreak</code>.</p>
+      <p className="hint">To put more or fewer avartanams on a line, add an <code>AvartanamsPerLine: 1</code> line after the tala (it is next to Tala in Assist).</p>
     </Modal>
   );
 }
