@@ -151,6 +151,8 @@ interface EvGeo {
   rx: number;
   w: number;
   x: number;
+  /** the lyric lines that have a syllable under this event */
+  ly?: number[];
 }
 interface Cell {
   evs: NoteEvent[];
@@ -159,6 +161,10 @@ interface Cell {
   w: number;
   key: number | null;
   sep: Row['intervals'][number]['sep'];
+  /** pauses run on across the unmarked beat gap after this cell ( ; | ; in a capu tala) */
+  join?: boolean;
+  /** where each lyric line ends in this cell, from the cell's start */
+  lyrEnd: number[];
 }
 interface RowGeo {
   labelKey: string | null;
@@ -259,6 +265,11 @@ function layoutDoc(doc: NotationDoc, el: HTMLElement): Geometry {
       g.cells = row.intervals.map((iv, idx) => {
         const last = idx === row.intervals.length - 1;
         const evs = row.events.filter((ev) => ev.t >= iv.t0 - EPS && (last || ev.t < iv.t1 - EPS));
+        // Beats of a capu tala are set apart by a gap, with no mark. Pauses that run on
+        // across such a gap ( ri ; | ; sa ) stay together as a group all the same.
+        const after = iv.sep === 'anga' && !last ? row.events.find((ev) => ev.t >= iv.t1 - EPS) : undefined;
+        const tail = evs[evs.length - 1];
+        const join = !!tail && tail.kind === 'karvai' && after?.kind === 'karvai' && !tail.phraseEnd;
         let x = 0;
         const lyrEnd: number[] = [];
         let natural = 0;
@@ -271,7 +282,8 @@ function layoutDoc(doc: NotationDoc, el: HTMLElement): Geometry {
           });
           eg.rx = start;
           eg.w = eg.key ? W(eg.key) : ev.kind === 'empty' ? SP.empty * (ev.text === '__' ? 2 : 1) : 0;
-          x = start + eg.w + gapAfter(ev, evs[n + 1], SP);
+          eg.ly = lyr.flatMap((it, li) => (it ? [li] : []));
+          x = start + eg.w + gapAfter(ev, evs[n + 1] ?? (join ? after : undefined), SP);
           if (ev.phraseEnd && phraseEm) x += phraseEm;
           lyr.forEach((it, li) => {
             if (it) lyrEnd[li] = start + W(g.lyricKeys.get(it)!) + SP.lyric;
@@ -281,7 +293,7 @@ function layoutDoc(doc: NotationDoc, el: HTMLElement): Geometry {
           if (extra > 0) x = Math.max(x, ...lyrEnd.filter((v) => v !== undefined)) + extra;
           natural = Math.max(natural, x, ...lyrEnd.filter((v) => v !== undefined));
         }
-        return { evs, natural: Math.max(natural, evs.length ? 0 : SP.cellMin), x: 0, w: 0, key: iv.key, sep: iv.sep };
+        return { evs, natural: Math.max(natural, evs.length ? 0 : SP.cellMin), x: 0, w: 0, key: iv.key, sep: iv.sep, join, lyrEnd };
       });
     }
     // column widths: shared between rows in the automatic layouts
@@ -303,10 +315,29 @@ function layoutDoc(doc: NotationDoc, el: HTMLElement): Geometry {
         for (const ev of c.evs) evGeo.get(ev)!.x = x + evGeo.get(ev)!.rx;
         x += c.w;
         if (c.sep) {
-          const w = c.sep === '||' ? SP.dbar : c.sep === '|' ? SP.bar : c.sep === 'akshara' ? SP.akshara : SP.anga;
+          // rows set at their natural width simply close the beat gap where pauses run on
+          const w = c.sep === '||' ? SP.dbar : c.sep === '|' ? SP.bar : c.sep === 'akshara' ? SP.akshara : c.join && !row.align ? 0 : SP.anga;
           if (c.sep === '|' || c.sep === '||') g.seps.push({ x, w, kind: c.sep });
           x += w;
         }
+      }
+      // rows whose columns line up keep the columns, and draw the pauses that open the
+      // next beat next to the ones before the gap (as far as the lyrics under them allow)
+      if (row.align) {
+        g.cells.forEach((c, ci) => {
+          const next = g.cells[ci + 1];
+          if (!c.join || !next) return;
+          const tail = evGeo.get(c.evs[c.evs.length - 1])!;
+          const run: EvGeo[] = [];
+          for (const ev of next.evs) {
+            if (ev.kind !== 'karvai') break;
+            run.push(evGeo.get(ev)!);
+          }
+          if (!run.length) return;
+          let pull = run[0].x - (tail.x + tail.w + SP.karvai);
+          for (const eg of run) for (const li of eg.ly || []) pull = Math.min(pull, eg.x - (c.x + (c.lyrEnd[li] || 0)));
+          if (pull > 0) for (const eg of run) eg.x -= pull;
+        });
       }
       g.total = x;
       maxTotal = Math.max(maxTotal, x);
