@@ -77,12 +77,39 @@
 
 /* ---- Raga / tala info ------------------------------------------------- */
 .cm-meta {
+  margin: 0.2em 0 0.6em;
+  font-size: min(1rem, 3.6cqi);
+}
+/* SongInfo: Inline — everything on one line, wrapping when needed */
+.cm-meta-inline {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 0.15em 1.6em;
-  margin: 0.2em 0 0.6em;
-  font-size: min(1rem, 3.6cqi);
+}
+.cm-meta-inline.cm-meta-left {
+  justify-content: flex-start;
+}
+.cm-meta-inline.cm-meta-right {
+  justify-content: flex-end;
+}
+/* SongInfo: List (default) — one item per line, the labels in a column */
+.cm-meta-list {
+  display: grid;
+  grid-template-columns: max-content auto;
+  gap: 0.1em 0.7em;
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
+}
+.cm-meta-list .cm-meta-item {
+  display: contents;
+}
+.cm-meta-list.cm-meta-left {
+  margin-inline: 0 auto;
+}
+.cm-meta-list.cm-meta-right {
+  margin-inline: auto 0;
 }
 .cm-meta-k {
   color: var(--cm-muted);

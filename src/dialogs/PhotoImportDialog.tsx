@@ -482,31 +482,44 @@ export function PhotoImportDialog({ open, onClose, onOpenSettings, settingsVersi
             <Select id="p-app" value={app.id} onChange={pickApp} options={CHAT_APPS.map((a) => [a.id, a.by ? a.name + ' (' + a.by + ')' : a.name])} />
           </Field>
         )}
-        <Field id="p-script" label="Lyrics written in">
-          <Select
-            id="p-script"
-            value={hints.script}
-            onChange={(v) => setHints({ ...hints, script: v as RecognitionHints['script'] })}
-            options={[['auto', 'Work it out'], ['english', 'English letters'], ['tamil', 'Tamil'], ['telugu', 'Telugu'], ['kannada', 'Kannada'], ['malayalam', 'Malayalam'], ['sanskrit', 'Sanskrit (Devanagari)']]}
-          />
-        </Field>
-        <Field id="p-tala" label="Tala (optional)">
-          <input id="p-tala" type="text" placeholder="if not written on the page, e.g. Adi" value={hints.tala} onChange={(e) => setHints({ ...hints, tala: e.target.value })} />
-        </Field>
-        <Field id="p-raga" label="Raga (optional)">
-          <input id="p-raga" type="text" placeholder="e.g. mOhanam" value={hints.raga} onChange={(e) => setHints({ ...hints, raga: e.target.value })} />
-        </Field>
-        <Field id="p-notes" label="Notes (optional)">
-          <textarea id="p-notes" rows={2} placeholder="anything unusual, e.g. 'commas are written as dashes'" value={hints.notes} onChange={(e) => setHints({ ...hints, notes: e.target.value })} />
-        </Field>
       </div>
+      <details
+        className="more-details"
+        // open at first when something is already filled in; after that the user opens and closes it
+        ref={(el) => {
+          if (el && !el.dataset.ready) {
+            el.dataset.ready = '1';
+            el.open = hints.script !== 'auto' || !!(hints.tala.trim() || hints.raga.trim() || hints.notes.trim());
+          }
+        }}
+      >
+        <summary>More details (optional)</summary>
+        <div className="form-grid">
+          <Field id="p-script" label="Lyrics written in">
+            <Select
+              id="p-script"
+              value={hints.script}
+              onChange={(v) => setHints({ ...hints, script: v as RecognitionHints['script'] })}
+              options={[['auto', 'Work it out'], ['english', 'English letters'], ['tamil', 'Tamil'], ['telugu', 'Telugu'], ['kannada', 'Kannada'], ['malayalam', 'Malayalam'], ['sanskrit', 'Sanskrit (Devanagari)']]}
+            />
+          </Field>
+          <Field id="p-tala" label="Tala">
+            <input id="p-tala" type="text" placeholder="if not written on the page, e.g. Adi" value={hints.tala} onChange={(e) => setHints({ ...hints, tala: e.target.value })} />
+          </Field>
+          <Field id="p-raga" label="Raga">
+            <input id="p-raga" type="text" placeholder="e.g. mOhanam" value={hints.raga} onChange={(e) => setHints({ ...hints, raga: e.target.value })} />
+          </Field>
+          <Field id="p-notes" label="Notes">
+            <textarea id="p-notes" rows={2} placeholder="anything unusual, e.g. 'commas are written as dashes'" value={hints.notes} onChange={(e) => setHints({ ...hints, notes: e.target.value })} />
+          </Field>
+        </div>
+      </details>
 
       {error && <p className="err-text" role="alert">{error}</p>}
       <p className="hint">
         {!api ? (
           <>
-            The photo is read by the AI app you choose, with your own account there, free or paid. You copy the instructions into it with your photo and paste its reply back here to
-            check it. Adding the photo here is optional; it lets you compare it with the result.{' '}
+            Your chosen AI app reads the photo, using your own account there. Adding the photo here is optional; it lets you compare.{' '}
           </>
         ) : apiKey ? (
           <>Uses {modelLabel} with your API key; the photo is sent to {PROVIDERS[api].company} to be read. </>

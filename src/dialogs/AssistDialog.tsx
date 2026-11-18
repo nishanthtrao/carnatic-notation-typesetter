@@ -14,10 +14,10 @@ const PREFS = ['SwaraPrefs', 'LyricPrefs', 'HeadingPrefs', 'GamakaPrefs'] as con
 type PrefsName = (typeof PREFS)[number];
 export type FormName =
   | 'Tala' | 'Gati' | 'Layout' | 'DefaultSpeed' | 'Language' | 'LanguageFont' | 'Heading'
-  | 'SpeedMarks' | 'PhraseEnds' | 'Title' | 'Orientation' | 'Spacing' | 'Grouping' | 'AvartanamsPerLine' | 'Scale' | PrefsName;
+  | 'SpeedMarks' | 'PhraseEnds' | 'Title' | 'Orientation' | 'Spacing' | 'Grouping' | 'AvartanamsPerLine' | 'SongInfo' | 'Scale' | PrefsName;
 export const FORM_NAMES: FormName[] = [
   'Tala', 'Gati', 'Layout', 'DefaultSpeed', 'Language', 'LanguageFont', 'Heading',
-  'SpeedMarks', 'PhraseEnds', 'Title', 'Orientation', 'Spacing', 'Grouping', 'AvartanamsPerLine', 'Scale', ...PREFS,
+  'SpeedMarks', 'PhraseEnds', 'Title', 'Orientation', 'Spacing', 'Grouping', 'AvartanamsPerLine', 'SongInfo', 'Scale', ...PREFS,
 ];
 
 /** Raga, Arohana and Avarohana lines are edited together in the Scale form. */
@@ -189,6 +189,19 @@ function DirectiveForm({ name, value, onClose, onApply }: { name: FormName; valu
       <SimpleForm title="Avartanams per line" label="On each line" prefix="AvartanamsPerLine: " initial={n >= 1 && n <= 8 ? String(n) : /default|auto/i.test(value) ? 'Default' : '1'}
         options={[['1', '1 avartanam'], ...[2, 3, 4, 5, 6, 7, 8].map((k): [string, string] => [String(k), k + ' avartanams']), ['Default', 'Default — the tala’s usual number']]}
         hint="How many avartanams (tala cycles) the typesetter puts on a line before starting a new one. Most talas have one by default; Rupaka Capu and Misra Capu have two, and Khanda Capu four. Applies from the next swara line, and stays until you change it. It has no effect with Manual line breaks." onClose={onClose} onApply={onApply} footer={footer} />
+    );
+  }
+  if (name === 'SongInfo') {
+    const words = value.toLowerCase().split(/[\s,]+/);
+    const style = words.includes('inline') ? 'Inline' : 'List';
+    const align = words.includes('left') ? 'Left' : words.includes('right') ? 'Right' : 'Center';
+    return (
+      <SimpleForm title="Raga and composer lines" label="Show them" prefix="SongInfo: " initial={style + ',' + align}
+        options={[
+          ['List,Center', 'As a list, in the middle (default)'], ['List,Left', 'As a list, on the left'], ['List,Right', 'As a list, on the right'],
+          ['Inline,Center', 'On one line, in the middle'], ['Inline,Left', 'On one line, on the left'], ['Inline,Right', 'On one line, on the right'],
+        ]}
+        hint="How the Raga, Arohana, Avarohana and Composer lines are laid out. As a list, each goes on its own line with the labels lined up; on one line takes the least room. Put it before or right after those lines." onClose={onClose} onApply={onApply} footer={footer} />
     );
   }
   if (name === 'Grouping') {

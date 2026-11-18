@@ -166,6 +166,19 @@ export interface HeadingBlock {
   section?: boolean;
 }
 
+/** How the raga / scale / composer lines are laid out (SongInfo: directive). */
+export interface MetaLayout {
+  /** one line per item, labels lined up (default), or all on one line */
+  style: 'list' | 'inline';
+  align: 'left' | 'center' | 'right';
+}
+
+export interface MetaBlock {
+  type: 'meta';
+  items: MetaItem[];
+  layout?: MetaLayout;
+}
+
 export interface MetaItem {
   label: string;
   value: string;
@@ -180,7 +193,7 @@ export type Block =
   | HeadingBlock
   | { type: 'space' }
   | { type: 'pagebreak' }
-  | { type: 'meta'; items: MetaItem[] };
+  | MetaBlock;
 
 export interface Warning {
   line: number;

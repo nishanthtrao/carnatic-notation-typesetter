@@ -15,25 +15,21 @@ export interface Example {
   text: string;
 }
 
-const NEW_SONG = `# A new song. Replace the sample lines below with your own.
-# Fill in the title, raga, tala and composer, then write swaras on S: lines
-# and lyrics on L: lines. Assist helps with the line you are on; Examples
-# and Help (the manual) are in the toolbar. Lines starting with # are notes
-# to yourself and are not printed. Save keeps the song as a file.
-# The sample shows short swaras (s r g), long swaras (sa ri ga), the upper
-# octave (s'), and holding a note with , (one beat-part) and ; (two).
-Title: "Song name"
+const NEW_SONG = `Title: "Song name"
 Tala: Adi
-SmartLyricMode
-Heading: "Song name - Raga - Tala - Composer",bold,center,14
-Heading: ""
-Heading: "pallavi:",bold,left,12
+DefaultSpeed: 1
+Heading: "Song name",bold,center,16
+Raga: mAyAmALavagauLa
+Arohana: s r1 g3 m1 p d1 n3 s'
+Avarohana: s' n3 d1 p m1 g3 r1 s
+Composer: Composer name
+Heading: "pallavi",bold,left,12
 S: s  r  g  m  p  d  n  s' | s' n  d  p  | m  g  r  s  ||
 L: sa ri ga ma pa da ni sa   sa ni da pa   ma ga ri sa
 S: sa ri ga ma | pa da | ni sa' ||
 L: sa ri ga ma   pa da   ni sa
 S: sa , ri , ga | ma ; | pa ; ||
-L: sa   ri   ga   ma     pa
+L: sa . ri . ga   ma .   pa .
 `;
 
 const QUICKSTART = `# The "Quick Start" example from the v1.5 manual

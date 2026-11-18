@@ -12,7 +12,7 @@ import { formatText, parseHeading, SAFE_COLOR, splitAttrs } from './heading';
 import { layoutSegment, type Segment } from './layout';
 import { GATIS, isTalaError, parseGati, parseTala } from './talas';
 import { LANGS, normaliseLang, parseLangSpec, transliterate } from './translit';
-import type { Block, JatiName, Lang, LangSpec, MetaItem, NotationDoc, NoteEvent, PhraseEnds, Prefs, Tala } from './types';
+import type { Block, JatiName, Lang, LangSpec, MetaBlock, MetaItem, MetaLayout, NotationDoc, NoteEvent, PhraseEnds, Prefs, Tala } from './types';
 
 /** Spacing: Tight and Wide, as a share of the usual spacing. Wide is the spacing of versions before "Spacing" existed. */
 export const SPACING = { tight: 0.7, wide: 1.4 };
@@ -156,6 +156,7 @@ interface State {
   phraseEnds: PhraseEnds;
   smartLyric: boolean;
   perRow: number | null;
+  metaLayout: MetaLayout;
   swaraPrefs: Prefs;
   lyricPrefs: Prefs;
   headingPrefs: Prefs;
@@ -190,6 +191,7 @@ export function parse(input: string): NotationDoc {
     phraseEnds: { style: 'hide', space: 0 },
     smartLyric: false,
     perRow: null,
+    metaLayout: { style: 'list', align: 'center' },
     swaraPrefs: {},
     lyricPrefs: {},
     headingPrefs: {},
@@ -198,7 +200,7 @@ export function parse(input: string): NotationDoc {
 
   let seg: Segment | null = null;
   let lastSwaraLine: SwaraLine | null = null;
-  let metaBlock: { type: 'meta'; items: MetaItem[] } | null = null;
+  let metaBlock: MetaBlock | null = null;
 
   const applySpeedForLayout = () => {
     if (!st.explicitSpeed) st.speed = st.songSpeed = st.layout === 'gitam' ? 0 : 1;
@@ -256,7 +258,7 @@ export function parse(input: string): NotationDoc {
   const addMeta = (key: string, val: string) => {
     closeSeg();
     if (!metaBlock) {
-      metaBlock = { type: 'meta', items: [] };
+      metaBlock = { type: 'meta', items: [], layout: { ...st.metaLayout } };
       doc.blocks.push(metaBlock);
     }
     const item: MetaItem = { label: META_LABELS[key] || key, value: val };
@@ -604,6 +606,22 @@ export function parse(input: string): NotationDoc {
           closeSeg();
           st.perRow = null;
         } else warn(no, 'AvartanamsPerLine should be a number from 1 to 8, or Default');
+        break;
+      }
+      case 'songinfo': {
+        // SongInfo: List|Inline, Left|Center|Right (in any order) — how Raga:, Arohana:, Avarohana:, Composer: are laid out
+        const words = value.toLowerCase().split(/[\s,]+/).filter(Boolean);
+        const next: MetaLayout = { ...st.metaLayout };
+        let bad = !words.length;
+        for (const w of words) {
+          if (w === 'list' || w === 'inline') next.style = w;
+          else if (w === 'left' || w === 'center' || w === 'centre' || w === 'right') next.align = w === 'centre' ? 'center' : w;
+          else bad = true;
+        }
+        if (bad) warn(no, 'SongInfo should be List or Inline, and Left, Center or Right — e.g. "SongInfo: List,Left"');
+        st.metaLayout = next;
+        const open = metaBlock as MetaBlock | null;
+        if (open) open.layout = { ...next };
         break;
       }
       case 'section':

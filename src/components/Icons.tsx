@@ -3,7 +3,8 @@ const P: Record<string, string> = {
   new: 'M5 2h7l4 4v12H5z M12 2v4h4',
   open: 'M2 6h6l2 2h8v9H2z M2 6V4h6l2 2',
   save: 'M3 3h11l3 3v11H3z M6 3v5h7V3 M6 17v-5h8v5',
-  assist: 'M3 3h14v14H3z M7.5 8a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .8-1 1.7 M10 14.5v.5',
+  // a magic wand with sparkles
+  assist: 'M3 17l9.5-9.5 M10.5 7.5l2 2 M15 2.5v4 M13 4.5h4 M17 9.5v2.5 M15.75 10.75h2.5 M8 2.5v2.5 M6.75 3.75h2.5',
   update: 'M16 10a6 6 0 1 1-2-4.5 M16 3v4h-4',
   align: 'M3 5h14 M3 9h10 M3 13h14 M3 17h10',
   install: 'M10 3v9 M6.5 8.5l3.5 3.5 3.5-3.5 M4 14v3h12v-3',

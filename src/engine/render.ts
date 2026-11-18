@@ -14,7 +14,7 @@
  */
 import { parseFontStyle, styleFamilies } from './fonts';
 import { DARK_INK, DARK_LYRIC, esc, forDark } from './heading';
-import type { HeadingBlock, Lang, LangSpec, MetaItem, NotationDoc, NoteEvent, Row, StaffBlock } from './types';
+import type { HeadingBlock, Lang, LangSpec, MetaBlock, NotationDoc, NoteEvent, Row, StaffBlock } from './types';
 
 const EPS = 1e-6;
 
@@ -414,8 +414,9 @@ function renderHeading(b: HeadingBlock): string {
   return '<div class="cm-heading' + (b.section ? ' cm-section' : '') + ' cm-lang-' + (b.lang || 'english') + '"' + (st.length ? ' style="' + esc(st.join(';')) + '"' : '') + '>' + b.html + '</div>';
 }
 
-function renderMeta(items: MetaItem[]): string {
-  return '<div class="cm-meta">' + items.map((it) => it.value === '' ? '' :
+function renderMeta(b: MetaBlock): string {
+  const layout = b.layout || { style: 'list', align: 'center' };
+  return '<div class="cm-meta cm-meta-' + layout.style + ' cm-meta-' + layout.align + '">' + b.items.map((it) => it.value === '' ? '' :
     '<div class="cm-meta-item"><span class="cm-meta-k">' + esc(it.label) + '</span> <span class="cm-meta-v">' +
     (it.swaras && it.swaras.length ? inlineSwaras(it.swaras, it.lang) : esc(it.text ?? it.value)) + '</span></div>').join('') + '</div>';
 }
@@ -482,7 +483,7 @@ export function render(doc: NotationDoc, el: HTMLElement, options: { emptyText?:
       if (b.type === 'heading') html += renderHeading(b);
       else if (b.type === 'space') html += '<div class="cm-space"></div>';
       else if (b.type === 'pagebreak') html += '<div class="cm-pagebreak"></div>';
-      else if (b.type === 'meta') html += renderMeta(b.items);
+      else if (b.type === 'meta') html += renderMeta(b);
       else if (b.type === 'staff') html += renderStaff(b, geo, stretchFor(b));
     }
     if (!doc.blocks.length) html = '<p class="cm-empty">' + esc(options.emptyText || 'Nothing to show yet.') + '</p>';
