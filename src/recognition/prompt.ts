@@ -96,7 +96,16 @@ Always write words in roman letters with this scheme, whatever script the page u
 - In older handwriting Kannada and Telugu letter shapes are often mixed: read each letter by the sound it stands for, and set Language: to the script the writer meant. p and d letters (ப/प/ప/ಪ and த/द/ద/ದ) are easy to confuse in handwriting: use the raga's usual phrases to tell them apart.
 - A small hooked letter at the end of a phrase after sa is usually ni; check for a dot below it.
 - Underlines (or overlines) usually group 4 swaras in a faster speed; a thicker or second line under part of a group is a further speed faster.
-- Ditto marks (" or 〃) under a cycle mean "the same as above": write the repeated swaras out in full.
+- Ditto marks (repeat marks): when part of a sangati (or of any section) is the same as an earlier one, teachers do not write it again. They draw a ditto mark across the part that repeats. It looks different in every book and school: " 〃 ,, -"- --"-- __"__ —〃— -*- ——*—— -do- or a plain line with a mark in the middle, short or long. Read them like this:
+  - The mark stands for exactly the stretch of the line it spans: a few swaras, half a cycle, a whole cycle or several cycles. Its length on the page shows how much it covers.
+  - Copy that stretch from the SAME position of the line above (the earlier sangati), matra for matra, and write it out in full: the typesetter has no repeat mark. If the line above uses marks there too, go up to where the passage is written out.
+  - A mark in the swara row repeats the swaras; a mark in the lyric row repeats the lyrics. Often only one row has it, and the other is written out.
+  - After copying, the cycle must still add up. If it doesn't, the stretch was copied from the wrong place or is the wrong length: look again.
+  - Say in <notes> which parts you filled in from a repeat mark (e.g. "- line 4: cycles 2-3 were a repeat mark; copied from line 3"), so the reader can check them.
+  For example, under sangati 1 of Example 1 a teacher might write sangati 2 as
+    m~ , , ( p d n s' n p ; ) m | ——〃—— ||
+    mA . . brO . vA . . bhA . ra ——〃——
+  The mark spans the second half of the cycle, so it is copied from the second half of sangati 1 (the swaras ga , g | m pa , and the lyrics mA . ra ghu rA .), giving line "2)" of Example 1.
 - Words crossed out and rewritten: use the correction, and mention it in <notes>.
 
 # Rules
@@ -152,6 +161,7 @@ Each cycle adds up to 12 matras (Rupaka has 6 beats, two swaras to a beat).
 - Every L: line has exactly as many entries as its S: line has swaras and pauses.
 - No Indian-script letters in S: lines; lyrics, titles, headings, Raga: and Composer: in the roman scheme above.
 - Octave dots, long swaras and speed lines checked on every line.
+- Every repeat mark written out in full from the line above, and listed in <notes>.
 - Language: is set, and comes before Raga:, Composer: and the headings.`
 
 const SCRIPT_NAMES: Record<RecognitionHints['script'], string> = {
