@@ -6,6 +6,7 @@
 import { parse } from '../engine';
 import { repairInstruction, SYSTEM_PROMPT, userInstruction, type RecognitionHints } from './prompt';
 import type { PreparedImage } from './image';
+import { checkCycles } from './cycles';
 import { chat, PROVIDERS, RecognitionError, type ApiProviderId, type Message, type Part } from './providers';
 
 export { RecognitionError } from './providers';
@@ -16,6 +17,11 @@ export interface RecognitionResult {
   warnings: { line: number; message: string }[];
   repaired: boolean;
   usage: { input: number; output: number };
+}
+
+/** What the typesetter reports, plus cycles whose matras don't add up to the tala. */
+export function reviewWarnings(notation: string, warnings = parse(notation).warnings): { line: number; message: string }[] {
+  return [...warnings, ...checkCycles(notation)].sort((a, b) => a.line - b.line);
 }
 
 /** Pull the <notation> and <notes> parts out of the reply. */
@@ -42,7 +48,7 @@ export function extractReply(text: string): { notation: string; notes: string[] 
 /** Check a transcription with the typesetter and package it for review. */
 export function checkReply(text: string): RecognitionResult {
   const reply = extractReply(text);
-  return { ...reply, warnings: parse(reply.notation).warnings, repaired: false, usage: { input: 0, output: 0 } };
+  return { ...reply, warnings: reviewWarnings(reply.notation), repaired: false, usage: { input: 0, output: 0 } };
 }
 
 /**
@@ -77,7 +83,7 @@ export async function recognizeNotation(opts: {
   const usage = { ...first.usage };
 
   opts.onStage?.('checking');
-  let warnings = parse(reply.notation).warnings;
+  let warnings = reviewWarnings(reply.notation);
   let repaired = false;
   if (warnings.length) {
     opts.onStage?.('fixing');
@@ -86,7 +92,7 @@ export async function recognizeNotation(opts: {
     try {
       const second = await send(messages);
       const fixed = extractReply(second.text);
-      const fixedWarnings = parse(fixed.notation).warnings;
+      const fixedWarnings = reviewWarnings(fixed.notation);
       usage.input += second.usage.input;
       usage.output += second.usage.output;
       if (fixedWarnings.length <= warnings.length) {
