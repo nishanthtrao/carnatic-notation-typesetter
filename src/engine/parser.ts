@@ -12,7 +12,7 @@ import { formatText, parseHeading, SAFE_COLOR, splitAttrs } from './heading';
 import { layoutSegment, type Segment } from './layout';
 import { GATIS, isTalaError, parseGati, parseTala } from './talas';
 import { LANGS, normaliseLang, parseLangSpec, transliterate } from './translit';
-import type { Block, JatiName, Lang, LangSpec, MetaBlock, MetaItem, MetaLayout, NotationDoc, NoteEvent, PhraseEnds, Prefs, Tala } from './types';
+import type { Block, JatiName, Lang, LangSpec, MetaBlock, MetaItem, MetaKind, MetaLayout, NotationDoc, NoteEvent, PhraseEnds, Prefs, Tala } from './types';
 
 /** Spacing: Tight and Wide, as a share of the usual spacing. Wide is the spacing of versions before "Spacing" existed. */
 export const SPACING = { tight: 0.7, wide: 1.4 };
@@ -26,7 +26,7 @@ const PAUSE_MATRAS: Record<string, number> = { ',': 1, ';': 2, _: 1, __: 2, '-':
 const LYRIC_PAUSE_OK: Record<string, boolean> = { '-': true, '.': true, _: true };
 
 const META_LABELS: Record<string, string> = {
-  raga: 'Rāgam', ragam: 'Rāgam', composer: 'Composer',
+  raga: 'Rāgam', ragam: 'Rāgam', composer: 'Composer', tala: 'Tālam',
   arohana: 'Ārōhaṇam', arohanam: 'Ārōhaṇam', avarohana: 'Avarōhaṇam', avarohanam: 'Avarōhaṇam',
 };
 const SWARA_META = new Set(['arohana', 'arohanam', 'avarohana', 'avarohanam']);
@@ -36,16 +36,24 @@ const SWARA_META = new Set(['arohana', 'arohanam', 'avarohana', 'avarohanam']);
 // The composer line reads "composition (of)": ರಚನೆ, రచన, രചന, रचना; Tamil
 // books write இயற்றியவர் ("composed by"). Not "vāggēyakāra", which only some
 // composers were.
-const META_NATIVE: Partial<Record<Lang, Record<'raga' | 'aro' | 'ava' | 'composer', string>>> = {
-  kannada: { raga: 'ರಾಗ', aro: 'ಆರೋಹಣ', ava: 'ಅವರೋಹಣ', composer: 'ರಚನೆ' },
-  telugu: { raga: 'రాగం', aro: 'ఆరోహణ', ava: 'అవరోహణ', composer: 'రచన' },
-  tamil: { raga: 'ராகம்', aro: 'ஆரோகணம்', ava: 'அவரோகணம்', composer: 'இயற்றியவர்' },
-  malayalam: { raga: 'രാഗം', aro: 'ആരോഹണം', ava: 'അവരോഹണം', composer: 'രചന' },
-  devanagari: { raga: 'राग', aro: 'आरोहण', ava: 'अवरोहण', composer: 'रचना' },
+const META_NATIVE: Partial<Record<Lang, Record<'raga' | 'aro' | 'ava' | 'composer' | 'tala', string>>> = {
+  kannada: { raga: 'ರಾಗ', aro: 'ಆರೋಹಣ', ava: 'ಅವರೋಹಣ', composer: 'ರಚನೆ', tala: 'ತಾಳ' },
+  telugu: { raga: 'రాగం', aro: 'ఆరోహణ', ava: 'అవరోహణ', composer: 'రచన', tala: 'తాళం' },
+  tamil: { raga: 'ராகம்', aro: 'ஆரோகணம்', ava: 'அவரோகணம்', composer: 'இயற்றியவர்', tala: 'தாளம்' },
+  malayalam: { raga: 'രാഗം', aro: 'ആരോഹണം', ava: 'അവരോഹണം', composer: 'രചന', tala: 'താളം' },
+  devanagari: { raga: 'राग', aro: 'आरोहण', ava: 'अवरोहण', composer: 'रचना', tala: 'ताल' },
 };
-const META_KIND: Record<string, 'raga' | 'aro' | 'ava' | 'composer'> = {
-  raga: 'raga', ragam: 'raga', arohana: 'aro', arohanam: 'aro', avarohana: 'ava', avarohanam: 'ava', composer: 'composer',
+const META_KIND: Record<string, MetaKind> = {
+  tala: 'tala', raga: 'raga', ragam: 'raga', arohana: 'aro', arohanam: 'aro', avarohana: 'ava', avarohanam: 'ava', composer: 'composer',
 };
+
+/** Tala names as written in the transliteration scheme, for showing them in an Indian script. */
+const TALA_WORDS: Record<string, string> = {
+  adi: 'Adi', rupaka: 'rUpaka', capu: 'cApu', misra: 'miSra', khanda: 'khaMDa', tisra: 'tiSra', catusra: 'catuSra',
+  sankirna: 'saMkIrNa', jati: 'jAti', gati: 'gati', kalai: 'kaLai', dhruva: 'dhruva', matya: 'maThya',
+  jhampa: 'jhaMpa', triputa: 'tripuTa', ata: 'aTa', eka: 'Eka',
+};
+const DEFAULT_META_LAYOUT: MetaLayout = { composer: 'center', raga: 'center', ragaLines: 'lines', tala: 'center' };
 
 /** Swaras per akshara for a default speed (0–2) and gati. */
 export function perAkshara(speed: number, gati: JatiName | null): number {
@@ -191,7 +199,7 @@ export function parse(input: string): NotationDoc {
     phraseEnds: { style: 'hide', space: 0 },
     smartLyric: false,
     perRow: null,
-    metaLayout: { style: 'list', align: 'center' },
+    metaLayout: { ...DEFAULT_META_LAYOUT },
     swaraPrefs: {},
     lyricPrefs: {},
     headingPrefs: {},
@@ -201,6 +209,15 @@ export function parse(input: string): NotationDoc {
   let seg: Segment | null = null;
   let lastSwaraLine: SwaraLine | null = null;
   let metaBlock: MetaBlock | null = null;
+  // "Tala: Adi,Show": the tala joins the song details, wherever they end up,
+  // labelled in the script in use there
+  let pendingTala: string | null = null;
+  const talaItem = (name: string): MetaItem => {
+    const native = META_NATIVE[st.lang.lang];
+    const item: MetaItem = { label: native ? native.tala : META_LABELS.tala, kind: 'tala', value: name };
+    if (st.lang.lang !== 'english') item.text = transliterate(name.replace(/[A-Za-z]+/g, (w) => TALA_WORDS[w.toLowerCase()] || w), st.lang);
+    return item;
+  };
 
   const applySpeedForLayout = () => {
     if (!st.explicitSpeed) st.speed = st.songSpeed = st.layout === 'gitam' ? 0 : 1;
@@ -260,8 +277,12 @@ export function parse(input: string): NotationDoc {
     if (!metaBlock) {
       metaBlock = { type: 'meta', items: [], layout: { ...st.metaLayout } };
       doc.blocks.push(metaBlock);
+      if (pendingTala) {
+        metaBlock.items.push(talaItem(pendingTala));
+        pendingTala = null;
+      }
     }
-    const item: MetaItem = { label: META_LABELS[key] || key, value: val };
+    const item: MetaItem = { label: META_LABELS[key] || key, kind: META_KIND[key], value: val };
     // In an Indian script the labels are written in that script, and names
     // (raga, composer) are transliterated like headings.
     const native = META_NATIVE[st.lang.lang];
@@ -448,6 +469,13 @@ export function parse(input: string): NotationDoc {
           st.tala = parseTala('Manual') as Tala;
         } else st.tala = t;
         st.gati = st.songGati = st.tala.gati || 'catusra';
+        if (/(^|,)\s*show\s*(,|$)/i.test(value) && !isTalaError(t) && t.manual !== 2) {
+          const open = metaBlock as MetaBlock | null;
+          if (open) {
+            open.items = open.items.filter((x) => x.kind !== 'tala');
+            open.items.push(talaItem(t.name));
+          } else pendingTala = t.name;
+        }
         break;
       }
       case 'layout': {
@@ -609,16 +637,26 @@ export function parse(input: string): NotationDoc {
         break;
       }
       case 'songinfo': {
-        // SongInfo: List|Inline, Left|Center|Right (in any order) — how Raga:, Arohana:, Avarohana:, Composer: are laid out
-        const words = value.toLowerCase().split(/[\s,]+/).filter(Boolean);
+        // SongInfo: Composer Right, Raga Left TwoLines, Tala Right — each part names a group, then where it goes
         const next: MetaLayout = { ...st.metaLayout };
-        let bad = !words.length;
-        for (const w of words) {
-          if (w === 'list' || w === 'inline') next.style = w;
-          else if (w === 'left' || w === 'center' || w === 'centre' || w === 'right') next.align = w === 'centre' ? 'center' : w;
-          else bad = true;
+        let bad = !value.trim();
+        for (const part of value.split(',')) {
+          const words = part.trim().toLowerCase().split(/\s+/).filter(Boolean);
+          if (!words.length) continue;
+          const group = /^r[aā]gam?$/.test(words[0]) ? 'raga' : /^composer$/.test(words[0]) ? 'composer' : /^t[aā][lḷ]am?$/.test(words[0]) ? 'tala' : null;
+          if (!group || words.length < 2) {
+            bad = true;
+            continue;
+          }
+          for (const w of words.slice(1)) {
+            if (w === 'left' || w === 'right' || w === 'center' || w === 'centre') next[group] = w === 'centre' ? 'center' : w;
+            else if (group === 'raga' && w === 'lines') next.ragaLines = 'lines';
+            else if (group === 'raga' && w === 'twolines') next.ragaLines = 'two';
+            else if (group === 'raga' && w === 'oneline') next.ragaLines = 'one';
+            else bad = true;
+          }
         }
-        if (bad) warn(no, 'SongInfo should be List or Inline, and Left, Center or Right — e.g. "SongInfo: List,Left"');
+        if (bad) warn(no, 'SongInfo should look like "SongInfo: Composer Right, Raga Left TwoLines, Tala Right" (Left, Center or Right; for the raga also Lines, TwoLines or OneLine)');
         st.metaLayout = next;
         const open = metaBlock as MetaBlock | null;
         if (open) open.layout = { ...next };
@@ -644,6 +682,15 @@ export function parse(input: string): NotationDoc {
     }
   }
   closeSeg();
+  if (pendingTala) {
+    const first = doc.blocks.find((b): b is MetaBlock => b.type === 'meta');
+    if (first) first.items.push(talaItem(pendingTala));
+    else {
+      // no other details: put the tala under the song's title (the first heading)
+      const at = doc.blocks.findIndex((b) => b.type === 'heading');
+      doc.blocks.splice(at + 1, 0, { type: 'meta', items: [talaItem(pendingTala)], layout: { ...st.metaLayout } });
+    }
+  }
   return doc;
 }
 

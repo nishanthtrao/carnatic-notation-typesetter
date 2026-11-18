@@ -166,11 +166,20 @@ export interface HeadingBlock {
   section?: boolean;
 }
 
-/** How the raga / scale / composer lines are laid out (SongInfo: directive). */
+export type MetaKind = 'raga' | 'aro' | 'ava' | 'composer' | 'tala';
+export type MetaAlign = 'left' | 'center' | 'right';
+
+/**
+ * Where the song details go (SongInfo: directive). Composer, the raga with its
+ * scale, and the tala each go left, centre or right; those on the same side
+ * stack in that order (composer, raga, tala).
+ */
 export interface MetaLayout {
-  /** one line per item, labels lined up (default), or all on one line */
-  style: 'list' | 'inline';
-  align: 'left' | 'center' | 'right';
+  composer: MetaAlign;
+  raga: MetaAlign;
+  /** raga, ārōhaṇam, avarōhaṇam: each on its own line, raga then the scale, or all on one line */
+  ragaLines: 'lines' | 'two' | 'one';
+  tala: MetaAlign;
 }
 
 export interface MetaBlock {
@@ -181,6 +190,7 @@ export interface MetaBlock {
 
 export interface MetaItem {
   label: string;
+  kind?: MetaKind;
   value: string;
   /** the value as shown (transliterated), when it differs from value */
   text?: string;

@@ -16,7 +16,7 @@ export interface Example {
 }
 
 const NEW_SONG = `Title: "Song name"
-Tala: Adi
+Tala: Adi,Show
 DefaultSpeed: 1
 Heading: "Song name",bold,center,16
 Raga: mAyAmALavagauLa

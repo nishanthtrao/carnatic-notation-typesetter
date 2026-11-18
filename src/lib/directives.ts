@@ -51,7 +51,7 @@ export const DIRECTIVES: DirectiveInfo[] = (
     ['LineBreak', 'LineBreak', 'New line (manual tala mode)', 'layout'],
     ['Pagebreak', 'Pagebreak', 'New page when printing', 'layout'],
     ['Orientation', 'Orientation: Landscape', 'Portrait or landscape page', 'layout'],
-    ['SongInfo', 'SongInfo: List,Center', 'Raga, scale and composer as a list or on one line; left, centre or right', 'song'],
+    ['SongInfo', 'SongInfo: Composer Center, Raga Center Lines, Tala Center', 'Where the composer, raga with its scale, and tala go: left, centre or right', 'song'],
   ] as [string, string, string, GroupId][]
 ).map(([name, template, help, group]) => ({ name, template, help, group }));
 
@@ -97,7 +97,7 @@ const VALUE_COMPLETIONS: Record<string, () => string[]> = {
   orientation: () => ['Portrait', 'Landscape'],
   spacing: () => ['Tight', 'Normal', 'Wide'],
   grouping: () => ['Off', 'On'],
-  songinfo: () => ['List,Center', 'List,Left', 'List,Right', 'Inline,Center', 'Inline,Left', 'Inline,Right'],
+  songinfo: () => ['Composer Right, Raga Left Lines, Tala Left', 'Composer Center, Raga Center TwoLines, Tala Center', 'Composer Right, Raga Left OneLine, Tala Right'],
   avartanamsperline: () => ['1', '2', '3', '4', 'Default'],
   defaultspeed: () => ['0', '1', '2'],
   languagefont: () => ['All', ...LANG_OPTIONS.map(([v]) => v)],

@@ -77,39 +77,40 @@
 
 /* ---- Raga / tala info ------------------------------------------------- */
 .cm-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.3em 2em;
   margin: 0.2em 0 0.6em;
   font-size: min(1rem, 3.6cqi);
 }
-/* SongInfo: Inline — everything on one line, wrapping when needed */
-.cm-meta-inline {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.15em 1.6em;
-}
-.cm-meta-inline.cm-meta-left {
-  justify-content: flex-start;
-}
-.cm-meta-inline.cm-meta-right {
-  justify-content: flex-end;
-}
-/* SongInfo: List (default) — one item per line, the labels in a column */
-.cm-meta-list {
+/* each side is a small table: labels in one column, values in the next */
+.cm-meta-col {
   display: grid;
   grid-template-columns: max-content auto;
   gap: 0.1em 0.7em;
-  width: fit-content;
-  max-width: 100%;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+.cm-meta-left {
+  margin-right: auto;
+}
+.cm-meta-center {
   margin-inline: auto;
 }
-.cm-meta-list .cm-meta-item {
-  display: contents;
+.cm-meta-right {
+  margin-left: auto;
 }
-.cm-meta-list.cm-meta-left {
-  margin-inline: 0 auto;
+.cm-meta-nw {
+  white-space: nowrap;
 }
-.cm-meta-list.cm-meta-right {
-  margin-inline: auto 0;
+/* ārōhaṇam and avarōhaṇam on the same line as what comes before them */
+.cm-meta-more {
+  margin-left: 1.2em;
+}
+.cm-meta-more .cm-meta-k {
+  margin-right: 0.3em;
+  font-weight: 400;
 }
 .cm-meta-k {
   color: var(--cm-muted);

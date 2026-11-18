@@ -191,19 +191,7 @@ function DirectiveForm({ name, value, onClose, onApply }: { name: FormName; valu
         hint="How many avartanams (tala cycles) the typesetter puts on a line before starting a new one. Most talas have one by default; Rupaka Capu and Misra Capu have two, and Khanda Capu four. Applies from the next swara line, and stays until you change it. It has no effect with Manual line breaks." onClose={onClose} onApply={onApply} footer={footer} />
     );
   }
-  if (name === 'SongInfo') {
-    const words = value.toLowerCase().split(/[\s,]+/);
-    const style = words.includes('inline') ? 'Inline' : 'List';
-    const align = words.includes('left') ? 'Left' : words.includes('right') ? 'Right' : 'Center';
-    return (
-      <SimpleForm title="Raga and composer lines" label="Show them" prefix="SongInfo: " initial={style + ',' + align}
-        options={[
-          ['List,Center', 'As a list, in the middle (default)'], ['List,Left', 'As a list, on the left'], ['List,Right', 'As a list, on the right'],
-          ['Inline,Center', 'On one line, in the middle'], ['Inline,Left', 'On one line, on the left'], ['Inline,Right', 'On one line, on the right'],
-        ]}
-        hint="How the Raga, Arohana, Avarohana and Composer lines are laid out. As a list, each goes on its own line with the labels lined up; on one line takes the least room. Put it before or right after those lines." onClose={onClose} onApply={onApply} footer={footer} />
-    );
-  }
+  if (name === 'SongInfo') return <SongInfoForm value={value} onClose={onClose} onApply={onApply} footer={footer} />;
   if (name === 'Grouping') {
     return (
       <SimpleForm title="Grouping" label="Gaps between beats" prefix="Grouping: " initial={/^(off|no|hide)$/i.test(value.trim()) ? 'Off' : 'On'}
@@ -385,6 +373,45 @@ function LayoutForm({ value, onClose, onApply, footer }: FormProps) {
   );
 }
 
+const SIDES: [string, string][] = [['Left', 'Left'], ['Center', 'Centre'], ['Right', 'Right']];
+const RAGA_LINES: [string, string][] = [
+  ['Lines', 'Raga, ārōhaṇam, avarōhaṇam on separate lines'],
+  ['TwoLines', 'Raga on one line, ārōhaṇam and avarōhaṇam on the next'],
+  ['OneLine', 'Raga, ārōhaṇam and avarōhaṇam on one line'],
+];
+
+/** SongInfo: where the composer, the raga with its scale, and the tala go. */
+function SongInfoForm({ value, onClose, onApply, footer }: FormProps) {
+  const parts = value.split(',').map((x) => x.trim().toLowerCase().split(/\s+/));
+  const find = (group: RegExp) => parts.find((w) => group.test(w[0] || '')) || [];
+  const side = (words: string[]) => (words.includes('left') ? 'Left' : words.includes('right') ? 'Right' : 'Center');
+  const rw = find(/^raga/);
+  const [composer, setComposer] = useState(side(find(/^composer/)));
+  const [raga, setRaga] = useState(side(rw));
+  const [lines, setLines] = useState(rw.includes('oneline') ? 'OneLine' : rw.includes('twolines') ? 'TwoLines' : 'Lines');
+  const [tala, setTala] = useState(side(find(/^tala/)));
+  const apply = () => onApply('SongInfo: Composer ' + composer + ', Raga ' + raga + ' ' + lines + ', Tala ' + tala);
+  return (
+    <Modal title="Song details" open onClose={onClose} footer={footer(apply)}>
+      <div className="form-grid">
+        <Field id="a-si-composer" label="Composer">
+          <Select id="a-si-composer" value={composer} onChange={setComposer} options={SIDES} />
+        </Field>
+        <Field id="a-si-raga" label="Raga and scale">
+          <Select id="a-si-raga" value={raga} onChange={setRaga} options={SIDES} />
+        </Field>
+        <Field id="a-si-lines" label="Raga lines">
+          <Select id="a-si-lines" value={lines} onChange={setLines} options={RAGA_LINES} />
+        </Field>
+        <Field id="a-si-tala" label="Tala">
+          <Select id="a-si-tala" value={tala} onChange={setTala} options={SIDES} />
+        </Field>
+      </div>
+      <p className="hint">Where the Composer, Raga / Arohana / Avarohana and tala lines go. Those on the same side are stacked: composer first, then the raga, then the tala; on different sides they sit next to each other. The tala is shown only when “Show the tala on the page” is ticked for the Tala line.</p>
+    </Modal>
+  );
+}
+
 function TalaForm({ value, onClose, onApply, footer }: FormProps) {
   const parts = value.split(',').map((s) => s.trim());
   const opts = parts.slice(1).map((s) => s.toLowerCase());
@@ -392,10 +419,12 @@ function TalaForm({ value, onClose, onApply, footer }: FormProps) {
   const [tala, setTala] = useState(options.find(([v]) => v.toLowerCase() === (parts[0] || 'adi').toLowerCase())?.[0] || 'Adi');
   const [manual, setManual] = useState(opts.includes('manual'));
   const [inline, setInline] = useState(opts.includes('inlinetalamarkers'));
+  const [show, setShow] = useState(opts.includes('show'));
   const apply = () => {
     let out = 'Tala: ' + tala;
     if (tala !== 'Manual' && manual) out += ',Manual';
     if (inline && (manual || tala === 'Manual')) out += ',InlineTalaMarkers';
+    if (show && tala !== 'Manual') out += ',Show';
     onApply(out);
   };
   return (
@@ -408,8 +437,10 @@ function TalaForm({ value, onClose, onApply, footer }: FormProps) {
         <div className="checks">
           <Check checked={manual} onChange={setManual}>Manual line breaks</Check>
           <Check checked={inline} onChange={setInline}>Inline tala markers</Check>
+          <Check checked={show} onChange={setShow}>Show the tala on the page</Check>
         </div>
       </div>
+      <p className="hint">“Show the tala on the page” adds it to the song details, under the raga and composer (see <b>SongInfo</b> for where they go).</p>
       <p className="hint">With manual line breaks, a new notation line starts only at <code>LineBreak</code> or <code>SongBreak</code>.</p>
       <p className="hint">To put more or fewer avartanams on a line, add an <code>AvartanamsPerLine: 1</code> line after the tala (it is next to Tala in Assist).</p>
     </Modal>
