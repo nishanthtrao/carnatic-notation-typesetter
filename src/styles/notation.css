@@ -79,10 +79,38 @@
 .cm-meta {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.15em 1.6em;
+  align-items: flex-start;
+  gap: 0.3em 2em;
   margin: 0.2em 0 0.6em;
   font-size: min(1rem, 3.6cqi);
+}
+/* each side is a small table: labels in one column, values in the next */
+.cm-meta-col {
+  display: grid;
+  grid-template-columns: max-content auto;
+  gap: 0.1em 0.7em;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+.cm-meta-left {
+  margin-right: auto;
+}
+.cm-meta-center {
+  margin-inline: auto;
+}
+.cm-meta-right {
+  margin-left: auto;
+}
+.cm-meta-nw {
+  white-space: nowrap;
+}
+/* ārōhaṇam and avarōhaṇam on the same line as what comes before them */
+.cm-meta-more {
+  margin-left: 1.2em;
+}
+.cm-meta-more .cm-meta-k {
+  margin-right: 0.3em;
+  font-weight: 400;
 }
 .cm-meta-k {
   color: var(--cm-muted);

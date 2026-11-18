@@ -296,6 +296,23 @@ button { font: inherit; color: inherit; }
   background: var(--surface);
 }
 .code-area { position: relative; flex: 1; min-width: 0; display: flex; }
+/* a soft fade at the right edge when lines run on past it (they don't wrap, so lyrics stay under their swaras) */
+.code-area::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 28px;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(to right, transparent, var(--surface));
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.code-area.more-right::after {
+  opacity: 1;
+}
 textarea#input, .code .hl {
   margin: 0;
   padding: 14px 16px 28px 10px;
@@ -1143,3 +1160,17 @@ select optgroup {
 .dlg a.chat-app.primary-link:hover { background: var(--accent-hover); }
 .chat-switch { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--label-2); }
 .chat-switch select { min-height: 28px; font-size: 13px; }
+
+/* Read Photo: optional hints folded away */
+.dlg details.more-details {
+  margin: 10px 0 2px;
+}
+.dlg details.more-details > summary {
+  cursor: pointer;
+  color: var(--label-2);
+  font-size: 13px;
+  padding: 4px 0;
+}
+.dlg details.more-details[open] > summary {
+  margin-bottom: 8px;
+}
