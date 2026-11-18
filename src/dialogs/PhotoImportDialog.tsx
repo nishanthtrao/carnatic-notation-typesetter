@@ -3,7 +3,7 @@ import { Modal } from '../components/Modal';
 import { Icon } from '../components/Icons';
 import { Preview } from '../components/Preview';
 import { parse } from '../engine';
-import { checkReply, recognizeNotation, RecognitionError, type RecognitionResult } from '../recognition/recognize';
+import { checkReply, recognizeNotation, reviewWarnings, RecognitionError, type RecognitionResult } from '../recognition/recognize';
 import { prepareImage } from '../recognition/image';
 import { chatAppPrompt, chatRepairPrompt, type RecognitionHints } from '../recognition/prompt';
 import { estimateCost, PROVIDER_ORDER, PROVIDERS, type ApiProviderId, type ProviderId } from '../recognition/providers';
@@ -207,6 +207,7 @@ export function PhotoImportDialog({ open, onClose, onOpenSettings, settingsVersi
   };
 
   const doc = useMemo(() => parse(text), [text]);
+  const warnings = useMemo(() => reviewWarnings(text, doc.warnings), [text, doc]);
   const info = api ? modelInfo(api, model, settings) : undefined;
   const modelLabel = info?.label.split(' — ')[0] || model;
   const prompt = chatAppPrompt(hints, pages.length);
@@ -234,7 +235,7 @@ export function PhotoImportDialog({ open, onClose, onOpenSettings, settingsVersi
     setStep({ kind: 'review', result, viaChat: true });
   };
   const askForFixes = async () => {
-    const ok = await copyText(chatRepairPrompt(doc.warnings.slice(0, 30).map((w) => 'line ' + w.line + ': ' + w.message)));
+    const ok = await copyText(chatRepairPrompt(warnings.slice(0, 30).map((w) => 'line ' + w.line + ': ' + w.message)));
     setCopied(ok ? 'fix' : 'failed');
     setReply('');
     setStep({ kind: 'chat', followUp: true });
@@ -274,7 +275,7 @@ export function PhotoImportDialog({ open, onClose, onOpenSettings, settingsVersi
             </div>
           </div>
         </div>
-        {(r.notes.length > 0 || doc.warnings.length > 0) && (
+        {(r.notes.length > 0 || warnings.length > 0) && (
           <div className="review-notes">
             {r.notes.length > 0 && (
               <>
@@ -282,10 +283,10 @@ export function PhotoImportDialog({ open, onClose, onOpenSettings, settingsVersi
                 <ul>{r.notes.map((n, i) => <li key={i}>{n}</li>)}</ul>
               </>
             )}
-            {doc.warnings.length > 0 && (
+            {warnings.length > 0 && (
               <>
                 <b>Problems the typesetter found</b>
-                <ul>{doc.warnings.slice(0, 10).map((w, i) => <li key={i}>Line {w.line}: {w.message}</li>)}</ul>
+                <ul>{warnings.slice(0, 10).map((w, i) => <li key={i}>Line {w.line}: {w.message}</li>)}</ul>
                 {step.viaChat && (
                   <p style={{ margin: '6px 0 0' }}>
                     <button type="button" className="inline-btn" onClick={askForFixes}>Ask the app to fix these…</button> copies a request to paste into the same chat.
