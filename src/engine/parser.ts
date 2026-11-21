@@ -10,6 +10,7 @@
  */
 import { formatText, parseHeading, SAFE_COLOR, splitAttrs } from './heading';
 import { layoutSegment, type Segment } from './layout';
+import { parseMargin } from './page';
 import { GATIS, isTalaError, parseGati, parseTala } from './talas';
 import { LANGS, normaliseLang, parseLangSpec, transliterate } from './translit';
 import type { Block, JatiName, Lang, LangSpec, MetaItem, NotationDoc, NoteEvent, PhraseEnds, Prefs, Tala } from './types';
@@ -171,6 +172,11 @@ interface SwaraLine {
 export function parse(input: string): NotationDoc {
   const warnings: NotationDoc['warnings'] = [];
   const warn = (line: number, message: string) => warnings.push({ line, message });
+  const setMargin = (text: string, line: number) => {
+    const m = parseMargin(text);
+    if (m && m.mm <= 60) doc.page.margin = m.css;
+    else warn(line, m ? 'That margin is too wide for the page; use 60mm (about 2.4in) or less' : 'A margin needs a number and a unit, e.g. 15mm, 1.5cm or 0.5in');
+  };
   const doc: NotationDoc = { title: '', page: { orientation: 'portrait', size: 'A4' }, langFonts: {}, blocks: [], warnings };
 
   const st: State = {
@@ -583,10 +589,14 @@ export function parse(input: string): NotationDoc {
         if (v.startsWith('land')) doc.page.orientation = 'landscape';
         else if (v.startsWith('port')) doc.page.orientation = 'portrait';
         else warn(no, 'Orientation should be Portrait or Landscape');
-        const mm = value.match(/(\d+(?:\.\d+)?)\s*in/i);
-        if (mm) doc.page.margin = parseFloat(mm[1]) + 'in';
+        // the original form: "Orientation: Landscape,0.5in"
+        const extra = value.split(',').slice(1).join(',').trim();
+        if (extra) setMargin(extra, no);
         break;
       }
+      case 'margin':
+        setMargin(value, no);
+        break;
       // ---- extensions (not in v1.5) ----------------------------------------
       case 'pagesize': {
         const v = value.trim().toUpperCase();

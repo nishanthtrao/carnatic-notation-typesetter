@@ -51,6 +51,7 @@ export const DIRECTIVES: DirectiveInfo[] = (
     ['LineBreak', 'LineBreak', 'New line (manual tala mode)', 'layout'],
     ['Pagebreak', 'Pagebreak', 'New page when printing', 'layout'],
     ['Orientation', 'Orientation: Landscape', 'Portrait or landscape page', 'layout'],
+    ['Margin', 'Margin: 15mm', 'Space around the notation on the printed page (mm, cm or in)', 'layout'],
   ] as [string, string, string, GroupId][]
 ).map(([name, template, help, group]) => ({ name, template, help, group }));
 
@@ -60,7 +61,7 @@ export const GROUP_ORDER: string[] = [
   'S', 'L', 'SmartLyricMode',
   'Tala', 'AvartanamsPerLine', 'DefaultSpeed', 'Gati', 'SpeedMarks', 'PhraseEnds',
   'Language', 'LanguageFont',
-  'Layout', 'Spacing', 'Grouping', 'SongBreak', 'LineBreak', 'Pagebreak', 'Orientation',
+  'Layout', 'Spacing', 'Grouping', 'SongBreak', 'LineBreak', 'Pagebreak', 'Orientation', 'Margin',
   'SwaraPrefs', 'LyricPrefs', 'GamakaPrefs', 'HeadingPrefs',
 ];
 
@@ -94,6 +95,7 @@ const VALUE_COMPLETIONS: Record<string, () => string[]> = {
   speedmarks: () => ['above', 'below'],
   phraseends: () => ['Hide', 'Show', 'Handle', 'HandleThick'],
   orientation: () => ['Portrait', 'Landscape'],
+  margin: () => ['10mm', '12mm', '15mm', '20mm', '0.5in', '1in'],
   spacing: () => ['Tight', 'Normal', 'Wide'],
   grouping: () => ['Off', 'On'],
   avartanamsperline: () => ['1', '2', '3', '4', 'Default'],

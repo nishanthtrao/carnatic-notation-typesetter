@@ -474,7 +474,8 @@ export function render(doc: NotationDoc, el: HTMLElement, options: { emptyText?:
       el.appendChild(probe);
       const fontPx = parseFloat(getComputedStyle(probe).fontSize) || 16;
       probe.remove();
-      const availEm = el.clientWidth / fontPx;
+      const cs = getComputedStyle(el);
+      const availEm = (el.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0)) / fontPx;
       stretchFor = (st) => (st.fullWidth ? Math.max(1, (availEm - geo.labelW - 0.2) / (geo.maxTotal - geo.labelW)) : 1);
     }
     let html = '';
