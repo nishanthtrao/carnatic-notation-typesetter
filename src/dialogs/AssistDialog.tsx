@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Modal } from '../components/Modal';
-import { FONT_STYLES, normaliseLang, parse, parseFontStyle, parseGati, parseHeading, render, styleFamilies, swaraSample, SWARA_RE, transliterate, type FontStyle, type Lang } from '../engine';
+import { FONT_STYLES, normaliseLang, parse, parseFontStyle, parseGati, parseHeading, parseMargin, render, styleFamilies, swaraSample, SWARA_RE, transliterate, type FontStyle, type Lang } from '../engine';
 import { Icon } from '../components/Icons';
 import { DIRECTIVE_GROUPS, DIRECTIVES, GROUP_ORDER, LANG_OPTIONS, LAYOUT_OPTIONS, talaOptions, type DirectiveInfo } from '../lib/directives';
 import { Check, Field, Select } from './common';
@@ -14,10 +14,10 @@ const PREFS = ['SwaraPrefs', 'LyricPrefs', 'HeadingPrefs', 'GamakaPrefs'] as con
 type PrefsName = (typeof PREFS)[number];
 export type FormName =
   | 'Tala' | 'Gati' | 'Layout' | 'DefaultSpeed' | 'Language' | 'LanguageFont' | 'Heading'
-  | 'SpeedMarks' | 'PhraseEnds' | 'Title' | 'Orientation' | 'Spacing' | 'Grouping' | 'AvartanamsPerLine' | 'SongInfo' | 'Scale' | PrefsName;
+  | 'SpeedMarks' | 'PhraseEnds' | 'Title' | 'Orientation' | 'Margin' | 'Spacing' | 'Grouping' | 'AvartanamsPerLine' | 'SongInfo' | 'Scale' | PrefsName;
 export const FORM_NAMES: FormName[] = [
   'Tala', 'Gati', 'Layout', 'DefaultSpeed', 'Language', 'LanguageFont', 'Heading',
-  'SpeedMarks', 'PhraseEnds', 'Title', 'Orientation', 'Spacing', 'Grouping', 'AvartanamsPerLine', 'SongInfo', 'Scale', ...PREFS,
+  'SpeedMarks', 'PhraseEnds', 'Title', 'Orientation', 'Margin', 'Spacing', 'Grouping', 'AvartanamsPerLine', 'SongInfo', 'Scale', ...PREFS,
 ];
 
 /** Raga, Arohana and Avarohana lines are edited together in the Scale form. */
@@ -177,12 +177,24 @@ function DirectiveForm({ name, value, onClose, onApply }: { name: FormName; valu
         options={[['above', 'Above the swaras (default)'], ['below', 'Below the swaras']]}
         hint="Speed lines group the faster swaras written in ( ). Applies from the next swara line." onClose={onClose} onApply={onApply} footer={footer} />
     );
-  if (name === 'Orientation')
+  if (name === 'Orientation') {
+    // keep a margin written the original way ("Orientation: Landscape,0.5in")
+    const extra = value.split(',').slice(1).join(',').trim();
     return (
       <SimpleForm title="Page orientation" label="Orientation" prefix="Orientation: " initial={/^land/i.test(value.trim()) ? 'Landscape' : 'Portrait'}
         options={[['Portrait', 'Portrait (default)'], ['Landscape', 'Landscape']]}
-        hint="Used when printing or exporting a PDF." onClose={onClose} onApply={onApply} footer={footer} />
+        hint="Used when printing or exporting a PDF. The page margin has its own line, Margin (next to Orientation in Assist)." onClose={onClose} onApply={(v) => onApply(extra ? v + ',' + extra : v)} footer={footer} />
     );
+  }
+  if (name === 'Margin') {
+    const MARGINS: [string, string][] = [['6mm', '6 mm (narrow)'], ['10mm', '10 mm'], ['12mm', '12 mm (default)'], ['15mm', '15 mm'], ['20mm', '20 mm'], ['25mm', '25 mm'], ['0.5in', '½ inch'], ['0.75in', '¾ inch'], ['1in', '1 inch']];
+    const now = parseMargin(value)?.css;
+    if (now && !MARGINS.some(([v]) => v === now)) MARGINS.unshift([now, now]);
+    return (
+      <SimpleForm title="Page margin" label="Margin" prefix="Margin: " initial={now || '12mm'} options={MARGINS}
+        hint="The space around the notation on every side of the printed page; the page on screen shows it to scale. You can also type any size in mm, cm or in, e.g. Margin: 18mm." onClose={onClose} onApply={onApply} footer={footer} />
+    );
+  }
   if (name === 'AvartanamsPerLine') {
     const n = parseInt(value, 10);
     return (

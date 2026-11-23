@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-only
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { examples, newSongTemplate, parse, type Example, type NotationDoc } from '../engine';
+import { examples, newSongTemplate, pageRule, parse, type Example, type NotationDoc } from '../engine';
 import { NotationEditor, type EditorHandle } from '../components/NotationEditor';
 import { Preview } from '../components/Preview';
 import { Splitter } from '../components/Splitter';
@@ -212,7 +212,7 @@ function Editor({ initial }: { initial: Initial }) {
       el.id = 'pageStyle';
       document.head.appendChild(el);
     }
-    el.textContent = '@page { size: ' + (doc.page.size || 'A4') + ' ' + doc.page.orientation + '; margin: ' + (doc.page.margin || '12mm') + '; }';
+    el.textContent = pageRule(doc.page);
   }, [doc]);
 
   useEffect(() => {
