@@ -217,11 +217,12 @@ button { font: inherit; color: inherit; }
   background: light-dark(#fff, #1c1c1e); /* the same as the sheet (notation.css) */
   border-radius: 4px;
   box-shadow: var(--shadow-page);
-  padding: clamp(16px, 4.5vw, 52px) clamp(14px, 5vw, 60px);
   min-height: 100%;
   color: light-dark(#1a1a1a, #f2f2f7);
 }
 .paper.landscape { max-width: 1240px; }
+/* the page margin (Margin: directive) drawn to scale: a percentage padding is a share of the page's width */
+.paper > .cm-sheet { padding: calc(var(--page-margin, 0.057) * 100%); }
 
 /* zoom: the page is drawn scaled, inside a box the size of the scaled page */
 .zoom-box.fit { display: contents; }
@@ -635,6 +636,7 @@ select optgroup {
 .review-text { min-height: 200px; flex: 1; }
 .review-preview { max-height: 32vh; overflow: auto; border-radius: var(--radius); background: var(--canvas); padding: 8px; }
 .review-preview .paper { padding: 12px 16px; min-height: 0; }
+.review-preview .paper > .cm-sheet { padding: 0; }
 .review-preview .preview-scroll { padding: 0; overflow: visible; }
 .review-notes { margin-top: 12px; background: var(--orange-soft); border-radius: var(--radius); padding: 10px 14px; font-size: 12.5px; }
 .review-notes b { font-weight: 600; }
@@ -716,6 +718,7 @@ select optgroup {
   .zoom-box { display: contents !important; }
   .paper.zoomed { transform: none !important; width: auto !important; }
   .paper { box-shadow: none; padding: 0; max-width: none; min-height: 0; border-radius: 0; color-scheme: light; }
+  .paper > .cm-sheet { padding: 0; } /* the printer's page has the margin (@page) */
   .cm-staff[data-line] { cursor: default; }
 }
 

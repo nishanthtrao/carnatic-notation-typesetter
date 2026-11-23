@@ -1,5 +1,5 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { render, type NotationDoc, type RenderHandle } from '../engine';
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
+import { marginShare, render, type NotationDoc, type RenderHandle } from '../engine';
 import { store } from '../lib/storage';
 import { Icon } from './Icons';
 
@@ -157,7 +157,8 @@ export function Preview({ doc, onJumpToLine, landscape, zoomable }: { doc: Notat
           <div
             ref={paper}
             className={'paper' + (landscape ? ' landscape' : '') + (fit || !ready ? '' : ' zoomed')}
-            style={fit || !ready ? undefined : { width: size.w, transform: `scale(${zoom})` }}
+            // the page margin, as a share of the page's width, so the screen shows the margin it prints with
+            style={{ '--page-margin': marginShare(doc.page), ...(fit || !ready ? {} : { width: size.w, transform: `scale(${zoom})` }) } as CSSProperties}
           >
             <div
               ref={sheet}
