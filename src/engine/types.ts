@@ -166,8 +166,31 @@ export interface HeadingBlock {
   section?: boolean;
 }
 
+export type MetaKind = 'raga' | 'aro' | 'ava' | 'composer' | 'tala';
+export type MetaAlign = 'left' | 'center' | 'right';
+
+/**
+ * Where the song details go (SongInfo: directive). Composer, the raga with its
+ * scale, and the tala each go left, centre or right; those on the same side
+ * stack in that order (composer, raga, tala).
+ */
+export interface MetaLayout {
+  composer: MetaAlign;
+  raga: MetaAlign;
+  /** raga, ārōhaṇam, avarōhaṇam: each on its own line, raga then the scale, or all on one line */
+  ragaLines: 'lines' | 'two' | 'one';
+  tala: MetaAlign;
+}
+
+export interface MetaBlock {
+  type: 'meta';
+  items: MetaItem[];
+  layout?: MetaLayout;
+}
+
 export interface MetaItem {
   label: string;
+  kind?: MetaKind;
   value: string;
   /** the value as shown (transliterated), when it differs from value */
   text?: string;
@@ -180,7 +203,7 @@ export type Block =
   | HeadingBlock
   | { type: 'space' }
   | { type: 'pagebreak' }
-  | { type: 'meta'; items: MetaItem[] };
+  | MetaBlock;
 
 export interface Warning {
   line: number;

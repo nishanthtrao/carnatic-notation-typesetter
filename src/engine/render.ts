@@ -14,7 +14,7 @@
  */
 import { parseFontStyle, styleFamilies } from './fonts';
 import { DARK_INK, DARK_LYRIC, esc, forDark } from './heading';
-import type { HeadingBlock, Lang, LangSpec, MetaItem, NotationDoc, NoteEvent, Row, StaffBlock } from './types';
+import type { HeadingBlock, Lang, LangSpec, MetaAlign, MetaBlock, MetaItem, MetaKind, MetaLayout, NotationDoc, NoteEvent, Row, StaffBlock } from './types';
 
 const EPS = 1e-6;
 
@@ -414,10 +414,42 @@ function renderHeading(b: HeadingBlock): string {
   return '<div class="cm-heading' + (b.section ? ' cm-section' : '') + ' cm-lang-' + (b.lang || 'english') + '"' + (st.length ? ' style="' + esc(st.join(';')) + '"' : '') + '>' + b.html + '</div>';
 }
 
-function renderMeta(items: MetaItem[]): string {
-  return '<div class="cm-meta">' + items.map((it) => it.value === '' ? '' :
-    '<div class="cm-meta-item"><span class="cm-meta-k">' + esc(it.label) + '</span> <span class="cm-meta-v">' +
-    (it.swaras && it.swaras.length ? inlineSwaras(it.swaras, it.lang) : esc(it.text ?? it.value)) + '</span></div>').join('') + '</div>';
+const DEFAULT_LAYOUT: MetaLayout = { composer: 'center', raga: 'center', ragaLines: 'lines', tala: 'center' };
+
+/**
+ * Song details in up to three columns (left, centre, right). Each column is a
+ * small table of label and value, so the labels line up; groups that share a
+ * side stack as composer, raga (with its scale), tala.
+ */
+function renderMeta(b: MetaBlock): string {
+  const layout = { ...DEFAULT_LAYOUT, ...(b.layout || {}) };
+  const items = b.items.filter((it) => it.value !== '');
+  // a value never breaks inside; a long line breaks only between the label-and-value pieces
+  const value = (it: MetaItem) =>
+    '<span class="cm-meta-nw">' + (it.swaras && it.swaras.length ? inlineSwaras(it.swaras, it.lang) : esc(it.text ?? it.value)) + '</span>';
+  const label = (it: MetaItem) => '<span class="cm-meta-k">' + esc(it.label) + '</span>';
+  // one row: the first item's label in the label column, any others run on after its value
+  const row = (group: MetaItem[]) =>
+    label(group[0]) + '<span class="cm-meta-v">' + value(group[0]) +
+    group.slice(1).map((it) => ' <span class="cm-meta-more cm-meta-nw">' + label(it) + ' ' + value(it) + '</span>').join('') + '</span>';
+  const of = (kind: MetaKind) => items.filter((it) => (it.kind || 'raga') === kind);
+  const columns: Record<MetaAlign, string[]> = { left: [], center: [], right: [] };
+  for (const it of of('composer')) columns[layout.composer].push(row([it]));
+  const raga = of('raga');
+  const scale = [...of('aro'), ...of('ava')];
+  if (layout.ragaLines === 'one') {
+    if (raga.length + scale.length) columns[layout.raga].push(row([...raga, ...scale]));
+  } else {
+    for (const it of raga) columns[layout.raga].push(row([it]));
+    if (layout.ragaLines === 'two') {
+      if (scale.length) columns[layout.raga].push(row(scale));
+    } else for (const it of scale) columns[layout.raga].push(row([it]));
+  }
+  for (const it of of('tala')) columns[layout.tala].push(row([it]));
+  return '<div class="cm-meta">' + (['left', 'center', 'right'] as MetaAlign[])
+    .filter((side) => columns[side].length)
+    .map((side) => '<div class="cm-meta-col cm-meta-' + side + '">' + columns[side].join('') + '</div>')
+    .join('') + '</div>';
 }
 
 function cssFont(name: string, lang?: Lang): string {
@@ -483,7 +515,7 @@ export function render(doc: NotationDoc, el: HTMLElement, options: { emptyText?:
       if (b.type === 'heading') html += renderHeading(b);
       else if (b.type === 'space') html += '<div class="cm-space"></div>';
       else if (b.type === 'pagebreak') html += '<div class="cm-pagebreak"></div>';
-      else if (b.type === 'meta') html += renderMeta(b.items);
+      else if (b.type === 'meta') html += renderMeta(b);
       else if (b.type === 'staff') html += renderStaff(b, geo, stretchFor(b));
     }
     if (!doc.blocks.length) html = '<p class="cm-empty">' + esc(options.emptyText || 'Nothing to show yet.') + '</p>';

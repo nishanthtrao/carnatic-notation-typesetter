@@ -51,13 +51,14 @@ export const DIRECTIVES: DirectiveInfo[] = (
     ['LineBreak', 'LineBreak', 'New line (manual tala mode)', 'layout'],
     ['Pagebreak', 'Pagebreak', 'New page when printing', 'layout'],
     ['Orientation', 'Orientation: Landscape', 'Portrait or landscape page', 'layout'],
+    ['SongInfo', 'SongInfo: Composer Center, Raga Center Lines, Tala Center', 'Where the composer, raga with its scale, and tala go: left, centre or right', 'song'],
     ['Margin', 'Margin: 15mm', 'Space around the notation on the printed page (mm, cm or in)', 'layout'],
   ] as [string, string, string, GroupId][]
 ).map(([name, template, help, group]) => ({ name, template, help, group }));
 
 /** The order directives are shown in within each Assist group. */
 export const GROUP_ORDER: string[] = [
-  'Title', 'Heading', 'Raga', 'Arohana', 'Avarohana', 'Composer',
+  'Title', 'Heading', 'Raga', 'Arohana', 'Avarohana', 'Composer', 'SongInfo',
   'S', 'L', 'SmartLyricMode',
   'Tala', 'AvartanamsPerLine', 'DefaultSpeed', 'Gati', 'SpeedMarks', 'PhraseEnds',
   'Language', 'LanguageFont',
@@ -98,6 +99,7 @@ const VALUE_COMPLETIONS: Record<string, () => string[]> = {
   margin: () => ['10mm', '12mm', '15mm', '20mm', '0.5in', '1in'],
   spacing: () => ['Tight', 'Normal', 'Wide'],
   grouping: () => ['Off', 'On'],
+  songinfo: () => ['Composer Right, Raga Left Lines, Tala Left', 'Composer Center, Raga Center TwoLines, Tala Center', 'Composer Right, Raga Left OneLine, Tala Right'],
   avartanamsperline: () => ['1', '2', '3', '4', 'Default'],
   defaultspeed: () => ['0', '1', '2'],
   languagefont: () => ['All', ...LANG_OPTIONS.map(([v]) => v)],

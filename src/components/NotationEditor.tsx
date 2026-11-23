@@ -67,6 +67,9 @@ export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationE
     hl.current.scrollTop = ta.current.scrollTop;
     hl.current.scrollLeft = ta.current.scrollLeft;
     if (numbers.current) numbers.current.style.transform = 'translateY(' + -ta.current.scrollTop + 'px)';
+    // fade the right edge while some lines run on past it
+    const t = ta.current;
+    t.parentElement?.classList.toggle('more-right', t.scrollLeft + t.clientWidth < t.scrollWidth - 2);
   };
   /** The line-number strip, with a marker on each line that has a problem. */
   const paintNumbers = () => {
@@ -111,7 +114,13 @@ export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationE
   };
   useEffect(() => {
     paint();
-    return () => cancelAnimationFrame(frame.current);
+    // the edge fade depends on the width too (turning a phone, switching to Text)
+    const ro = typeof ResizeObserver !== 'undefined' && ta.current ? new ResizeObserver(() => sync()) : null;
+    if (ro && ta.current) ro.observe(ta.current);
+    return () => {
+      cancelAnimationFrame(frame.current);
+      ro?.disconnect();
+    };
   }, []);
   // the problems change after each parse: redraw the markers
   useEffect(() => {
