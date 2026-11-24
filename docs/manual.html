@@ -185,8 +185,9 @@ L:       brO . va    bhA ra mA   ra ghu rA</pre>
     <pre class="plain">Tala: Tala_Name
 Tala: Tala_Name,Manual
 Tala: Tala_Name,Manual,InlineTalaMarkers
-Tala: Manual</pre>
-    <p>The tala decides where tala markers go and where lines break. Names are case-insensitive.</p>
+Tala: Manual
+Tala: Tala_Name,Show</pre>
+    <p>The tala decides where tala markers go and where lines break. Names are case-insensitive. Add <code>,Show</code> <span class="ext">new</span> to print the tala with the song details (raga, composer); in an Indian-script <code>Language</code> its label and name are written in that script (ತಾಳ, తాళం, தாளம், താളം, ताल). <a href="#extensions">SongInfo</a> sets where it goes. <b>Assist</b> on the Tala line has a checkbox for it.</p>
     <table class="t">
       <tr><th>Tala</th><th>Write</th></tr>
       <tr><td>Adi</td><td><code>Adi</code>, <code>Tisra_Adi</code> (tiśra gati), <code>Adi2Kalai</code></td></tr>
@@ -290,7 +291,7 @@ S: ( s' n' d p- n d p m ) pa ( s' n' d p- n d p m ) pa ; ;</pre>
 Heading: "---"
 Heading: "[|*P:*|nAdalOluDai brahmAnandamandavE manasA|\
 |*A:*|svAdu phalaprada sapta svara rAga nicaya sahita|]",11</pre>
-    <p><code>Title: "song name"</code> sets the page title, which browsers can print in the page header. <code>Pagebreak</code> forces a new page when printing. <code>Orientation: Landscape</code> (or <code>Portrait</code>) sets the printed page orientation; you can add a margin such as <code>Orientation: Landscape,0.5in</code>.</p>
+    <p><code>Title: "song name"</code> sets the page title, which browsers can print in the page header. <code>Pagebreak</code> forces a new page when printing. <code>Orientation: Landscape</code> (or <code>Portrait</code>) sets the printed page orientation. <code>Margin: 15mm</code> <span class="ext">new</span> sets the space around the notation on every side of the printed page, in <code>mm</code>, <code>cm</code> or <code>in</code> (default 12mm, at most 60mm); the page on screen shows it to scale, so line breaks match the print. The original form <code>Orientation: Landscape,0.5in</code> still works.</p>
 
     <h2 id="language">Language and LanguageFont</h2>
     <p><code>Language: English</code> (default), <code>Diacritics</code>, <code>Sanskrit</code>, <code>Telugu</code>, <code>Tamil</code>, <code>Kannada</code> or <code>Malayalam</code> sets the script for swaras, lyrics and headings. Lyrics and headings are typed in the Unified Transliteration Scheme:</p>
@@ -342,7 +343,8 @@ L: sa ri ga ma pa da ni sa sa ni da pa ma ga ri sa</pre>
     <p>Everything above follows the v1.5 manual. These extras are new; files that use them won't work on the old site.</p>
     <table class="t">
       <tr><th>Write</th><th>Meaning</th></tr>
-      <tr><td><code>Raga: mOhanam</code>, <code>Composer: …</code>, <code>Arohana: s r2 g3 p d2 s'</code>, <code>Avarohana: …</code></td><td>A centred information line; ārōhaṇam/avarōhaṇam are drawn as swaras, so <code>s'</code> and <code>n`</code> get their dots and <code>r2</code> its subscript. With an Indian-script <code>Language</code>, the labels and the raga and composer names are written in that script; the composer line is labelled as a composition, the way books in each language do: ರಚನೆ (Kannada), రచన (Telugu), இயற்றியவர் (Tamil), രചന (Malayalam), रचना (Devanagari). <b>Assist</b> on any of these lines opens a scale builder: start from a well-known raga, tap swaras (choose the upper or lower octave first for a dot), reverse the ārōhaṇam for the avarōhaṇam, and see a preview.</td></tr>
+      <tr><td><code>Raga: mOhanam</code>, <code>Composer: …</code>, <code>Arohana: s r2 g3 p d2 s'</code>, <code>Avarohana: …</code></td><td>Song details, shown as a short list with the labels lined up (see <code>SongInfo</code> below for where they go); ārōhaṇam/avarōhaṇam are drawn as swaras, so <code>s'</code> and <code>n`</code> get their dots and <code>r2</code> its subscript. With an Indian-script <code>Language</code>, the labels and the raga and composer names are written in that script; the composer line is labelled as a composition, the way books in each language do: ರಚನೆ (Kannada), రచన (Telugu), இயற்றியவர் (Tamil), രചന (Malayalam), रचना (Devanagari). <b>Assist</b> on any of these lines opens a scale builder: start from a well-known raga, tap swaras (choose the upper or lower octave first for a dot), reverse the ārōhaṇam for the avarōhaṇam, and see a preview.</td></tr>
+      <tr><td><code>SongInfo: Composer Right, Raga Left TwoLines, Tala Left</code> <span class="ext">new</span></td><td>Where the song details go. Name a group (<code>Composer</code>, <code>Raga</code>, <code>Tala</code>) and its side: <code>Left</code>, <code>Center</code> (the default) or <code>Right</code>; leave out any group to keep it where it is. For the raga also choose its lines: <code>Lines</code> (raga, ārōhaṇam and avarōhaṇam each on its own line, the default), <code>TwoLines</code> (the raga, then the scale on the next line) or <code>OneLine</code>. Groups on the same side are stacked: composer first, then the raga, then the tala; on different sides they sit next to each other. <b>Assist</b> on the line shows it as a form.</td></tr>
       <tr><td><code>Section: pallavi</code> &nbsp; <code>Text: …</code></td><td>Quick headings without quotes or attributes.</td></tr>
       <tr><td><code>r1 r2 g3 …</code></td><td>Swara variants shown with a subscript number.</td></tr>
       <tr><td><code>srgm</code></td><td>Plain swaras may be written joined; same as <code>s r g m</code>.</td></tr>

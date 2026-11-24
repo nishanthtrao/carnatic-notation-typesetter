@@ -217,11 +217,12 @@ button { font: inherit; color: inherit; }
   background: light-dark(#fff, #1c1c1e); /* the same as the sheet (notation.css) */
   border-radius: 4px;
   box-shadow: var(--shadow-page);
-  padding: clamp(16px, 4.5vw, 52px) clamp(14px, 5vw, 60px);
   min-height: 100%;
   color: light-dark(#1a1a1a, #f2f2f7);
 }
 .paper.landscape { max-width: 1240px; }
+/* the page margin (Margin: directive) drawn to scale: a percentage padding is a share of the page's width */
+.paper > .cm-sheet { padding: calc(var(--page-margin, 0.057) * 100%); }
 
 /* zoom: the page is drawn scaled, inside a box the size of the scaled page */
 .zoom-box.fit { display: contents; }
@@ -296,6 +297,23 @@ button { font: inherit; color: inherit; }
   background: var(--surface);
 }
 .code-area { position: relative; flex: 1; min-width: 0; display: flex; }
+/* a soft fade at the right edge when lines run on past it (they don't wrap, so lyrics stay under their swaras) */
+.code-area::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 28px;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(to right, transparent, var(--surface));
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.code-area.more-right::after {
+  opacity: 1;
+}
 textarea#input, .code .hl {
   margin: 0;
   padding: 14px 16px 28px 10px;
@@ -635,6 +653,7 @@ select optgroup {
 .review-text { min-height: 200px; flex: 1; }
 .review-preview { max-height: 32vh; overflow: auto; border-radius: var(--radius); background: var(--canvas); padding: 8px; }
 .review-preview .paper { padding: 12px 16px; min-height: 0; }
+.review-preview .paper > .cm-sheet { padding: 0; }
 .review-preview .preview-scroll { padding: 0; overflow: visible; }
 .review-notes { margin-top: 12px; background: var(--orange-soft); border-radius: var(--radius); padding: 10px 14px; font-size: 12.5px; }
 .review-notes b { font-weight: 600; }
@@ -716,6 +735,7 @@ select optgroup {
   .zoom-box { display: contents !important; }
   .paper.zoomed { transform: none !important; width: auto !important; }
   .paper { box-shadow: none; padding: 0; max-width: none; min-height: 0; border-radius: 0; color-scheme: light; }
+  .paper > .cm-sheet { padding: 0; } /* the printer's page has the margin (@page) */
   .cm-staff[data-line] { cursor: default; }
 }
 
@@ -1143,3 +1163,17 @@ select optgroup {
 .dlg a.chat-app.primary-link:hover { background: var(--accent-hover); }
 .chat-switch { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--label-2); }
 .chat-switch select { min-height: 28px; font-size: 13px; }
+
+/* Read Photo: optional hints folded away */
+.dlg details.more-details {
+  margin: 10px 0 2px;
+}
+.dlg details.more-details > summary {
+  cursor: pointer;
+  color: var(--label-2);
+  font-size: 13px;
+  padding: 4px 0;
+}
+.dlg details.more-details[open] > summary {
+  margin-bottom: 8px;
+}
