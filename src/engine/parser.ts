@@ -375,6 +375,7 @@ export function parse(input: string): NotationDoc {
         };
       }
       ev.t = s.time;
+      ev.line = no;
       ev.path = pathStack.slice();
       s.time += ev.dur;
       s.events.push(ev);

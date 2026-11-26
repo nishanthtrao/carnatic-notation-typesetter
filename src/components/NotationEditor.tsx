@@ -39,6 +39,8 @@ interface Props {
   onIssue?: (issue: LineIssue) => void;
   onInput: (text: string) => void;
   onShortcut: (cmd: 'update' | 'save' | 'saveAs' | 'letters') => void;
+  /** the S: line being edited (the one above, for an L: line), or null; for the preview to follow */
+  onCursorLine?: (line: number | null) => void;
   /** pasted Indian-script text was converted; original kept for "Keep original" */
   onPasteConverted?: (info: { start: number; original: string; converted: string; scriptName: string; languageWord: string }) => void;
 }
@@ -50,7 +52,7 @@ const KEYS: [string, string, string?][] = [
   ['S:', '\nS: '], ['L:', '\nL: '],
 ];
 
-export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationEditor({ initialValue, issues = [], onIssue, onInput, onShortcut, onPasteConverted }, ref) {
+export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationEditor({ initialValue, issues = [], onIssue, onInput, onShortcut, onPasteConverted, onCursorLine }, ref) {
   const ta = useRef<HTMLTextAreaElement>(null);
   const hl = useRef<HTMLPreElement>(null);
   const gutter = useRef<HTMLDivElement>(null);
@@ -58,6 +60,24 @@ export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationE
   const code = useRef<HTMLDivElement>(null);
   const issuesRef = useRef(issues);
   issuesRef.current = issues;
+  const cursorCb = useRef(onCursorLine);
+  cursorCb.current = onCursorLine;
+  const reported = useRef<number | null>(null);
+  /** Tell the preview which S: line the cursor is in: an L: line belongs to the S: line above it. */
+  const reportLine = (focused = document.activeElement === ta.current) => {
+    const el = ta.current;
+    if (!el || !cursorCb.current) return;
+    let owner: number | null = null;
+    if (focused) {
+      const lines = el.value.split('\n');
+      let i = el.value.slice(0, el.selectionStart).split('\n').length - 1;
+      while (i > 0 && /^\s*L\s*:/i.test(lines[i])) i--;
+      if (/^\s*S\s*:/i.test(lines[i] || '')) owner = i + 1;
+    }
+    if (owner === reported.current) return;
+    reported.current = owner;
+    cursorCb.current(owner);
+  };
 
   // Syntax colours: the text is drawn again, coloured, in a <pre> behind the
   // textarea (whose own text is transparent), scrolled in step with it.
@@ -86,6 +106,7 @@ export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationE
       html += '<div class="' + cls + '" data-line="' + n + '"' + title + '>' + n + '</div>';
     }
     numbers.current.innerHTML = html;
+    reportLine();
     code.current?.style.setProperty('--digits', String(Math.max(2, String(count).length)));
     shownLine.current = cur;
   };
@@ -96,6 +117,7 @@ export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationE
   // highlight the number of the line the cursor is on
   const shownLine = useRef(0);
   const markCurrent = () => {
+    reportLine();
     const n = currentLine();
     if (n === shownLine.current || !numbers.current) return;
     numbers.current.children[shownLine.current - 1]?.classList.remove('cur');
@@ -265,6 +287,8 @@ export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationE
         onSelect={markCurrent}
         onKeyUp={markCurrent}
         onPointerUp={markCurrent}
+        onFocus={() => reportLine(true)}
+        onBlur={() => reportLine(false)}
         onPaste={(e) => {
           const original = e.clipboardData.getData('text/plain');
           if (!original || !hasIndic(original)) return; // ordinary paste

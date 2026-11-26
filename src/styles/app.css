@@ -261,7 +261,10 @@ button { font: inherit; color: inherit; }
 .zoom-pill .ico { width: 16px; height: 16px; }
 .zoom-pill .zoom-value { min-width: 48px; font: 500 12px/1 var(--font); font-variant-numeric: tabular-nums; }
 .cm-staff[data-line] { cursor: pointer; }
-.cm-staff.flash { animation: flash 0.9s ease-out; }
+.cm-staff.flash, .cm-row.flash { animation: flash 0.9s ease-out; }
+/* the row typeset from the S: line being edited */
+.cm-row.cm-current { background: var(--accent-soft); border-radius: 3px; box-shadow: 0 0 0 0.25em var(--accent-soft); }
+@media print { .cm-row.cm-current { background: none; box-shadow: none; } }
 @keyframes flash { from { background: #fff1c9; } to { background: transparent; } }
 
 .splitter {

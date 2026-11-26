@@ -144,6 +144,7 @@ export function splitAcrossBars(seg: Segment): void {
           path: ev.path,
           lyrics: [],
           phraseEnd: last && ev.phraseEnd,
+          line: ev.line,
         });
       }
     }
