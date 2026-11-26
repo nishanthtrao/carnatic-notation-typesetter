@@ -5,6 +5,7 @@ import { Preview } from '../components/Preview';
 import { parse } from '../engine';
 import { checkReply, recognizeNotation, reviewWarnings, RecognitionError, type RecognitionResult } from '../recognition/recognize';
 import { prepareImage } from '../recognition/image';
+import { isPdf, pdfPages } from '../recognition/pdf';
 import { chatAppPrompt, chatRepairPrompt, type RecognitionHints } from '../recognition/prompt';
 import { estimateCost, PROVIDER_ORDER, PROVIDERS, type ApiProviderId, type ProviderId } from '../recognition/providers';
 import { loadApiKeys, loadSettings, modelInfo, saveSettings, type ApiKeys, type RecognitionSettings } from '../recognition/settings';
@@ -19,6 +20,8 @@ interface Page {
   file: File;
   url: string;
   rotation: number;
+  /** the PDF this page was drawn from */
+  pdf?: string;
 }
 
 type Step =
@@ -131,7 +134,7 @@ export function PhotoImportDialog({ open, onClose, onOpenSettings, settingsVersi
   useEffect(() => {
     if (!open || step.kind !== 'pick') return;
     const onPaste = (e: ClipboardEvent) => {
-      const files = Array.from(e.clipboardData?.files || []).filter((f) => f.type.startsWith('image/'));
+      const files = Array.from(e.clipboardData?.files || []).filter((f) => f.type.startsWith('image/') || isPdf(f));
       if (files.length) {
         e.preventDefault();
         addFiles(files);
@@ -141,15 +144,40 @@ export function PhotoImportDialog({ open, onClose, onOpenSettings, settingsVersi
     return () => window.removeEventListener('paste', onPaste);
   });
 
-  const addFiles = (files: File[]) => {
+  const [opening, setOpening] = useState('');
+  const pagesRef = useRef<Page[]>([]);
+  pagesRef.current = pages;
+  const addFiles = async (files: File[]) => {
     setError('');
-    const imgs = files.filter((f) => f.type.startsWith('image/') || /\.(jpe?g|png|webp|gif|heic)$/i.test(f.name));
-    if (imgs.length < files.length) setError('Only image files can be read (JPEG, PNG or WebP).');
-    setPages((ps) => {
-      const room = MAX_PAGES - ps.length;
-      if (imgs.length > room) setError('Up to ' + MAX_PAGES + ' pages can be read at once.');
-      return ps.concat(imgs.slice(0, Math.max(0, room)).map((file) => ({ id: nextId++, file, url: URL.createObjectURL(file), rotation: 0 })));
-    });
+    const usable = files.filter((f) => isPdf(f) || f.type.startsWith('image/') || /\.(jpe?g|png|webp|gif|heic)$/i.test(f.name));
+    const problems: string[] = [];
+    if (usable.length < files.length) problems.push('Only photos (JPEG, PNG or WebP) and PDFs can be read.');
+    let room = MAX_PAGES - pagesRef.current.length;
+    const added: Page[] = [];
+    for (const f of usable) {
+      if (room <= 0) {
+        problems.push('Up to ' + MAX_PAGES + ' pages can be read at once.');
+        break;
+      }
+      if (!isPdf(f)) {
+        added.push({ id: nextId++, file: f, url: URL.createObjectURL(f), rotation: 0 });
+        room--;
+        continue;
+      }
+      setOpening('Opening “' + f.name + '”…');
+      try {
+        const { files: imgs, total } = await pdfPages(f, room);
+        for (const img of imgs) added.push({ id: nextId++, file: img, url: URL.createObjectURL(img), rotation: 0, pdf: f.name });
+        room -= imgs.length;
+        if (total > imgs.length)
+          problems.push('“' + f.name + '” has ' + total + ' pages; the first ' + imgs.length + ' were added (' + MAX_PAGES + ' pages at a time). Read the rest in a second round.');
+      } catch (e) {
+        problems.push(e instanceof Error ? e.message : String(e));
+      }
+    }
+    setOpening('');
+    setPages((ps) => ps.concat(added));
+    if (problems.length) setError(problems.join(' '));
   };
 
   const reset = () => {
@@ -223,6 +251,18 @@ export function PhotoImportDialog({ open, onClose, onOpenSettings, settingsVersi
     } catch {
       /* cancelled; the instructions are still copied */
     }
+  };
+  // the PDFs the pages came from, and a way to save the page images for an app that can't read a PDF
+  const pdfNames = [...new Set(pages.map((p) => p.pdf).filter((n): n is string => !!n))];
+  const savePages = () => {
+    pages.forEach((p, i) => {
+      const a = document.createElement('a');
+      a.href = p.url;
+      a.download = p.file.name || 'page-' + (i + 1) + '.jpg';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    });
   };
   const checkPasted = () => {
     const result = checkReply(reply);
@@ -354,13 +394,24 @@ export function PhotoImportDialog({ open, onClose, onOpenSettings, settingsVersi
                 </details>
               </li>
               <li>
-                <b>{app.url ? 'Open ' + app.name : 'Open your AI app'}</b> in a new chat, attach {pages.length > 1 ? 'your ' + pages.length + ' photos (in order)' : 'your photo'} and paste the instructions.
+                <b>{app.url ? 'Open ' + app.name : 'Open your AI app'}</b> in a new chat, attach{' '}
+                {pdfNames.length
+                  ? (pdfNames.length > 1 ? 'your PDFs' : '“' + pdfNames[0] + '”') + (pages.some((p) => !p.pdf) ? ' and your photos (in order)' : '')
+                  : pages.length > 1 ? 'your ' + pages.length + ' photos (in order)' : 'your photo'}{' '}
+                and paste the instructions.
+                {pdfNames.length > 0 && <> If the app says it can’t see what’s in the PDF, attach the page images instead (<b>Save page images</b> below).</>}{' '}
                 If the app lets you choose a model, pick its most capable one, or one that thinks or reasons before answering: it reads handwriting much better.
                 <div className="chat-actions">
                   {app.url && (
                     <a className="chat-app primary-link" href={app.url} target="_blank" rel="noopener">
                       Open {app.name} ↗
                     </a>
+                  )}
+                  {pdfNames.length > 0 && (
+                    <button type="button" onClick={savePages}>
+                      <Icon name="save" />
+                      Save page images
+                    </button>
                   )}
                   <label className="chat-switch">
                     {app.url ? 'or use' : 'Use'}{' '}
@@ -409,7 +460,7 @@ export function PhotoImportDialog({ open, onClose, onOpenSettings, settingsVersi
   // ---- pick images -------------------------------------------------------------
   return (
     <Modal
-      title="Read notation from a photo"
+      title="Read notation from a photo or PDF"
       open={open}
       onClose={close}
       wide
@@ -418,7 +469,7 @@ export function PhotoImportDialog({ open, onClose, onOpenSettings, settingsVersi
           {PHOTO_API && <button type="button" onClick={onOpenSettings}><Icon name="settings" />Settings</button>}
           <span className="spacer" />
           <button type="button" onClick={close}>Cancel</button>
-          <button type="button" className="primary" disabled={!!api && !!apiKey && !pages.length} onClick={read}>
+          <button type="button" className="primary" disabled={!!opening || (!!api && !!apiKey && !pages.length)} onClick={read}>
             {!api ? 'Next' : apiKey ? 'Read notation' : 'Add API key…'}
           </button>
         </>
@@ -435,7 +486,7 @@ export function PhotoImportDialog({ open, onClose, onOpenSettings, settingsVersi
       >
         {pages.map((p, i) => (
           <figure key={p.id} className="page-thumb">
-            <img src={p.url} alt={'Page ' + (i + 1)} style={{ transform: `rotate(${p.rotation}deg)` }} />
+            <img src={p.url} alt={'Page ' + (i + 1) + (p.pdf ? ' (from ' + p.pdf + ')' : '')} title={p.pdf ? 'From ' + p.pdf : undefined} style={{ transform: `rotate(${p.rotation}deg)` }} />
             <figcaption>
               Page {i + 1}
               <button type="button" title="Rotate" aria-label={'Rotate page ' + (i + 1)} onClick={() => setPages((ps) => ps.map((x) => (x.id === p.id ? { ...x, rotation: (x.rotation + 90) % 360 } : x)))}>
@@ -447,17 +498,24 @@ export function PhotoImportDialog({ open, onClose, onOpenSettings, settingsVersi
             </figcaption>
           </figure>
         ))}
-        {pages.length < MAX_PAGES && (
-          <button type="button" className="add-page" onClick={() => fileInput.current?.click()}>
-            <Icon name="photo" />
-            <span>{pages.length ? 'Add a page' : 'Choose or take a photo'}</span>
-            <small>or drop / paste an image here</small>
-          </button>
+        {opening ? (
+          <div className="add-page busy" role="status">
+            <span className="spinner" aria-hidden="true" />
+            <span>{opening}</span>
+          </div>
+        ) : (
+          pages.length < MAX_PAGES && (
+            <button type="button" className="add-page" onClick={() => fileInput.current?.click()}>
+              <Icon name="photo" />
+              <span>{pages.length ? 'Add a page' : 'Choose a photo or PDF'}</span>
+              <small>or drop / paste it here</small>
+            </button>
+          )
         )}
         <input
           ref={fileInput}
           type="file"
-          accept="image/*"
+          accept="image/*,application/pdf,.pdf"
           multiple
           hidden
           onChange={(e) => {
@@ -520,14 +578,14 @@ export function PhotoImportDialog({ open, onClose, onOpenSettings, settingsVersi
       <p className="hint">
         {!api ? (
           <>
-            Your chosen AI app reads the photo, using your own account there. Adding the photo here is optional; it lets you compare.{' '}
+            Your chosen AI app reads the photo or PDF, using your own account there. Adding it here is optional; it lets you compare.{' '}
           </>
         ) : apiKey ? (
           <>Uses {modelLabel} with your API key; the photo is sent to {PROVIDERS[api].company} to be read. </>
         ) : (
           <>Needs your own {PROVIDERS[api].name} API key — press <b>Settings</b>, or choose “My AI chat app” to use an app you already have. </>
         )}
-        Clear, flat, well-lit photos of one page each work best.
+        Clear, flat, well-lit photos of one page each work best; a PDF's pages are added one by one.
       </p>
     </Modal>
   );

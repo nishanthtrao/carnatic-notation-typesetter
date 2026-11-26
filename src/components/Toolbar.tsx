@@ -30,7 +30,7 @@ const GROUPS: Item[][] = [
     { cmd: 'align', label: 'Align', title: 'Line up lyrics under their swaras', icon: 'align', secondary: true },
     { cmd: 'examples', label: 'Examples', title: 'Open an example', icon: 'examples', secondary: true },
   ],
-  [{ cmd: 'photo', label: 'Read Photo', title: 'Read handwritten notation from a photo', icon: 'photo', prominent: true }],
+  [{ cmd: 'photo', label: 'Read Photo', title: 'Read handwritten or printed notation from a photo or PDF', icon: 'photo', prominent: true }],
   [
     { cmd: 'share', label: 'Share', title: 'Copy a link to this notation', icon: 'share', only: 'web' },
     { cmd: 'exportPdf', label: 'PDF', title: 'Export as PDF (⌘E)', icon: 'pdf', only: 'desktop' },

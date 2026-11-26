@@ -69,7 +69,7 @@ const STOPS: Stop[] = [
   {
     targets: ['photo'],
     title: 'Read Photo',
-    body: 'Turns a photo of handwritten or printed notation into text you can edit. It uses an AI model with your own account, and you check the result before using it.',
+    body: 'Turns a photo or a scanned PDF of handwritten or printed notation into text you can edit. It uses an AI model with your own account, and you check the result before using it.',
   },
   {
     targets: ['share', 'exportPdf', 'print'],

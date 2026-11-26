@@ -430,7 +430,8 @@ function Editor({ initial }: { initial: Initial }) {
       const files = Array.from(e.dataTransfer?.files || []);
       if (!files.length) return;
       e.preventDefault();
-      const images = files.filter((f) => f.type.startsWith('image/'));
+      // photos and PDFs go to Read Photo; anything else is opened as a song
+      const images = files.filter((f) => f.type.startsWith('image/') || f.type === 'application/pdf' || /\.pdf$/i.test(f.name));
       if (images.length) {
         setDroppedImages(images);
         setDialog('photo');
