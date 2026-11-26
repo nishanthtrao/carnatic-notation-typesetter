@@ -32,10 +32,40 @@ function csp(): Plugin {
   };
 }
 
+// PDF reading (Read Photo): PDF.js needs a few files of its own at run time:
+// the plain-JavaScript image decoders for scans (JBIG2 / fax and JPEG 2000;
+// the WebAssembly ones would need 'wasm-unsafe-eval' in the CSP) and the
+// standard fonts for PDFs that don't embed theirs. Served under pdfjs/.
+const PDFJS = resolve(import.meta.dirname, 'node_modules/pdfjs-dist');
+const PDFJS_FILES = [
+  ['LICENSE', join(PDFJS, 'LICENSE')],
+  ...['jbig2_nowasm_fallback.js', 'openjpeg_nowasm_fallback.js', 'LICENSE_JBIG2', 'LICENSE_PDFJS_JBIG2', 'LICENSE_OPENJPEG', 'LICENSE_PDFJS_OPENJPEG']
+    .map((f) => ['wasm/' + f, join(PDFJS, 'wasm', f)]),
+  ...readdirSync(join(PDFJS, 'standard_fonts')).map((f) => ['standard_fonts/' + f, join(PDFJS, 'standard_fonts', f)]),
+];
+function pdfjsFiles(): Plugin {
+  return {
+    name: 'cmnt-pdfjs-files',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const m = req.url?.match(/\/pdfjs\/([^?#]+)/);
+        const hit = m && PDFJS_FILES.find(([name]) => name === decodeURIComponent(m[1]));
+        if (!hit) return next();
+        res.setHeader('Content-Type', hit[0].endsWith('.js') ? 'text/javascript' : 'application/octet-stream');
+        res.end(readFileSync(hit[1]));
+      });
+    },
+    generateBundle() {
+      for (const [name, file] of PDFJS_FILES) this.emitFile({ type: 'asset', fileName: 'pdfjs/' + name, source: readFileSync(file) });
+    },
+  };
+}
+
 // Offline support: after the build, write dist/sw.js from src/sw-template.js
 // with the list of files to keep. The optional Sans/Rounded fonts are left out
-// (cached when a sheet first uses them); everything else is about 1 MB.
-const OPTIONAL = /\/(anek|baloo|nunito)-[^/]*\.woff2$/;
+// (cached when a sheet first uses them), and so is the PDF reader (about
+// 2.5 MB, fetched only when a PDF is added); everything else is about 1 MB.
+const OPTIONAL = /\/(anek|baloo|nunito)-[^/]*\.woff2$|\/pdfjs\/|\/pdf(\.worker)?(\.min)?-[^/]*\.m?js$/;
 function serviceWorker(): Plugin {
   let outDir = 'dist';
   return {
@@ -69,7 +99,7 @@ function serviceWorker(): Plugin {
 // sub-folders, freepgs) and inside the desktop app (file://).
 export default defineConfig({
   base: './',
-  plugins: [react(), csp(), serviceWorker()],
+  plugins: [react(), csp(), pdfjsFiles(), serviceWorker()],
   build: {
     outDir: 'dist',
     rollupOptions: {
