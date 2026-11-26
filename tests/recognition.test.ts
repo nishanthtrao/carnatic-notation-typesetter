@@ -60,6 +60,23 @@ describe('prompt', () => {
       expect(b).not.toMatch(/SmartLyricMode/);
     }
   });
+  test('the examples follow the three-part layout the prompt asks for', () => {
+    const blocks = [...SYSTEM_PROMPT.matchAll(/# Example[^\n]*\n<notation>\n([\s\S]*?)<\/notation>/g)].map((m) => m[1]);
+    for (const b of blocks) {
+      const lines = b.split('\n');
+      const settings = lines.indexOf('# ── Settings: these apply to everything below ──');
+      const details = lines.indexOf('# ── Title and song details ──');
+      const section = lines.findIndex((l, i) => i > details && /^# ── .+ ──$/.test(l));
+      expect(settings).toBe(0);
+      expect(details).toBeGreaterThan(settings);
+      expect(section).toBeGreaterThan(details);
+      const names = lines.slice(settings + 1, details).filter((l) => l.trim()).map((l) => l.split(':')[0]);
+      expect(names).toEqual(['Title', 'Language', 'Tala', 'DefaultSpeed', 'AvartanamsPerLine']);
+      expect(lines[details + 1]).toMatch(/^Heading: /);
+      // Song details carry real values only: no empty or placeholder lines.
+      for (const l of lines.slice(details + 1, section)) expect(l).not.toMatch(/^(Raga|Composer|Arohana|Avarohana):\s*$/);
+    }
+  });
   test('hints are passed on', () => {
     const t = userInstruction({ script: 'telugu', tala: 'Rupaka', raga: 'mOhanam', notes: 'dashes are commas' }, 2);
     expect(t).toMatch(/2 pages/);
