@@ -56,7 +56,9 @@ function pdfjsFiles(): Plugin {
       });
     },
     generateBundle() {
-      for (const [name, file] of PDFJS_FILES) this.emitFile({ type: 'asset', fileName: 'pdfjs/' + name, source: readFileSync(file) });
+      // licence texts get .txt so every host serves them as text
+      for (const [name, file] of PDFJS_FILES)
+        this.emitFile({ type: 'asset', fileName: 'pdfjs/' + (/LICENSE[^.]*$/.test(name) ? name + '.txt' : name), source: readFileSync(file) });
     },
   };
 }

@@ -57,6 +57,6 @@ License, version 2** (see `LICENSE`), the same licence as the original.
 - PDF reading in Read Photo: Mozilla PDF.js (`pdfjs-dist`), under the Apache
   License 2.0; with it, the PDFium JBIG2 decoder (BSD 3-clause), the OpenJPEG
   decoder (BSD 2-clause) and the Foxit (BSD-style) and Liberation (SIL OFL 1.1)
-  standard fonts. Their licence texts are served with them under `pdfjs/`.
+  standard fonts. Their licence texts are served with them under `pdfjs/` (`LICENSE*.txt`).
   These files load only when a PDF is added.
 - npm packages: see `package.json`; each is under its own licence.
