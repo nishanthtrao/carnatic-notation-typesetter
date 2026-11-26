@@ -573,7 +573,7 @@ textarea#input::selection { background: var(--accent-soft); }
 
 .form-grid { display: grid; grid-template-columns: max-content 1fr; gap: 10px 14px; align-items: center; }
 .form-grid > label { color: var(--label-2); font-size: 13px; text-align: right; }
-.form-grid input[type='text'], .form-grid input[type='number'], .form-grid input[type='password'], .form-grid select, .form-grid textarea {
+.form-grid input[type='text'], .form-grid input[type='number'], .form-grid input[type='password'], .form-grid input[type='search'], .form-grid select, .form-grid textarea {
   width: 100%;
   padding: 6px 10px;
   border: 0;
@@ -1176,4 +1176,66 @@ select optgroup {
 }
 .dlg details.more-details[open] > summary {
   margin-bottom: 8px;
+}
+
+/* Scale form: find a raga */
+.raga-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.raga-picker input[type='search'] {
+  width: 100%;
+}
+.raga-results {
+  list-style: none;
+  margin: 0;
+  padding: 2px;
+  max-height: 188px;
+  overflow-y: auto;
+  border: 1px solid var(--separator);
+  border-radius: 8px;
+  background: var(--field-bg, transparent);
+}
+.raga-results li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 8px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.raga-results li[aria-selected='true'] {
+  background: var(--fill-2, rgba(120, 120, 128, 0.16));
+}
+.raga-results li.picked .raga-name::after {
+  content: ' ✓';
+  color: var(--accent);
+}
+.raga-name {
+  font-weight: 600;
+}
+.raga-where {
+  color: var(--label-2);
+  font-size: 12px;
+  text-align: right;
+  align-self: center;
+}
+.raga-scale {
+  grid-column: 1 / -1;
+  color: var(--label-2);
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.raga-results .raga-none {
+  display: block;
+  cursor: default;
+  color: var(--label-2);
+}
+.raga-note {
+  margin: 0;
 }

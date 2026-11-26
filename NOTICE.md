@@ -59,4 +59,7 @@ License, version 2** (see `LICENSE`), the same licence as the original.
   decoder (BSD 2-clause) and the Foxit (BSD-style) and Liberation (SIL OFL 1.1)
   standard fonts. Their licence texts are served with them under `pdfjs/` (`LICENSE*.txt`).
   These files load only when a PDF is added.
+- Raga scales in the Scale form (`src/lib/ragaData.ts`): from Wikipedia, "List of
+  Janya ragas" (CC BY-SA 4.0), converted to this notation, checked against the
+  melakarta system and partly corrected.
 - npm packages: see `package.json`; each is under its own licence.
