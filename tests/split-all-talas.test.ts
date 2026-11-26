@@ -76,7 +76,9 @@ for (const tala of TALAS) {
   if (!/manual/i.test(tala)) CASES.push(tala + ',Manual', tala + ',Manual,InlineTalaMarkers');
 }
 
-test('every tala: nothing runs across a bar, time and lyrics are kept', () => {
+// Typesets several hundred songs: about 2.5 s on a laptop, twice that on GitHub's runners,
+// so it gets more than vitest's default 5 s.
+test('every tala: nothing runs across a bar, time and lyrics are kept', { timeout: 30_000 }, () => {
   const rand = rng(20261116);
   let checked = 0;
   let splits = 0;

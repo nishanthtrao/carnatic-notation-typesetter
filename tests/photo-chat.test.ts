@@ -21,5 +21,9 @@ test('the instructions teach the reader to count each cycle and keep the dots', 
   expect(p).toMatch(/Count the matras in every cycle/);
   expect(p).toMatch(/Octave dots/);
   expect(p).toMatch(/Ditto marks/);
+  // repeat marks of every style, copied by position and listed for review
+  for (const mark of ['-*-', '--"--', '__"__', '〃']) expect(p).toContain(mark);
+  expect(p).toMatch(/SAME position of the line above/);
+  expect(p).toMatch(/filled in from a repeat mark/);
   expect(p).toMatch(/fenced code block/);
 });

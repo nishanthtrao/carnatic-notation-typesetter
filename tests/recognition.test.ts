@@ -4,6 +4,7 @@ import { describe, expect, test } from 'vitest';
 import { parse } from '../src/engine/parser';
 import { checkReply, extractReply, recognizeNotation, RecognitionError } from '../src/recognition/recognize';
 import { estimateCost, explainError, listModels, PROVIDERS, readReply, type ApiProviderId } from '../src/recognition/providers';
+import { checkCycles } from '../src/recognition/cycles';
 import { chatAppPrompt, chatRepairPrompt, SYSTEM_PROMPT, userInstruction } from '../src/recognition/prompt';
 import { decodeKeys, encodeKeys } from '../src/recognition/settings';
 import type { PreparedImage } from '../src/recognition/image';
@@ -50,10 +51,14 @@ function fakeFetch(replies: { status?: number; text?: string; error?: string }[]
 }
 
 describe('prompt', () => {
-  test('the worked example in the system prompt is valid input', () => {
-    const m = SYSTEM_PROMPT.match(/# Example[\s\S]*?<notation>\n([\s\S]*?)<\/notation>/);
-    expect(m).toBeTruthy();
-    expect(parse(m![1]).warnings).toEqual([]);
+  test('every worked example in the system prompt is valid input that adds up', () => {
+    const blocks = [...SYSTEM_PROMPT.matchAll(/# Example[^\n]*\n<notation>\n([\s\S]*?)<\/notation>/g)].map((m) => m[1]);
+    expect(blocks.length).toBeGreaterThanOrEqual(2);
+    for (const b of blocks) {
+      expect(parse(b).warnings).toEqual([]);
+      expect(checkCycles(b)).toEqual([]);
+      expect(b).not.toMatch(/SmartLyricMode/);
+    }
   });
   test('hints are passed on', () => {
     const t = userInstruction({ script: 'telugu', tala: 'Rupaka', raga: 'mOhanam', notes: 'dashes are commas' }, 2);
