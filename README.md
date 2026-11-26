@@ -112,7 +112,7 @@ How it works:
 - **Change the page's look:** edit `src/styles/notation.css`. The horizontal spacing values are in `SP` in `src/engine/render.ts`.
 - **Change the editor's look:** edit `src/styles/app.css`. Colours are semantic variables at the top, with dark-mode values below them.
 - **Add a tala:** edit `SPECIAL` / `SPECIAL_ALIASES` in `src/engine/talas.ts`.
-- **Add a directive:** add a `case` in `parse()` in `src/engine/parser.ts`, document it in `docs/manual.html`, and add it to `DIRECTIVES` in `src/lib/directives.ts` (for Assist and TAB completion).
+- **Add a directive:** add a `case` in `parse()` in `src/engine/parser.ts`, document it in `docs/manual.html`, add it to `DIRECTIVES` in `src/lib/directives.ts` (for Assist and TAB completion), and give it a one-glance explanation in `src/lib/directive-tips.ts`.
 - **Desktop behaviour:** edit `desktop/main.cjs`. The page talks to it only through `desktop/preload.cjs` (typed in `src/lib/desktop.ts`).
 - **Updates:** update dependencies now and then (`npm outdated`, then `npm update`), and Electron in particular for security fixes. Run `npm test` and `npm run app` afterwards.
 

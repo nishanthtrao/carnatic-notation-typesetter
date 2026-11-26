@@ -1177,3 +1177,23 @@ select optgroup {
 .dlg details.more-details[open] > summary {
   margin-bottom: 8px;
 }
+
+/* What a directive does, shown over the editor when its name is pointed at or tapped */
+.directive-tip {
+  position: absolute;
+  z-index: 3;
+  max-width: min(360px, calc(100% - 16px));
+  padding: 6px 9px;
+  border: 1px solid var(--separator);
+  border-radius: 7px;
+  background: var(--material-strong);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  color: var(--label);
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.14);
+  font: 12.5px/1.45 var(--font);
+  white-space: normal;
+  pointer-events: none;
+}
+.directive-tip[hidden] { display: none; }
+.directive-tip strong { font-weight: 600; margin-right: 0.2em; color: var(--label); }
