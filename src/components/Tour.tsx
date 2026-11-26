@@ -74,7 +74,7 @@ const STOPS: Stop[] = [
   {
     targets: ['share', 'exportPdf', 'print'],
     title: 'Share and Print',
-    body: 'Share copies a link that opens this notation for someone else. Print makes a paper copy or a PDF; the page always prints on white.',
+    body: 'Share sends the sheet as a PDF or pictures, straight to WhatsApp or email on a phone, or copies a link that opens this notation for someone else. Print makes a paper copy; the page always prints on white.',
   },
   {
     targets: ['issues'],

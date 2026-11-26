@@ -25,6 +25,13 @@ export function parseMargin(text: string): { css: string; mm: number } | null {
   return { css: n + unit, mm: n * MM[unit] };
 }
 
+/** Page width, height and margin in millimetres, orientation applied. */
+export function pageMm(page: NotationDoc['page']): { width: number; height: number; margin: number } {
+  const [w, h] = SIZES[page.size] || SIZES.A4;
+  const landscape = page.orientation === 'landscape';
+  return { width: landscape ? h : w, height: landscape ? w : h, margin: parseMargin(page.margin || DEFAULT_MARGIN)?.mm ?? 12 };
+}
+
 /** The page's margin as a share of its width (what the screen page uses as padding). */
 export function marginShare(page: NotationDoc['page']): number {
   const [w, h] = SIZES[page.size] || SIZES.A4;

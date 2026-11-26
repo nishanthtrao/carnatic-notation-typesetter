@@ -1177,3 +1177,28 @@ select optgroup {
 .dlg details.more-details[open] > summary {
   margin-bottom: 8px;
 }
+
+/* Share: send the sheet as a PDF or pictures */
+.dlg .share-files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.dlg .share-files button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.dlg .share-files button.primary {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: transparent;
+  font-weight: 600;
+}
+.dlg .share-files button.primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+.dlg .share-sub {
+  font-size: 14px;
+  margin: 18px 0 4px;
+}

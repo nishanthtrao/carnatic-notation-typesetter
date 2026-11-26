@@ -32,7 +32,7 @@ const GROUPS: Item[][] = [
   ],
   [{ cmd: 'photo', label: 'Read Photo', title: 'Read handwritten or printed notation from a photo or PDF', icon: 'photo', prominent: true }],
   [
-    { cmd: 'share', label: 'Share', title: 'Copy a link to this notation', icon: 'share', only: 'web' },
+    { cmd: 'share', label: 'Share', title: 'Send the sheet as a PDF or pictures (WhatsApp, email), or copy a link', icon: 'share', only: 'web' },
     { cmd: 'exportPdf', label: 'PDF', title: 'Export as PDF (⌘E)', icon: 'pdf', only: 'desktop' },
     { cmd: 'print', label: 'Print', title: 'Print (⌘P)', icon: 'print', secondary: 'phone' },
     { cmd: 'tour', label: 'Tour', title: 'A quick guided tour: what each button does', icon: 'tour', secondary: true },
