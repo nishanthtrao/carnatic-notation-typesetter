@@ -58,9 +58,11 @@ function SyntaxHelp() {
       <p className="syn-lead">Separate swaras with spaces.</p>
       <ul className="syn-list">
         <Ex code={<code>s r g m p d n</code>}>Short swaras: one mātra each</Ex>
-        <Ex code={<><code>sa ri ga</code> or <code>S R G</code></>}>Long (dīrgha) swaras: two mātras each</Ex>
-        <Ex code={<code>r1 g3 m2</code>}>Swara variant, shown as a small number</Ex>
-        <Ex code={<><code>s'</code> &nbsp;<code>p`</code></>}>Upper octave (dot above), lower octave (dot below). Double it for two octaves: <code>s''</code></Ex>
+        <Ex code={<code>sA rI gA mA pA dA nI</code>}>
+          Long (dīrgha) swaras: two mātras each. The capital vowel makes them easy to spot; <code>sa ri ga</code> and <code>S R G</code> work too
+        </Ex>
+        <Ex code={<><code>r1 g3 m2</code> &nbsp;<code>rI2</code></>}>Swara variant, shown as a small number; long swaras take one too</Ex>
+        <Ex code={<><code>s'</code> &nbsp;<code>p`</code> &nbsp;<code>sA'</code></>}>Upper octave (dot above), lower octave (dot below), for short and long swaras. Double it for two octaves: <code>s''</code></Ex>
         <Ex code={<><code>,</code> &nbsp;<code>;</code></>}>Pause of one mātra, or two</Ex>
         <Ex code={<code>( s r g m )</code>}>Twice as fast. Brackets inside brackets go faster still</Ex>
         <Ex code={<><code>_</code> &nbsp;<code>__</code></>}>Empty space, one or two mātras</Ex>
