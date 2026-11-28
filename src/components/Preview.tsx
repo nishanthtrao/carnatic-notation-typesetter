@@ -44,8 +44,22 @@ export function Preview({ doc, onJumpToLine, landscape, zoomable }: { doc: Notat
   const zoomRef = useRef(zoom);
   zoomRef.current = zoom;
 
+  // Redrawing empties the page for a moment to measure the text, which would let the
+  // browser clamp the scroll position to the top. Put it back before anything is painted.
+  const keepPlace = (redraw: () => void) => {
+    const sc = scroller.current;
+    const top = sc?.scrollTop ?? 0;
+    const left = sc?.scrollLeft ?? 0;
+    redraw();
+    if (sc && (sc.scrollTop !== top || sc.scrollLeft !== left)) {
+      sc.scrollTop = top;
+      sc.scrollLeft = left;
+    }
+  };
+
   useLayoutEffect(() => {
-    if (sheet.current) handle.current = render(doc, sheet.current, { emptyText: 'Type your notation below, or open an example.' });
+    const el = sheet.current;
+    if (el) keepPlace(() => (handle.current = render(doc, el, { emptyText: 'Type your notation below, or open an example.' })));
   }, [doc]);
 
   useEffect(() => {
@@ -54,7 +68,7 @@ export function Preview({ doc, onJumpToLine, landscape, zoomable }: { doc: Notat
     let raf = 0;
     const refit = () => {
       cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => handle.current?.refit());
+      raf = requestAnimationFrame(() => keepPlace(() => handle.current?.refit()));
     };
     const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(refit) : null;
     ro?.observe(el);
@@ -62,7 +76,7 @@ export function Preview({ doc, onJumpToLine, landscape, zoomable }: { doc: Notat
     let fontTimer = 0;
     const relayout = () => {
       clearTimeout(fontTimer);
-      fontTimer = window.setTimeout(() => handle.current?.refit(true), 50);
+      fontTimer = window.setTimeout(() => keepPlace(() => handle.current?.refit(true)), 50);
     };
     document.fonts?.ready.then(relayout);
     document.fonts?.addEventListener?.('loadingdone', relayout);
