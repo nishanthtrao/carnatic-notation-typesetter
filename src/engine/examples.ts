@@ -18,6 +18,7 @@ export interface Example {
 const NEW_SONG = `Title: "Song name"
 Tala: Adi,Show
 DefaultSpeed: 1
+Orientation: Portrait,25.4mm
 Heading: "Song name",bold,center,16
 Raga: mAyAmALavagauLa
 Arohana: s r1 g3 m1 p d1 n3 s'
@@ -26,9 +27,9 @@ Composer: Composer name
 Heading: "pallavi",bold,left,12
 S: s  r  g  m  p  d  n  s' | s' n  d  p  | m  g  r  s  ||
 L: sa ri ga ma pa da ni sa   sa ni da pa   ma ga ri sa
-S: sa ri ga ma | pa da | ni sa' ||
+S: sA rI gA mA | pA dA | nI sA' ||
 L: sa ri ga ma   pa da   ni sa
-S: sa , ri , ga | ma ; | pa ; ||
+S: sA , rI , gA | mA ; | pA ; ||
 L: sa . ri . ga   ma .   pa .
 `;
 

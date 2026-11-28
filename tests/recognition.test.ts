@@ -71,7 +71,8 @@ describe('prompt', () => {
       expect(details).toBeGreaterThan(settings);
       expect(section).toBeGreaterThan(details);
       const names = lines.slice(settings + 1, details).filter((l) => l.trim()).map((l) => l.split(':')[0]);
-      expect(names).toEqual(['Title', 'Language', 'Tala', 'DefaultSpeed', 'AvartanamsPerLine']);
+      expect(names).toEqual(['Title', 'Language', 'Tala', 'DefaultSpeed', 'AvartanamsPerLine', 'Orientation']);
+      expect(lines).toContain('Orientation: Portrait,25.4mm');
       expect(lines[details + 1]).toMatch(/^Heading: /);
       // Song details carry real values only: no empty or placeholder lines.
       for (const l of lines.slice(details + 1, section)) expect(l).not.toMatch(/^(Raga|Composer|Arohana|Avarohana):\s*$/);
