@@ -69,6 +69,15 @@ export function writeMargins(m: Margins): string {
 const pageMargins = (page: NotationDoc['page']): Margins =>
   page.margins || { left: DEFAULT_MARGIN, top: DEFAULT_MARGIN, right: DEFAULT_MARGIN, bottom: DEFAULT_MARGIN };
 
+/** Page width and height, and each margin, in millimetres, orientation applied (for PDF pages). */
+export function pageMm(page: NotationDoc['page']): { width: number; height: number; margin: Record<Side, number> } {
+  const [w, h] = SIZES[page.size] || SIZES.A4;
+  const landscape = page.orientation === 'landscape';
+  const m = pageMargins(page);
+  const mm = (side: Side) => parseMargin(m[side])?.mm ?? 12;
+  return { width: landscape ? h : w, height: landscape ? w : h, margin: { left: mm('left'), top: mm('top'), right: mm('right'), bottom: mm('bottom') } };
+}
+
 /** Each margin as a share of the page's width (what the screen page uses as padding). */
 export function marginShare(page: NotationDoc['page']): Record<Side, number> {
   const [w, h] = SIZES[page.size] || SIZES.A4;

@@ -92,7 +92,8 @@
 .cm-meta-col {
   display: grid;
   grid-template-columns: max-content auto;
-  gap: 0.1em 0.7em;
+  /* room for octave dots: an upper dot on one line must not look like a lower dot on the line above */
+  gap: 0.35em 0.7em;
   flex: 0 1 auto;
   min-width: 0;
 }

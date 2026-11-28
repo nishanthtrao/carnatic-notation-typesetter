@@ -9,5 +9,5 @@ export { parseTala, listTalas, parseGati, isTalaError, JATIS } from './talas';
 export { detectScript, fromScript, scanUnits, scriptOf, transliterate, parseLangSpec, normaliseLang, tokenize, LANGS } from './translit';
 export { parseHeading, formatText, splitAttrs, esc } from './heading';
 export { FONT_STYLES, parseFontStyle, styleFamilies, type FontStyle } from './fonts';
-export { parseMargin, parseMargins, writeMargins, marginShare, pageRule, DEFAULT_MARGIN, SIDE_ORDER, type Margins, type Side } from './page';
+export { parseMargin, parseMargins, writeMargins, marginShare, pageMm, pageRule, DEFAULT_MARGIN, SIDE_ORDER, type Margins, type Side } from './page';
 export { examples, newSongTemplate, type Example } from './examples';
