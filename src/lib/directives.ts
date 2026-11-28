@@ -26,7 +26,7 @@ export const DIRECTIVES: DirectiveInfo[] = (
     ['Tala', 'Tala: Adi', 'Tala of the song', 'rhythm'],
     ['Layout', 'Layout: krithi', 'Krithi, varnam or gitam spacing', 'layout'],
     ['DefaultSpeed', 'DefaultSpeed: 1', 'Swaras to a beat: one, two or four', 'rhythm'],
-    ['Heading', 'Heading: ""', 'Song name, section names, any text', 'song'],
+    ['Heading', 'Heading: ""', 'Song name, captions, any text', 'song'],
     ['Arohana', 'Arohana: ', 'The scale, going up', 'song'],
     ['Avarohana', 'Avarohana: ', 'The scale, coming down', 'song'],
     ['Raga', 'Raga: ', 'Raga name, shown with its scale', 'song'],
@@ -35,6 +35,8 @@ export const DIRECTIVES: DirectiveInfo[] = (
     ['L', 'L: ', 'Lyrics for the swaras above', 'lines'],
     ['Language', 'Language: English', 'Script for swaras and lyrics', 'script'],
     ['SmartLyricMode', 'SmartLyricMode', 'Lyrics skip pauses on their own', 'lines'],
+    ['Section', 'Section: pallavi', 'A part of the song: pallavi, caraNam…', 'song'],
+    ['Text', 'Text: ""', 'A plain line of text, such as a note', 'song'],
     ['Gati', 'Gati: tisra', 'Change the gati (nadai)', 'rhythm'],
     ['AvartanamsPerLine', 'AvartanamsPerLine: 1', 'Tala cycles on each line', 'rhythm'],
     ['SpeedMarks', 'SpeedMarks: above', 'Speed lines above or below', 'rhythm'],
@@ -57,7 +59,7 @@ export const DIRECTIVES: DirectiveInfo[] = (
 
 /** The order directives are shown in within each Assist group. */
 export const GROUP_ORDER: string[] = [
-  'Title', 'Heading', 'Raga', 'Arohana', 'Avarohana', 'Composer', 'SongInfo',
+  'Title', 'Heading', 'Section', 'Text', 'Raga', 'Arohana', 'Avarohana', 'Composer', 'SongInfo',
   'S', 'L', 'SmartLyricMode',
   'Tala', 'AvartanamsPerLine', 'DefaultSpeed', 'Gati', 'SpeedMarks', 'PhraseEnds',
   'Language', 'LanguageFont',

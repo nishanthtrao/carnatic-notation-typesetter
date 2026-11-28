@@ -15,10 +15,10 @@ export type AssistMode =
 const PREFS = ['SwaraPrefs', 'LyricPrefs', 'HeadingPrefs', 'GamakaPrefs'] as const;
 type PrefsName = (typeof PREFS)[number];
 export type FormName =
-  | 'Tala' | 'Gati' | 'Layout' | 'DefaultSpeed' | 'Language' | 'LanguageFont' | 'Heading'
+  | 'Tala' | 'Gati' | 'Layout' | 'DefaultSpeed' | 'Language' | 'LanguageFont' | 'Heading' | 'Section' | 'Text'
   | 'SpeedMarks' | 'PhraseEnds' | 'Title' | 'Orientation' | 'Spacing' | 'Grouping' | 'AvartanamsPerLine' | 'SongInfo' | 'Scale' | PrefsName;
 export const FORM_NAMES: FormName[] = [
-  'Tala', 'Gati', 'Layout', 'DefaultSpeed', 'Language', 'LanguageFont', 'Heading',
+  'Tala', 'Gati', 'Layout', 'DefaultSpeed', 'Language', 'LanguageFont', 'Heading', 'Section', 'Text',
   'SpeedMarks', 'PhraseEnds', 'Title', 'Orientation', 'Spacing', 'Grouping', 'AvartanamsPerLine', 'SongInfo', 'Scale', ...PREFS,
 ];
 
@@ -157,7 +157,7 @@ function DirectiveForm({ name, value, onClose, onApply }: { name: FormName; valu
   );
 
   if (name === 'Tala') return <TalaForm value={value} onClose={onClose} onApply={onApply} footer={footer} />;
-  if (name === 'Heading') return <HeadingForm value={value} onClose={onClose} onApply={onApply} footer={footer} />;
+  if (name === 'Heading' || name === 'Section' || name === 'Text') return <HeadingForm kind={name} value={value} onClose={onClose} onApply={onApply} footer={footer} />;
   if (name === 'LanguageFont') return <LanguageFontForm value={value} onClose={onClose} onApply={onApply} footer={footer} />;
   if (name === 'Language') return <LanguageForm value={value} onClose={onClose} onApply={onApply} footer={footer} />;
   if (name === 'Gati') {
@@ -638,7 +638,14 @@ function LanguageFontForm({ value, onClose, onApply, footer }: FormProps) {
   );
 }
 
-function HeadingForm({ value, onClose, onApply, footer }: FormProps) {
+const HEADING_KINDS = {
+  Heading: { title: 'Heading', empty: 'leave empty for a blank line', note: '' },
+  Section: { title: 'Section', empty: 'e.g. pallavi', note: 'A section is always bold, with a little space above. ' },
+  Text: { title: 'Text line', empty: 'e.g. (repeat pallavi)', note: 'Heading sizes and colours (HeadingPrefs) do not change a text line. ' },
+};
+
+function HeadingForm({ kind = 'Heading', value, onClose, onApply, footer }: FormProps & { kind?: keyof typeof HEADING_KINDS }) {
+  const K = HEADING_KINDS[kind];
   const h = parseHeading(value || '""');
   const langName = h.lang ? (h.lang.lang === 'iast' ? 'Diacritics' : h.lang.lang === 'devanagari' ? 'Sanskrit' : h.lang.lang.charAt(0).toUpperCase() + h.lang.lang.slice(1)) : '';
   const [v, setV] = useState({ text: h.text, size: h.size ? String(h.size) : '', align: h.align || '', lang: langName, bold: h.bold, italic: h.italic, underline: h.underline });
@@ -647,18 +654,18 @@ function HeadingForm({ value, onClose, onApply, footer }: FormProps) {
     const attrs: string[] = [];
     if (h.font) attrs.push(h.font);
     if (v.size) attrs.push(v.size);
-    if (v.bold) attrs.push('bold');
+    if (v.bold && kind !== 'Section') attrs.push('bold');
     if (v.italic) attrs.push('italic');
     if (v.underline) attrs.push('underline');
     if (v.align) attrs.push(v.align);
     if (v.lang) attrs.push(v.lang.toLowerCase());
-    onApply('Heading: "' + v.text.replace(/"/g, "'") + '"' + (attrs.length ? ',' + attrs.join(',') : ''));
+    onApply(kind + ': "' + v.text.replace(/"/g, "'") + '"' + (attrs.length ? ',' + attrs.join(',') : ''));
   };
   return (
-    <Modal title="Heading" open onClose={onClose} footer={footer(apply)}>
+    <Modal title={K.title} open onClose={onClose} footer={footer(apply)}>
       <div className="form-grid">
         <Field id="a-ht" label="Text">
-          <input id="a-ht" type="text" value={v.text} placeholder="leave empty for a blank line" onChange={(e) => set('text')(e.target.value)} autoFocus />
+          <input id="a-ht" type="text" value={v.text} placeholder={K.empty} onChange={(e) => set('text')(e.target.value)} autoFocus />
         </Field>
         <Field id="a-hs" label="Size (pt)">
           <input id="a-hs" type="number" min={6} max={40} value={v.size} placeholder="default" onChange={(e) => set('size')(e.target.value)} />
@@ -671,12 +678,18 @@ function HeadingForm({ value, onClose, onApply, footer }: FormProps) {
         </Field>
         <span />
         <div className="checks">
-          <Check checked={v.bold} onChange={set('bold')}>Bold</Check>
+          {kind === 'Section' ? (
+            <label>
+              <input type="checkbox" checked disabled /> Bold
+            </label>
+          ) : (
+            <Check checked={v.bold} onChange={set('bold')}>Bold</Check>
+          )}
           <Check checked={v.italic} onChange={set('italic')}>Italic</Check>
           <Check checked={v.underline} onChange={set('underline')}>Underline</Check>
         </div>
       </div>
-      <p className="hint">Inside the text: <code>*bold*</code>, <code>_italic_</code>, <code>[br]</code> for a new line, <code>---</code> for a rule.</p>
+      <p className="hint">{K.note}Inside the text: <code>*bold*</code>, <code>_italic_</code>, <code>[br]</code> for a new line, <code>---</code> for a rule.</p>
     </Modal>
   );
 }

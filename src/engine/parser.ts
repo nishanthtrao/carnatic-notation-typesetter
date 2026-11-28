@@ -449,24 +449,32 @@ export function parse(input: string): NotationDoc {
       case 'l':
         handleLyrics(value, no);
         break;
-      case 'heading': {
+      case 'heading':
+      case 'section':
+      case 'text': {
+        // Section: a heading for a part of the song (pallavi, caraNam…): bold and on the left
+        // unless told otherwise, with a little more space above. Otherwise the same as Heading.
+        // Text: a plain line (a note); the same options, but HeadingPrefs leave it alone.
         const h = parseHeading(value);
+        const section = name === 'section';
+        const plain = name === 'text';
         if (h.text === '') {
-          pushBlock({ type: 'space' });
+          if (name === 'heading') pushBlock({ type: 'space' });
           break;
         }
         const lang = h.lang || (st.lang.lang !== 'english' ? st.lang : null);
         pushBlock({
           type: 'heading',
           html: formatText(h.text, lang),
-          size: h.size || st.headingPrefs.size || null,
-          color: h.color || st.headingPrefs.color || null,
-          bold: h.bold,
+          size: h.size || (plain ? null : st.headingPrefs.size) || null,
+          color: h.color || (plain ? null : st.headingPrefs.color) || null,
+          bold: h.bold || section,
           italic: h.italic,
           underline: h.underline,
           align: h.align || 'left',
           font: h.font,
           lang: (lang && lang.lang) || 'english',
+          ...(section ? { section: true } : {}),
         });
         break;
       }
@@ -698,12 +706,6 @@ export function parse(input: string): NotationDoc {
         if (open) open.layout = { ...next };
         break;
       }
-      case 'section':
-        pushBlock({ type: 'heading', html: formatText(value.replace(/^"([\s\S]*)"$/, '$1'), null), bold: true, italic: true, align: 'left', section: true, lang: 'english' });
-        break;
-      case 'text':
-        pushBlock({ type: 'heading', html: formatText(value.replace(/^"([\s\S]*)"$/, '$1'), st.lang.lang !== 'english' ? st.lang : null), align: 'left', lang: st.lang.lang });
-        break;
       case 'raga':
       case 'ragam':
       case 'composer':
