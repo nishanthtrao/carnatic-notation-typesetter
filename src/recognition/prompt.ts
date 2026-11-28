@@ -37,7 +37,7 @@ Every line of the input is one directive: a name, a colon, a value. Lines starti
 Write the notation in three parts, in this order, each starting with its comment line exactly as shown:
 
   # ── Settings: these apply to everything below ──
-  (the seven settings, always all seven, in this order)
+  (the six settings, always all six, in this order)
 
   # ── Title and song details ──
   (the title heading, then only the details the page gives)
@@ -45,14 +45,13 @@ Write the notation in three parts, in this order, each starting with its comment
   # ── pallavi ──
   (one part like this for each section of the song, named as on the page)
 
-## Part 1: settings (always all seven, in this order)
+## Part 1: settings (always all six, in this order)
   Title: "kRti name"          The song's name, in roman letters (see Transliteration). It names the file and is not printed.
   Language: Kannada           The script to print the lyrics in: the script the lyrics are written in on the page. One of English, Sanskrit (Devanagari), Telugu, Kannada, Malayalam, Tamil.
   Tala: Adi,Show              The tala. Add ,Show when the page writes the tala's name among the song's details (next to the raga or composer), so it is printed there too; write just Tala: Adi when it does not. Names the typesetter knows: Adi, Rupaka, MisraCapu, KhandaCapu, RupakaCapu, Tisra_Adi, Adi2Kalai, and any jati with a suladi tala: Tisra_Triputa, Khanda_Ata, Catusra_Dhruva, Misra_Jhampa, Catusra_Matya, Tisra_Eka … (Triputa, Matya, Rupaka, Jhampa, Ata, Eka, Dhruva). Use Manual when there is no regular tala (raga phrases, alapana); never add ,Show to Manual.
   DefaultSpeed: 1             How many plain swaras (those under no speed line) fill one beat (akshara): one -> 0, two -> 1, four -> 2.
   AvartanamsPerLine: 2        How many tala cycles each written line holds, so the typeset lines break where the page's lines break (1 to 8).
-  PageSize: A4                The paper to print on. Always A4, whatever the size of the photo or scan; the user can change it.
-  Orientation: Portrait       Always Portrait (a standard A4 page with the usual margins), even for a landscape photo; the user can change it.
+  Orientation: Portrait,25.4mm  The printed page: always exactly this line (portrait, with a one-inch margin on every side, like a standard document), whatever the shape of the photo or scan. The user can change it.
 
 ## Part 2: title and song details
   Heading: "SrI satyanArAyaNam",bold,center,18   The song's name as printed at the top. Always write this line.
@@ -146,8 +145,7 @@ Language: Telugu
 Tala: Adi
 DefaultSpeed: 1
 AvartanamsPerLine: 1
-PageSize: A4
-Orientation: Portrait
+Orientation: Portrait,25.4mm
 
 # ── Title and song details ──
 Heading: "brOva bhAramA",bold,center,18
@@ -174,8 +172,7 @@ Language: Kannada
 Tala: Rupaka,Show
 DefaultSpeed: 1
 AvartanamsPerLine: 4
-PageSize: A4
-Orientation: Portrait
+Orientation: Portrait,25.4mm
 
 # ── Title and song details ──
 Heading: "SrI satyanArAyaNam",bold,center,18
@@ -201,7 +198,7 @@ Each cycle adds up to 12 matras (Rupaka has 6 beats, two swaras to a beat).
 - Octave dots, long swaras and speed lines checked on every line.
 - Every long swara written sA rI gA mA pA dA nI (capital vowel), never sa ri ga or S R G.
 - Every repeat mark written out in full from the line above, and listed in <notes>.
-- The three parts are there, in order, each with its comment line: all seven settings, ending with PageSize: A4 and Orientation: Portrait; the title heading and only the details the page gives; one part per section, named as on the page.
+- The three parts are there, in order, each with its comment line: all six settings, ending with Orientation: Portrait,25.4mm; the title heading and only the details the page gives; one part per section, named as on the page.
 - Tala: has ,Show only if the page writes the tala among the song's details.`
 
 const SCRIPT_NAMES: Record<RecognitionHints['script'], string> = {
