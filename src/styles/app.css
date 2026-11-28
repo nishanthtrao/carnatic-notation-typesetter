@@ -1313,3 +1313,6 @@ select optgroup {
 }
 .directive-tip[hidden] { display: none; }
 .directive-tip strong { font-weight: 600; margin-right: 0.2em; color: var(--label); }
+
+/* Kannada letters in the interface: the bundled font, so they show on every device */
+.kn-sample { font-family: 'Anek Kannada', 'Noto Serif Kannada', var(--font); }
