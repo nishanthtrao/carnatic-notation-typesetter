@@ -221,8 +221,10 @@ button { font: inherit; color: inherit; }
   color: light-dark(#1a1a1a, #f2f2f7);
 }
 .paper.landscape { max-width: 1240px; }
-/* the page margin (Margin: directive) drawn to scale: a percentage padding is a share of the page's width */
-.paper > .cm-sheet { padding: calc(var(--page-margin, 0.057) * 100%); }
+/* the page margins (Orientation: …, left, top, right, bottom) drawn to scale: a percentage padding is a share of the page's width */
+.paper > .cm-sheet {
+  padding: calc(var(--pm-top, 0.057) * 100%) calc(var(--pm-right, 0.057) * 100%) calc(var(--pm-bottom, 0.057) * 100%) calc(var(--pm-left, 0.057) * 100%);
+}
 
 /* zoom: the page is drawn scaled, inside a box the size of the scaled page */
 .zoom-box.fit { display: contents; }
@@ -1176,4 +1178,27 @@ select optgroup {
 }
 .dlg details.more-details[open] > summary {
   margin-bottom: 8px;
+}
+
+/* Assist: Orientation, with a small sketch of the page and its margins */
+.orient-form { display: flex; gap: 18px; align-items: flex-start; }
+.orient-form .form-grid { flex: 1; }
+.page-sketch {
+  position: relative;
+  flex: none;
+  width: 92px;
+  margin-top: 4px;
+  background: #fff;
+  border-radius: 3px;
+  box-shadow: 0 0 0 0.5px var(--separator), 0 2px 8px rgb(0 0 0 / 0.12);
+}
+.page-sketch > div {
+  position: absolute;
+  border: 1px dashed var(--accent);
+  background: repeating-linear-gradient(transparent 0 5px, var(--accent-soft) 5px 7px);
+  transition: inset 0.15s;
+}
+@media (max-width: 520px) {
+  .orient-form { flex-direction: column-reverse; align-items: center; }
+  .orient-form .form-grid { width: 100%; }
 }

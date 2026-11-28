@@ -10,7 +10,7 @@
  */
 import { formatText, parseHeading, SAFE_COLOR, splitAttrs } from './heading';
 import { layoutSegment, type Segment } from './layout';
-import { parseMargin } from './page';
+import { parseMargin, parseMargins } from './page';
 import { GATIS, isTalaError, parseGati, parseTala } from './talas';
 import { LANGS, normaliseLang, parseLangSpec, transliterate } from './translit';
 import type { Block, JatiName, Lang, LangSpec, MetaBlock, MetaItem, MetaKind, MetaLayout, NotationDoc, NoteEvent, PhraseEnds, Prefs, Tala } from './types';
@@ -181,10 +181,10 @@ interface SwaraLine {
 export function parse(input: string): NotationDoc {
   const warnings: NotationDoc['warnings'] = [];
   const warn = (line: number, message: string) => warnings.push({ line, message });
-  const setMargin = (text: string, line: number) => {
-    const m = parseMargin(text);
-    if (m && m.mm <= 60) doc.page.margin = m.css;
-    else warn(line, m ? 'That margin is too wide for the page; use 60mm (about 2.4in) or less' : 'A margin needs a number and a unit, e.g. 15mm, 1.5cm or 0.5in');
+  const setMargins = (parts: string[], line: number) => {
+    const r = parseMargins(parts);
+    if ('error' in r) warn(line, r.error);
+    else doc.page.margins = r.margins;
   };
   const doc: NotationDoc = { title: '', page: { orientation: 'portrait', size: 'A4' }, langFonts: {}, blocks: [], warnings };
 
@@ -619,14 +619,18 @@ export function parse(input: string): NotationDoc {
         if (v.startsWith('land')) doc.page.orientation = 'landscape';
         else if (v.startsWith('port')) doc.page.orientation = 'portrait';
         else warn(no, 'Orientation should be Portrait or Landscape');
-        // the original form: "Orientation: Landscape,0.5in"
-        const extra = value.split(',').slice(1).join(',').trim();
-        if (extra) setMargin(extra, no);
+        // then the margins: left, top, right, bottom ("Orientation: Landscape,0.5in" is every side)
+        const parts = value.split(',').slice(1);
+        if (parts.some((p) => p.trim())) setMargins(parts, no);
         break;
       }
-      case 'margin':
-        setMargin(value, no);
+      case 'margin': {
+        // Margin: was a separate line for a while; it now belongs to Orientation
+        const m = parseMargin(value);
+        if (m && m.mm <= 60) doc.page.margins = { left: m.css, top: m.css, right: m.css, bottom: m.css };
+        warn(no, 'Margin: is now part of Orientation: write Orientation: ' + (doc.page.orientation === 'landscape' ? 'Landscape' : 'Portrait') + ',' + (m ? m.css : '15mm') + ' instead');
         break;
+      }
       // ---- extensions (not in v1.5) ----------------------------------------
       case 'pagesize': {
         const v = value.trim().toUpperCase();

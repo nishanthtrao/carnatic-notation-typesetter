@@ -291,7 +291,12 @@ S: ( s' n' d p- n d p m ) pa ( s' n' d p- n d p m ) pa ; ;</pre>
 Heading: "---"
 Heading: "[|*P:*|nAdalOluDai brahmAnandamandavE manasA|\
 |*A:*|svAdu phalaprada sapta svara rAga nicaya sahita|]",11</pre>
-    <p><code>Title: "song name"</code> sets the page title, which browsers can print in the page header. <code>Pagebreak</code> forces a new page when printing. <code>Orientation: Landscape</code> (or <code>Portrait</code>) sets the printed page orientation. <code>Margin: 15mm</code> <span class="ext">new</span> sets the space around the notation on every side of the printed page, in <code>mm</code>, <code>cm</code> or <code>in</code> (default 12mm, at most 60mm); the page on screen shows it to scale, so line breaks match the print. The original form <code>Orientation: Landscape,0.5in</code> still works.</p>
+    <p><code>Title: "song name"</code> sets the page title, which browsers can print in the page header. <code>Pagebreak</code> forces a new page when printing. <code>Orientation: Landscape</code> (or <code>Portrait</code>) sets the printed page orientation, and the page margins can follow it, in <code>mm</code>, <code>cm</code> or <code>in</code>:</p>
+<pre class="plain">Orientation: Portrait,15mm                 every side 15mm (as in the original)
+Orientation: Portrait,20mm,15mm            left 20mm, top 15mm; right and bottom the same
+Orientation: Portrait,20mm,15mm,12mm       right 12mm instead
+Orientation: Portrait,20mm,15mm,12mm,25mm  and bottom 25mm</pre>
+    <p>The order is left, top, right, bottom. The right margin is the same as the left and the bottom the same as the top unless you write them; a part can also name its side (<code>Orientation: Portrait, Bottom 25mm</code>). The default is 12mm on every side and the most is 60mm. The page on screen shows the margins to scale, so line breaks match the print. Assist on the Orientation line has a form with a small sketch of the page. The separate <code>Margin:</code> line of the last few versions still works for now, with a note to move it into <code>Orientation:</code>.</p>
 
     <h2 id="language">Language and LanguageFont</h2>
     <p><code>Language: English</code> (default), <code>Diacritics</code>, <code>Sanskrit</code>, <code>Telugu</code>, <code>Tamil</code>, <code>Kannada</code> or <code>Malayalam</code> sets the script for swaras, lyrics and headings. Lyrics and headings are typed in the Unified Transliteration Scheme:</p>
