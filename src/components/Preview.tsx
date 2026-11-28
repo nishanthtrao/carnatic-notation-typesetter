@@ -22,6 +22,12 @@ interface Anchor {
  * the DOM. Zooming scales the page as drawn (the layout stays the same, the
  * way it will print); printing ignores it.
  */
+/** The page margins drawn to scale on the screen page. */
+const marginVars = (page: NotationDoc['page']) => {
+  const m = marginShare(page);
+  return { '--pm-top': m.top, '--pm-right': m.right, '--pm-bottom': m.bottom, '--pm-left': m.left };
+};
+
 export function Preview({ doc, onJumpToLine, landscape, zoomable }: { doc: NotationDoc; onJumpToLine?: (line: number) => void; landscape?: boolean; zoomable?: boolean }) {
   const sheet = useRef<HTMLDivElement>(null);
   const paper = useRef<HTMLDivElement>(null);
@@ -158,7 +164,7 @@ export function Preview({ doc, onJumpToLine, landscape, zoomable }: { doc: Notat
             ref={paper}
             className={'paper' + (landscape ? ' landscape' : '') + (fit || !ready ? '' : ' zoomed')}
             // the page margin, as a share of the page's width, so the screen shows the margin it prints with
-            style={{ '--page-margin': marginShare(doc.page), ...(fit || !ready ? {} : { width: size.w, transform: `scale(${zoom})` }) } as CSSProperties}
+            style={{ ...marginVars(doc.page), ...(fit || !ready ? {} : { width: size.w, transform: `scale(${zoom})` }) } as CSSProperties}
           >
             <div
               ref={sheet}

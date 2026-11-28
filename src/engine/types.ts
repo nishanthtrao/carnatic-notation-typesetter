@@ -212,7 +212,7 @@ export interface Warning {
 
 export interface NotationDoc {
   title: string;
-  page: { orientation: 'portrait' | 'landscape'; size: string; margin?: string };
+  page: { orientation: 'portrait' | 'landscape'; size: string; margins?: import('./page').Margins };
   langFonts: Partial<Record<Lang, string>>;
   blocks: Block[];
   warnings: Warning[];
