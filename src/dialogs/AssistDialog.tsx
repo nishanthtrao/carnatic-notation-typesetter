@@ -5,7 +5,7 @@ import { Modal } from '../components/Modal';
 import { FONT_STYLES, normaliseLang, parse, parseFontStyle, parseGati, parseHeading, parseMargin, parseMargins, writeMargins, DEFAULT_MARGIN, render, styleFamilies, swaraSample, SWARA_RE, transliterate, type FontStyle, type Lang } from '../engine';
 import { Icon } from '../components/Icons';
 import { DIRECTIVE_GROUPS, DIRECTIVES, GROUP_ORDER, LANG_OPTIONS, LAYOUT_OPTIONS, talaOptions, type DirectiveInfo } from '../lib/directives';
-import { Check, Field, Select } from './common';
+import { Check, Chevron, Field, Select } from './common';
 
 export type AssistMode =
   | { kind: 'pick' }
@@ -110,26 +110,27 @@ export function AssistDialog({ mode, onClose, onApply, onChooseForm, currentLine
     };
     const byOrder = (a: DirectiveInfo, b: DirectiveInfo) => GROUP_ORDER.indexOf(a.name) - GROUP_ORDER.indexOf(b.name);
     return (
-      <Modal title="Add a directive" open onClose={onClose} wide>
+      <Modal title="Add a directive" open onClose={onClose} dismiss="cancel" wide>
         <div className="pick-groups">
           {DIRECTIVE_GROUPS.map((g) => (
             <section key={g.id} className="pick-group" aria-labelledby={'pg-' + g.id}>
-              <h3 id={'pg-' + g.id}>
-                {g.title} <span>{g.about}</span>
-              </h3>
-              <div className="pick-list">
+              <h3 id={'pg-' + g.id}>{g.title}</h3>
+              <ul className="list-group" role="list">
                 {DIRECTIVES.filter((d) => d.group === g.id)
                   .sort(byOrder)
                   .map((d) => (
-                    <button key={d.name} type="button" onClick={() => choose(d)}>
-                      <b>
-                        {d.name}
-                        {formFor(d.name) && <i className="pick-form" title="Opens a form">…</i>}
-                      </b>
-                      <span>{d.help}</span>
-                    </button>
+                    <li key={d.name}>
+                      <button type="button" className="list-row" onClick={() => choose(d)} title={formFor(d.name) ? 'Opens a form' : 'Adds the line'}>
+                        <span className="list-text">
+                          <b>{d.name}</b>
+                          <span>{d.help}</span>
+                        </span>
+                        {formFor(d.name) && <Chevron />}
+                      </button>
+                    </li>
                   ))}
-              </div>
+              </ul>
+              <p className="list-footer">{g.about}</p>
             </section>
           ))}
         </div>
@@ -497,7 +498,7 @@ function TalaForm({ value, onClose, onApply, footer }: FormProps) {
           <Select id="a-tala" value={tala} onChange={setTala} options={options} />
         </Field>
         <span />
-        <div className="checks">
+        <div className="checks stacked">
           <Check checked={manual} onChange={setManual}>Manual line breaks</Check>
           <Check checked={inline} onChange={setInline}>Inline tala markers</Check>
           <Check checked={show} onChange={setShow}>Show the tala on the page</Check>
