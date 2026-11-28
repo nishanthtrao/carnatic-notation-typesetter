@@ -227,7 +227,7 @@ L: pa ti nu tA pti ma ta ha ra nu rA ga rA ga rA ji ta ka tA sA _ ra hi ta</pre>
     <p><code>LineBreak</code> and <code>SongBreak</code> work in every mode, not only the manual ones <span class="ext">new</span>:</p>
     <ul>
       <li><code>LineBreak</code> starts a new line where it is written, and the tala keeps counting. In the middle of an avartanam, the next line finishes that avartanam; after that, lines hold <code>AvartanamsPerLine</code> cycles again.</li>
-      <li><code>SongBreak</code> ends the line, leaves a blank line, and starts the tala afresh, so there is no need for an empty <code>Heading: ""</code> to separate parts. Write it twice for a bigger gap. Before a heading it adds no gap, since the heading has its own space.</li>
+      <li><code>SongBreak</code> ends the line, leaves a full blank line, and starts the tala afresh, so there is no need for an empty <code>Heading: ""</code> to separate parts. The gap is there before a heading too; write <code>SongBreak</code> twice or more for a bigger gap.</li>
     </ul>
     <p>A heading always ends the current notation line too.</p>
 

@@ -515,7 +515,7 @@ export function render(doc: NotationDoc, el: HTMLElement, options: { emptyText?:
     let html = '';
     for (const b of doc.blocks) {
       if (b.type === 'heading') html += renderHeading(b);
-      else if (b.type === 'space') html += '<div class="cm-space"></div>';
+      else if (b.type === 'space') html += '<div class="cm-space' + (b.songBreak ? ' cm-break' : '') + '"></div>';
       else if (b.type === 'pagebreak') html += '<div class="cm-pagebreak"></div>';
       else if (b.type === 'meta') html += renderMeta(b);
       else if (b.type === 'staff') html += renderStaff(b, geo, stretchFor(b));

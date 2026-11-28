@@ -31,9 +31,14 @@ describe('SongBreak', () => {
   test('twice: a bigger gap', () => {
     expect(kinds([CYCLE, 'SongBreak', 'SongBreak', CYCLE].join('\n'))).toEqual(['staff', 'space', 'space', 'staff']);
   });
-  test('no extra gap before a heading, or at the very end', () => {
-    expect(kinds([CYCLE, 'SongBreak', 'Heading: "caraNam"', CYCLE].join('\n'))).toEqual(['staff', 'heading', 'staff']);
+  test('before a heading too, and more SongBreaks give more space', () => {
+    expect(kinds([CYCLE, 'L: a b', 'SongBreak', 'Heading: "caraNam"', CYCLE].join('\n'))).toEqual(['staff', 'space', 'heading', 'staff']);
+    expect(kinds([CYCLE, 'SongBreak', 'SongBreak', 'SongBreak', 'Heading: "caraNam"'].join('\n'))).toEqual(['staff', 'space', 'space', 'space', 'heading']);
+  });
+  test('nothing at the very start or end, or before a page break', () => {
     expect(kinds([CYCLE, 'SongBreak'].join('\n'))).toEqual(['staff']);
+    expect(kinds(['SongBreak', CYCLE].join('\n'))).toEqual(['staff']);
+    expect(kinds([CYCLE, 'SongBreak', 'Pagebreak', CYCLE].join('\n'))).toEqual(['staff', 'pagebreak', 'staff']);
   });
   test('starts the tala afresh', () => {
     expect(rowSwaras(["S: s r g m p d n s' |", 'SongBreak', CYCLE].join('\n'))).toEqual([8, 16]);
