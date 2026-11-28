@@ -157,7 +157,7 @@ DefaultSpeed: 1
 S: m~ , ma~~ , r g^ m s m/ g r s ma// g r n d\ p m n da\\ p s' n(w) n d</pre>
 
     <h3>Phrase ends</h3>
-    <p>A hyphen after a swara (<code>p-</code>) marks the end of a phrase, for example where to breathe. By default it is invisible; see <a href="#speedmarks">PhraseEnds</a> to show it or add space after it.</p>
+    <p>A hyphen after a swara (<code>p-</code>) marks the end of a phrase, for example where to breathe. By default it is not drawn, but leaves a small gap (5 pixels) and splits a speed line there, so <code>( s r g m- p d n s )</code> reads as two groups of four, with speed lines above or below. See <a href="#speedmarks">PhraseEnds</a> to show it, or to change the gap.</p>
     <p><b>More hyphens, more space</b> <span class="ext">new</span>: <code>p--</code> leaves a gap after the swara and its lyric, and <code>p---</code> a bigger one, so you can show clearly where the sahitya divides. It takes no time in the tala and works after pauses too (<code>,--</code>). A speed line is broken at such a gap. If <code>PhraseEnds</code> sets a spacing, each extra hyphen adds that spacing again.</p>
     <pre class="ex">Tala: Adi
 SmartLyricMode
@@ -282,7 +282,7 @@ S: s r g m p d n s' | s' n d p m g r s ||</pre>
 
     <h2 id="speedmarks">SpeedMarks and PhraseEnds</h2>
     <p><code>SpeedMarks: above</code> (default) or <code>below</code> puts speed lines over or under the swaras.</p>
-    <p><code>PhraseEnds: style</code> or <code>PhraseEnds: style,space</code> controls phrase-end hyphens. Styles: <code>Hide</code> (default), <code>Show</code> (as a hyphen), <code>Handle</code> and <code>HandleThick</code> (a small corner after the swara). Space is in pixels (<code>15</code>) or inches (<code>0.15in</code>). Speed lines are broken at shown or spaced phrase ends.</p>
+    <p><code>PhraseEnds: style</code> or <code>PhraseEnds: style,space</code> controls phrase-end hyphens. Styles: <code>Hide</code> (default), <code>Show</code> (as a hyphen), <code>Handle</code> and <code>HandleThick</code> (a small corner after the swara). Space is in pixels (<code>15</code>) or inches (<code>0.15in</code>); it is 5 pixels unless you give a number, and <code>PhraseEnds: Hide,0</code> leaves no gap at all (as in the original). Speed lines are broken at shown or spaced phrase ends.</p>
     <pre class="ex">SpeedMarks: below
 PhraseEnds: Handle,10
 Tala: Adi
