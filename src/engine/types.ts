@@ -186,6 +186,8 @@ export interface MetaLayout {
   /** raga, ārōhaṇam, avarōhaṇam: each on its own line, raga then the scale, or all on one line */
   ragaLines: 'lines' | 'two' | 'one';
   tala: MetaAlign;
+  /** text size in points, on the same scale as Heading sizes; unset = the usual size */
+  size?: number;
 }
 
 export interface MetaBlock {
