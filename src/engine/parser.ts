@@ -214,7 +214,7 @@ export function parse(input: string): NotationDoc {
   };
 
   let seg: Segment | null = null;
-  // blank lines owed by SongBreak, drawn only if more notation follows (a heading has its own space)
+  // blank lines owed by SongBreak, drawn before whatever comes next (not at the very end, or before a page break)
   let gaps = 0;
   let lastSwaraLine: SwaraLine | null = null;
   let metaBlock: MetaBlock | null = null;
@@ -255,7 +255,7 @@ export function parse(input: string): NotationDoc {
       time: 0,
       groupCounter: 0,
     };
-    for (; gaps > 0; gaps--) doc.blocks.push({ type: 'space' });
+    for (; gaps > 0; gaps--) doc.blocks.push({ type: 'space', songBreak: true });
     doc.blocks.push(seg);
     metaBlock = null;
     return seg;
@@ -278,6 +278,7 @@ export function parse(input: string): NotationDoc {
 
   const pushBlock = (b: Block) => {
     closeSeg();
+    if (b.type !== 'pagebreak') for (; gaps > 0; gaps--) doc.blocks.push({ type: 'space', songBreak: true });
     gaps = 0;
     doc.blocks.push(b);
     if (b.type !== 'meta') metaBlock = null;
@@ -611,10 +612,9 @@ export function parse(input: string): NotationDoc {
         parsePrefs(value, st.headingPrefs);
         break;
       case 'songbreak': {
-        // ends the line, starts the tala afresh, and leaves a blank line before what follows
-        const open = seg as Segment | null;
-        if (open && open.events.length) gaps = 1;
-        else if (gaps) gaps++; // SongBreak twice: a bigger gap
+        // ends the line, starts the tala afresh, and leaves a blank line before what follows,
+        // a heading included; each further SongBreak adds another. Nothing before the first content.
+        if (doc.blocks.length) gaps++;
         closeSeg();
         break;
       }

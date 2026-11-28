@@ -209,7 +209,8 @@ export interface MetaItem {
 export type Block =
   | StaffBlock
   | HeadingBlock
-  | { type: 'space' }
+  /** a blank line: Heading: "" (small), or SongBreak (a full line, so the break shows) */
+  | { type: 'space'; songBreak?: boolean }
   | { type: 'pagebreak' }
   | MetaBlock;
 
