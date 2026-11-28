@@ -475,18 +475,20 @@ function SongInfoForm({ value, onClose, onApply, footer }: FormProps) {
         <Field id="a-si-lines" label="Raga lines">
           <Select id="a-si-lines" value={lines} onChange={setLines} options={RAGA_LINES} />
         </Field>
+        <span />
+        <div className="checks">
+          <Check checked={short} onChange={setShort}>Short scale labels (Ar / Av, or <span className="kn-sample">ಆ / ಅ</span>)</Check>
+        </div>
         <Field id="a-si-tala" label="Tala">
           <Select id="a-si-tala" value={tala} onChange={setTala} options={SIDES} />
         </Field>
-        <span />
-        <div className="checks">
-          <Check checked={short} onChange={setShort}>Short labels for the scale (Ar / Av, or ಆ / ಅ)</Check>
-        </div>
         <Field id="a-si-size" label="Text size (pt)">
-          <input id="a-si-size" type="number" min="6" max="40" step="0.5" inputMode="decimal" placeholder="usual size" value={size} onChange={(e) => setSize(e.target.value)} aria-invalid={!sizeOk} />
+          <input id="a-si-size" type="number" min="6" max="40" step="0.5" inputMode="decimal" placeholder="Default: 10.5" value={size} onChange={(e) => setSize(e.target.value)} aria-invalid={!sizeOk} />
         </Field>
       </div>
-      <p className="hint">Where the Composer, Raga / Arohana / Avarohana and tala lines go. Those on the same side are stacked: composer first, then the raga, then the tala; on different sides they sit next to each other. The tala is shown only when “Show the tala on the page” is ticked for the Tala line. The text size uses the same points as a Heading’s size; leave it empty for the usual size (about 10.5).</p>
+      <p className="hint">Details on the same side stack in this order: composer, raga and scale, tala.</p>
+      <p className="hint">The tala appears only when “Show the tala on the page” is ticked on the Tala line.</p>
+      <p className="hint">Text size uses the same points as headings, from 6 to 40.</p>
     </Modal>
   );
 }
