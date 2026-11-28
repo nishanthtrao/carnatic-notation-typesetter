@@ -78,7 +78,7 @@ Heading options: bold, italic, left, center, right, and a size; add ,english to 
 Do not write SmartLyricMode, Layout: or any directive not described here.
 
 ## Swaras (separated by spaces)
-- Short swara (one matra): s r g m p d n. Long (dirgha) swara (two matras): sA rI gA mA pA dA nI (sa ri ga ma pa da ni mean the same).
+- Short swara (one matra): s r g m p d n. Long (dirgha) swara (two matras): ALWAYS sA rI gA mA pA dA nI, with the vowel as a capital letter, so a long swara stands out from a short one at a glance. Never write a long swara as sa ri ga ma pa da ni or as a capital S R G M P D N. With octave marks and numbers: sA' rI2 dA\`.
 - Upper octave (dot ABOVE the letter): add ' after it: s' rI'. Lower octave (dot BELOW): add a backtick: n\` dA\`. Two dots: s'' p\`\`.
 - Pauses (karvai): , = one matra, ; = two matras. Copy them exactly. A long dash written to hold a note is one , per matra it fills.
 - Faster passages: swaras under ONE horizontal line (drawn above or below them) go in brackets: ( s r g m ). Under TWO lines: ( ( s r g m ) ). Each bracket level halves the time of what is inside.
@@ -90,7 +90,7 @@ Do not write SmartLyricMode, Layout: or any directive not described here.
 ## Swara letters in each script
 Never write Indian-script letters in an S: line. Read each letter by its sound:
   s: ஸ ச स స ಸ സ    r: ரி रि రి ರಿ രി    g: க ग గ ಗ ഗ    m: ம म మ ಮ മ    p: ப प ప ಪ പ    d: த द ध ద ధ ದ ಧ ദ ധ    n: நி नि ని ನಿ നി
-A long vowel sign makes it a long swara: ஸா सा సా ಸಾ സാ -> sA; ரீ री రీ ರೀ രീ -> rI; கா गा గా ಗಾ ഗാ -> gA; மா मा మా ಮಾ മാ -> mA; பா पा పా ಪಾ പാ -> pA; தா धा దా ಧಾ ದಾ ധാ -> dA; நீ नी నీ ನೀ നീ -> nI. Capital roman letters (S R G M P D N) are long swaras too.
+A long vowel sign makes it a long swara: ஸா सा సా ಸಾ സാ -> sA; ரீ री రీ ರೀ രീ -> rI; கா गा గా ಗಾ ഗാ -> gA; மா मा మా ಮಾ മാ -> mA; பா पा పా ಪಾ പാ -> pA; தா धा దా ಧಾ ದಾ ധാ -> dA; நீ नी నీ ನೀ നീ -> nI. On a page in roman letters, capitals (S R G M P D N) and sa ri ga ma pa da ni are long swaras too: write them as sA rI gA mA pA dA nI.
 For example, a line written as
   Tamil:      ஸா , நி த | ப ம க ரி          Devanagari: सा , नि ध | प म ग रि
   Telugu:     సా , ని ద | ప మ గ రి          Kannada:    ಸಾ , ನಿ ದ | ಪ ಮ ಗ ರಿ
@@ -116,7 +116,7 @@ Always write words in roman letters with this scheme, whatever script the page u
 - Count the matras in every cycle: a short swara or , is 1, a long swara or ; is 2, anything inside ( ) counts half, inside ( ( ) ) a quarter. Every cycle of a song has the same count: the number of beats in the tala times the swaras per beat (Adi has 8 beats, so 8, 16 or 32; Rupaka has 6, so 6, 12 or 24; Misra Capu 7 or 14; Khanda Capu 5 or 10; Adi in tisra gati at DefaultSpeed 1 is 24). If a cycle does not add up, look again at the dots, long vowel signs and speed lines in it before you write it down. If it still does not add up, write what the page has and say so in <notes>.
 - Octave dots are small and easy to lose, especially on the first swara of a line. Look for them on every swara.
 - In older handwriting Kannada and Telugu letter shapes are often mixed: read each letter by the sound it stands for, and set Language: to the script the writer meant. p and d letters (ப/प/ప/ಪ and த/द/ద/ದ) are easy to confuse in handwriting: use the raga's usual phrases to tell them apart.
-- A small hooked letter at the end of a phrase after sa is usually ni; check for a dot below it.
+- A small hooked letter at the end of a phrase after sA is usually ni; check for a dot below it.
 - Underlines (or overlines) usually group 4 swaras in a faster speed; a thicker or second line under part of a group is a further speed faster.
 - Ditto marks (repeat marks): when part of a sangati (or of any section) is the same as an earlier one, teachers do not write it again. They draw a ditto mark across the part that repeats. It looks different in every book and school: " 〃 ,, -"- --"-- __"__ —〃— -*- ——*—— -do- or a plain line with a mark in the middle, short or long. Read them like this:
   - The mark stands for exactly the stretch of the line it spans: a few swaras, half a cycle, a whole cycle or several cycles. Its length on the page shows how much it covers.
@@ -127,7 +127,7 @@ Always write words in roman letters with this scheme, whatever script the page u
   For example, under sangati 1 of Example 1 a teacher might write sangati 2 as
     m~ , , ( p d n s' n p ; ) m | ——〃—— ||
     mA . . brO . vA . . bhA . ra ——〃——
-  The mark spans the second half of the cycle, so it is copied from the second half of sangati 1 (the swaras ga , g | m pa , and the lyrics mA . ra ghu rA .), giving line "2)" of Example 1.
+  The mark spans the second half of the cycle, so it is copied from the second half of sangati 1 (the swaras gA , g | m pA , and the lyrics mA . ra ghu rA .), giving line "2)" of Example 1.
 - Words crossed out and rewritten: use the correction, and mention it in <notes>.
 
 # Rules
@@ -152,15 +152,15 @@ Composer: tyAgarAja
 
 # ── pallavi ──
 Heading: "pallavi",bold,left,13
-S: "1)" ; , ( p   d n  , ) pa  m  | ga , g  | m   pa , ||
+S: "1)" ; , ( p   d n  , ) pA  m  | gA , g  | m   pA , ||
 L:      _ _   brO . va .   bhA ra   mA . ra   ghu rA .
-S: "2)" m~ , , ( p   d n  s' n p   ; ) m  | ga , g  | m   pa , ||
+S: "2)" m~ , , ( p   d n  s' n p   ; ) m  | gA , g  | m   pA , ||
 L:      mA . .   brO . vA .  . bhA .   ra   mA . ra   ghu rA .
 </notation>
 <notes>
 - none
 </notes>
-Counting line 1: ; , (p d n ,) pa m = 2+1+2+2+1 = 8, ga , g = 4, m pa , = 4: 16 matras, as Adi at DefaultSpeed 1 needs. It has 14 swaras and pauses, and the L: line has 14 entries.
+Counting line 1: ; , (p d n ,) pA m = 2+1+2+2+1 = 8, gA , g = 4, m pA , = 4: 16 matras, as Adi at DefaultSpeed 1 needs. It has 14 swaras and pauses, and the L: line has 14 entries.
 
 # Example 2: a Kannada kriti in Rupaka tala, four cycles to a written line (the page gives raga, tala and composer, and no scale)
 <notation>
@@ -193,6 +193,7 @@ Each cycle adds up to 12 matras (Rupaka has 6 beats, two swaras to a beat).
 - Every L: line has exactly as many entries as its S: line has swaras and pauses.
 - No Indian-script letters in S: lines; lyrics, titles, headings, Raga: and Composer: in the roman scheme above.
 - Octave dots, long swaras and speed lines checked on every line.
+- Every long swara written sA rI gA mA pA dA nI (capital vowel), never sa ri ga or S R G.
 - Every repeat mark written out in full from the line above, and listed in <notes>.
 - The three parts are there, in order, each with its comment line: all five settings; the title heading and only the details the page gives; one part per section, named as on the page.
 - Tala: has ,Show only if the page writes the tala among the song's details.`
