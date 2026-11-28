@@ -231,7 +231,7 @@ export function parse(input: string): NotationDoc {
   let pendingTala: string | null = null;
   const talaItem = (name: string): MetaItem => {
     const native = META_NATIVE[st.lang.lang];
-    const item: MetaItem = { label: native ? native.tala : META_LABELS.tala, kind: 'tala', value: name };
+    const item: MetaItem = { label: native ? native.tala : META_LABELS.tala, kind: 'tala', value: name, lang: st.lang };
     if (st.lang.lang !== 'english') item.text = transliterate(name.replace(/[A-Za-z]+/g, (w) => TALA_WORDS[w.toLowerCase()] || w), st.lang);
     return item;
   };
@@ -302,7 +302,8 @@ export function parse(input: string): NotationDoc {
         pendingTala = null;
       }
     }
-    const item: MetaItem = { label: META_LABELS[key] || key, kind: META_KIND[key], value: val };
+    // lang: the script of the label and the name, so LanguageFont reaches the song details too
+    const item: MetaItem = { label: META_LABELS[key] || key, kind: META_KIND[key], value: val, lang: st.lang };
     // In an Indian script the labels are written in that script, and names
     // (raga, composer) are transliterated like headings.
     const native = META_NATIVE[st.lang.lang];
@@ -316,7 +317,6 @@ export function parse(input: string): NotationDoc {
         const m = typeof t === 'string' ? t.match(SWARA_RE) : null;
         if (m) item.swaras.push({ kind: 'swara', t: 0, dur: 0, path: [], lyrics: [], ...swaraInfo(m) });
       }
-      item.lang = st.lang;
     }
     metaBlock.items.push(item);
   };
@@ -611,7 +611,7 @@ export function parse(input: string): NotationDoc {
         const parts = splitAttrs(value);
         const all = /^all$/i.test((parts[0] || '').trim());
         const lang = all ? null : normaliseLang(parts[0]);
-        if ((!all && !lang) || !parts[1]) warn(no, 'LanguageFont should look like "LanguageFont: Tamil,Rounded" (styles: Serif, Sans, Rounded; or an installed font name)');
+        if ((!all && !lang) || !parts[1]) warn(no, 'LanguageFont should look like "LanguageFont: Tamil,Rounded" (styles: Serif, Sans, Rounded, Handwritten; or an installed font name)');
         else if (all) for (const l of Object.keys(LANGS) as Lang[]) doc.langFonts[l] = parts.slice(1).join(',');
         else doc.langFonts[lang!] = parts.slice(1).join(',');
         break;

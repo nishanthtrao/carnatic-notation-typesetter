@@ -135,3 +135,13 @@ describe('SongInfo Short: Ar / Av for the scale', () => {
     expect(labels(SONG.replace('%s', ''))).toEqual(expect.arrayContaining(['Ārōhaṇam', 'Avarōhaṇam']));
   });
 });
+
+test('song details are marked with their script, so LanguageFont reaches them', () => {
+  const el = document.createElement('div');
+  render(parse('Language: Kannada\nLanguageFont: Kannada,Handwritten\n' + SONG.replace('%s', '')), el);
+  const k = [...el.querySelectorAll('.cm-meta-k')];
+  expect(k.length).toBeGreaterThan(0);
+  for (const label of k) expect(label.classList.contains('cm-lang-kannada')).toBe(true);
+  expect(el.querySelector('.cm-meta-v .cm-meta-nw.cm-lang-kannada')).not.toBeNull();
+  expect(el.querySelector('style')!.textContent).toMatch(/\.cm-lang-kannada\{font-family:'Navilu'/);
+});
