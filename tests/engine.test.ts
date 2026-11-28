@@ -250,7 +250,7 @@ test('LanguageFont: the Handwritten style in every script', () => {
   expect(styleFamilies('handwritten', 'english')).toBe("'Kalam'");
   expect(styleFamilies('handwritten', 'devanagari')).toBe("'Kalam'");
   expect(styleFamilies('handwritten', 'telugu')).toBe("'Gurajada', 'Kalam'");
-  expect(styleFamilies('handwritten', 'kannada')).toBe("'Akaya Kanadaka', 'Kalam'");
+  expect(styleFamilies('handwritten', 'kannada')).toBe("'Navilu', 'Kalam'");
   expect(styleFamilies('handwritten', 'malayalam')).toBe("'Chilanka', 'Kalam'");
   expect(styleFamilies('handwritten', 'tamil')).toBe("'Kavivanar', 'Kalam'");
 });

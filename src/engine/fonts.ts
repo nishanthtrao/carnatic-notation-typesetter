@@ -8,7 +8,7 @@
  *   Rounded - Nunito (Latin) with the Baloo 2 family (Indic scripts): soft and rounded
  *             (Baloo 2's own Latin accents render detached, so Nunito covers Latin)
  *   Handwritten - a handwriting style in each script: Kalam (Latin, Devanagari), Gurajada (Telugu),
- *             Akaya Kanadaka (Kannada), Chilanka (Malayalam), Kavivanar (Tamil)
+ *             Navilu (Kannada), Chilanka (Malayalam), Kavivanar (Tamil)
  * The font files are in src/assets/fonts and declared in src/styles/fonts.css.
  */
 
@@ -52,7 +52,7 @@ const SCRIPT: Record<FontStyle, Record<Script, string>> = {
   handwritten: {
     devanagari: 'Kalam',
     telugu: 'Gurajada',
-    kannada: 'Akaya Kanadaka',
+    kannada: 'Navilu',
     malayalam: 'Chilanka',
     tamil: 'Kavivanar',
   },

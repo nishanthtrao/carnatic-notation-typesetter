@@ -427,9 +427,13 @@ function renderMeta(b: MetaBlock): string {
   const layout = { ...DEFAULT_LAYOUT, ...(b.layout || {}) };
   const items = b.items.filter((it) => it.value !== '');
   // a value never breaks inside; a long line breaks only between the label-and-value pieces
+  // each label and name is marked with its script, so a LanguageFont choice applies to it
+  const langCls = (it: MetaItem) => ' cm-lang-' + (it.lang?.lang || 'english');
   const value = (it: MetaItem) =>
-    '<span class="cm-meta-nw">' + (it.swaras && it.swaras.length ? inlineSwaras(it.swaras, it.lang) : esc(it.text ?? it.value)) + '</span>';
-  const label = (it: MetaItem) => '<span class="cm-meta-k">' + esc(layout.short && it.short ? it.short : it.label) + '</span>';
+    it.swaras && it.swaras.length
+      ? '<span class="cm-meta-nw">' + inlineSwaras(it.swaras, it.lang) + '</span>'
+      : '<span class="cm-meta-nw' + langCls(it) + '">' + esc(it.text ?? it.value) + '</span>';
+  const label = (it: MetaItem) => '<span class="cm-meta-k' + langCls(it) + '">' + esc(layout.short && it.short ? it.short : it.label) + '</span>';
   // one row: the first item's label in the label column, any others run on after its value
   const row = (group: MetaItem[]) =>
     label(group[0]) + '<span class="cm-meta-v">' + value(group[0]) +
