@@ -25,34 +25,56 @@ Reply with exactly two parts and nothing else:
 </notes>
 
 # How to work
-1. Look over the whole page first. Find: the script of the lyrics, the tala, how many cycles (avartanams) each written line holds, and how many plain swaras fill one beat.
-2. Write the header (below).
-3. Transcribe one written line at a time: first its S: line, then its L: line, lining up each lyric under its swara.
+1. Look over the whole page first. Find: the script of the lyrics, the tala, how many cycles (avartanams) each written line holds, how many plain swaras fill one beat, which song details the page gives (raga, scale, composer, tala), and the names of its sections.
+2. Write the settings part, then the title and song details part (below).
+3. Transcribe one section at a time and, inside it, one written line at a time: first its S: line, then its L: line, lining up each lyric under its swara.
 4. Check your work with the checklist at the end before you answer.
 
 # The input format: a tutorial
-Every line of the input is one directive: a name, a colon, a value. Lines starting with # are comments and are not printed.
+Every line of the input is one directive: a name, a colon, a value. Lines starting with # are comments and are not printed; blank lines are ignored. Directives apply to everything below them, so the order matters.
 
-## Header (always first, in this order)
-  Title: "kRti name"          The song's name, in roman letters (see Transliteration).
-  Tala: Adi                   The tala. Names the typesetter knows: Adi, Rupaka, MisraCapu, KhandaCapu, RupakaCapu, Tisra_Adi, Adi2Kalai, and any jati with a suladi tala: Tisra_Triputa, Khanda_Ata, Catusra_Dhruva, Misra_Jhampa, Catusra_Matya, Tisra_Eka … (Triputa, Matya, Rupaka, Jhampa, Ata, Eka, Dhruva). Use Manual when there is no regular tala (raga phrases, alapana).
+## Layout of your answer
+Write the notation in three parts, in this order, each starting with its comment line exactly as shown:
+
+  # ── Settings: these apply to everything below ──
+  (the five settings, always all five, in this order)
+
+  # ── Title and song details ──
+  (the title heading, then only the details the page gives)
+
+  # ── pallavi ──
+  (one part like this for each section of the song, named as on the page)
+
+## Part 1: settings (always all five, in this order)
+  Title: "kRti name"          The song's name, in roman letters (see Transliteration). It names the file and is not printed.
+  Language: Kannada           The script to print the lyrics in: the script the lyrics are written in on the page. One of English, Sanskrit (Devanagari), Telugu, Kannada, Malayalam, Tamil.
+  Tala: Adi,Show              The tala. Add ,Show when the page writes the tala's name among the song's details (next to the raga or composer), so it is printed there too; write just Tala: Adi when it does not. Names the typesetter knows: Adi, Rupaka, MisraCapu, KhandaCapu, RupakaCapu, Tisra_Adi, Adi2Kalai, and any jati with a suladi tala: Tisra_Triputa, Khanda_Ata, Catusra_Dhruva, Misra_Jhampa, Catusra_Matya, Tisra_Eka … (Triputa, Matya, Rupaka, Jhampa, Ata, Eka, Dhruva). Use Manual when there is no regular tala (raga phrases, alapana); never add ,Show to Manual.
   DefaultSpeed: 1             How many plain swaras (those under no speed line) fill one beat (akshara): one -> 0, two -> 1, four -> 2.
   AvartanamsPerLine: 2        How many tala cycles each written line holds, so the typeset lines break where the page's lines break (1 to 8).
-  Language: Kannada           The script to print the lyrics in: the script the lyrics are written in on the page. One of English, Sanskrit (Devanagari), Telugu, Kannada, Malayalam, Tamil.
-Then the song's details, if the page gives them. Write their values in roman letters; the labels ("raga", "composer") and the values are printed in the script chosen by Language:, so they must come AFTER Language:.
+
+## Part 2: title and song details
+  Heading: "SrI satyanArAyaNam",bold,center,18   The song's name as printed at the top. Always write this line.
+Then, in this order, ONLY the details the page actually gives. Leave out any line the page does not have: no empty values, no placeholders, nothing filled in from memory (a page with no composer gets no Composer: line).
   Raga: SubhapaMtuvarALi
-  Composer: muttusvAmi dIkShitar
   Arohana: s r1 g2 m2 p d1 n3 s'
   Avarohana: s' n3 d1 p m2 g2 r1 s
+  Composer: muttusvAmi dIkShitar
+Write the values of Raga: and Composer: in roman letters; they are printed in the Language: script. Write Arohana: and Avarohana: as swaras, like an S: line, without | or ||.
+If the page has other lines near the title (a date, a book name, "Lesson 5"), put each in a Text: line here.
 
-## Body
-  Heading: "SrI satyanArAyaNam",bold,center,18   A title or caption line. Text in roman letters; it is printed in the Language: script. Add ,english to keep it in roman letters. Options: bold, italic, left, center, right, and a size.
-  Heading: "pallavi",bold,left,13                A section name (pallavi, anupallavi, caraNam, ciTTasvaram, …). Write it in roman letters too, so it comes out in the right script.
+## Part 3: the sections
+Start each section of the song with a comment line naming it, then its heading, then its lines:
+  # ── anupallavi ──
+  Heading: "anupallavi",bold,left,13
+Name the sections as the page names them, whatever they are (pallavi, anupallavi, caraNam, samaShTi caraNam, ciTTasvaram, muktAyi svaram, madhyamakAla sAhityam, sthAyi, a varNam's eTTugaDa svarams, "sangati 3", "line 2" …), in roman letters so they come out in the Language: script. Write the comment line in the same roman letters as the heading. If the page has no section names at all (an exercise, a single phrase), write one part with the comment line "# ── notation ──" and no heading.
+The lines a section can hold:
   Text: "(repeat pallavi)"                       A small note line. No options after the closing quote.
   S: s r g m | p d n s' ||                       Swaras: one S: line for each written line of notation.
   S: "2." s r g m | p d n s' ||                  A label in quotes before the swaras (sangati numbers like 1. 2. or 1) 2)).
   L: sa . rI ga . . ma pa                        Lyrics for the S: line directly above. Put a second L: line under the first when the page gives two sets of words for the same swaras.
   # ? second swara could be r or g               A note to the reader about something unclear (put it above the line it is about).
+  Heading: "madhyamakAla",italic,left,12         A sub-heading inside a section, when the page has one.
+Heading options: bold, italic, left, center, right, and a size; add ,english to keep the text in roman letters.
 Do not write SmartLyricMode, Layout: or any directive not described here.
 
 ## Swaras (separated by spaces)
@@ -114,16 +136,21 @@ Always write words in roman letters with this scheme, whatever script the page u
 - If the page has no tala written and none is given, work it out from the cycle lengths and say so in <notes>.
 - If you cannot read something at all, write your best guess and put a "# ?" comment line above it.
 
-# Example 1: a Telugu kriti in Adi tala, two swaras to a beat
+# Example 1: a Telugu kriti in Adi tala, two swaras to a beat (the page names raga and composer, not the tala)
 <notation>
+# ── Settings: these apply to everything below ──
 Title: "brOva bhAramA"
+Language: Telugu
 Tala: Adi
 DefaultSpeed: 1
 AvartanamsPerLine: 1
-Language: Telugu
+
+# ── Title and song details ──
 Heading: "brOva bhAramA",bold,center,18
 Raga: bahudAri
 Composer: tyAgarAja
+
+# ── pallavi ──
 Heading: "pallavi",bold,left,13
 S: "1)" ; , ( p   d n  , ) pa  m  | ga , g  | m   pa , ||
 L:      _ _   brO . va .   bhA ra   mA . ra   ghu rA .
@@ -135,16 +162,21 @@ L:      mA . .   brO . vA .  . bhA .   ra   mA . ra   ghu rA .
 </notes>
 Counting line 1: ; , (p d n ,) pa m = 2+1+2+2+1 = 8, ga , g = 4, m pa , = 4: 16 matras, as Adi at DefaultSpeed 1 needs. It has 14 swaras and pauses, and the L: line has 14 entries.
 
-# Example 2: a Kannada kriti in Rupaka tala, four cycles to a written line
+# Example 2: a Kannada kriti in Rupaka tala, four cycles to a written line (the page gives raga, tala and composer, and no scale)
 <notation>
+# ── Settings: these apply to everything below ──
 Title: "SrI satyanArAyaNam"
-Tala: Rupaka
+Language: Kannada
+Tala: Rupaka,Show
 DefaultSpeed: 1
 AvartanamsPerLine: 4
-Language: Kannada
+
+# ── Title and song details ──
 Heading: "SrI satyanArAyaNam",bold,center,18
 Raga: SubhapaMtuvarALi
 Composer: muttusvAmi dIkShitar
+
+# ── pallavi ──
 Heading: "pallavi",bold,left,13
 S: "1." sA' ; ; n s' n d pA || pA ( pA d p ) ( m g gA ) g r g r s n\` || ( sA , r ) gA ; m d pA , m || ( m d pA ) d p dA d n d m d r' ||
 L: SrI . . sa . . . tya nA . . . . . . rA . . . ya . NaM . . . . u . pA . . sma . . hE . . ni . . . tyaM .
@@ -162,7 +194,8 @@ Each cycle adds up to 12 matras (Rupaka has 6 beats, two swaras to a beat).
 - No Indian-script letters in S: lines; lyrics, titles, headings, Raga: and Composer: in the roman scheme above.
 - Octave dots, long swaras and speed lines checked on every line.
 - Every repeat mark written out in full from the line above, and listed in <notes>.
-- Language: is set, and comes before Raga:, Composer: and the headings.`
+- The three parts are there, in order, each with its comment line: all five settings; the title heading and only the details the page gives; one part per section, named as on the page.
+- Tala: has ,Show only if the page writes the tala among the song's details.`
 
 const SCRIPT_NAMES: Record<RecognitionHints['script'], string> = {
   auto: '',
