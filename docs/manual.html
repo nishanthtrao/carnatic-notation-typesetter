@@ -132,7 +132,7 @@ S: "label" notations</pre>
       <tr><th>Write</th><th>Meaning</th></tr>
       <tr><td><code>s r g m p d n</code></td><td>A swara lasting one mātra in the current speed.</td></tr>
       <tr><td><code>sa ri ga ma pa da ni</code></td><td>A dhīrgha (long) swara lasting two mātras. <code>dha</code> also works.</td></tr>
-      <tr><td><code>sA rI gA mA pA dA nI</code> <span class="ext">new</span></td><td>The same dhīrgha swaras with the long vowel in capitals, which is easier to spot while writing; <code>dhA</code> also works. They print exactly like <code>sa ri ga…</code>, and take variants, dots and gamakas the same way: <code>rI2</code>, <code>sA'</code>, <code>mA~</code>.</td></tr>
+      <tr><td><code>sA rI gA mA pA dA nI</code> <span class="ext">new</span></td><td>The same dhīrgha swaras with the long vowel in capitals, which is easier to spot while writing; <code>dhA</code> also works. They print exactly like <code>sa ri ga…</code>, and take variants, dots and gamakas the same way: <code>rI2</code>, <code>sA'</code>, <code>mA~</code>. Read Photo and pasting swaras written in an Indian script use this form.</td></tr>
       <tr><td><code>s'</code> &nbsp; <code>p`</code></td><td>Tara stayi (dot above) and mandra stayi (dot below). Repeat for two octaves: <code>s''</code>. Works with long swaras too: <code>sa'</code>.</td></tr>
       <tr><td><code>,</code> &nbsp; <code>;</code></td><td>Pause or continuation of one mātra and two mātras.</td></tr>
       <tr><td><code>_</code> &nbsp; <code>__</code></td><td>Empty space of one or two mātras, with nothing shown (for indenting to the eḍuppu).</td></tr>
@@ -158,7 +158,7 @@ DefaultSpeed: 1
 S: m~ , ma~~ , r g^ m s m/ g r s ma// g r n d\ p m n da\\ p s' n(w) n d</pre>
 
     <h3>Phrase ends</h3>
-    <p>A hyphen after a swara (<code>p-</code>) marks the end of a phrase, for example where to breathe. By default it is invisible; see <a href="#speedmarks">PhraseEnds</a> to show it or add space after it.</p>
+    <p>A hyphen after a swara (<code>p-</code>) marks the end of a phrase, for example where to breathe. By default it is not drawn, but leaves a small gap (5 pixels) and splits a speed line there, so <code>( s r g m- p d n s )</code> reads as two groups of four, with speed lines above or below. See <a href="#speedmarks">PhraseEnds</a> to show it, or to change the gap.</p>
     <p><b>More hyphens, more space</b> <span class="ext">new</span>: <code>p--</code> leaves a gap after the swara and its lyric, and <code>p---</code> a bigger one, so you can show clearly where the sahitya divides. It takes no time in the tala and works after pauses too (<code>,--</code>). A speed line is broken at such a gap. If <code>PhraseEnds</code> sets a spacing, each extra hyphen adds that spacing again.</p>
     <pre class="ex">Tala: Adi
 SmartLyricMode
@@ -225,7 +225,12 @@ L: sR.Sh Tis dit yan da kA ra kA . mi ta kA mi ta pha la dA sa mA na gA tra Sa c
 LineBreak
 S: n p m ri- s' n p m ri- r' sa'- p sa'- m pa- r g m pa- s' , n p m
 L: pa ti nu tA pti ma ta ha ra nu rA ga rA ga rA ji ta ka tA sA _ ra hi ta</pre>
-    <p>A heading always ends the current notation line, just like <code>SongBreak</code>.</p>
+    <p><code>LineBreak</code> and <code>SongBreak</code> work in every mode, not only the manual ones <span class="ext">new</span>:</p>
+    <ul>
+      <li><code>LineBreak</code> starts a new line where it is written, and the tala keeps counting. In the middle of an avartanam, the next line finishes that avartanam; after that, lines hold <code>AvartanamsPerLine</code> cycles again.</li>
+      <li><code>SongBreak</code> ends the line, leaves a full blank line, and starts the tala afresh, so there is no need for an empty <code>Heading: ""</code> to separate parts. The gap is there before a heading too; write <code>SongBreak</code> twice or more for a bigger gap.</li>
+    </ul>
+    <p>A heading always ends the current notation line too.</p>
 
     <h2 id="layout">Layout and DefaultSpeed</h2>
     <table class="t">
@@ -278,7 +283,7 @@ S: s r g m p d n s' | s' n d p m g r s ||</pre>
 
     <h2 id="speedmarks">SpeedMarks and PhraseEnds</h2>
     <p><code>SpeedMarks: above</code> (default) or <code>below</code> puts speed lines over or under the swaras.</p>
-    <p><code>PhraseEnds: style</code> or <code>PhraseEnds: style,space</code> controls phrase-end hyphens. Styles: <code>Hide</code> (default), <code>Show</code> (as a hyphen), <code>Handle</code> and <code>HandleThick</code> (a small corner after the swara). Space is in pixels (<code>15</code>) or inches (<code>0.15in</code>). Speed lines are broken at shown or spaced phrase ends.</p>
+    <p><code>PhraseEnds: style</code> or <code>PhraseEnds: style,space</code> controls phrase-end hyphens. Styles: <code>Hide</code> (default), <code>Show</code> (as a hyphen), <code>Handle</code> and <code>HandleThick</code> (a small corner after the swara). Space is in pixels (<code>15</code>) or inches (<code>0.15in</code>); it is 5 pixels unless you give a number, and <code>PhraseEnds: Hide,0</code> leaves no gap at all (as in the original). Speed lines are broken at shown or spaced phrase ends.</p>
     <pre class="ex">SpeedMarks: below
 PhraseEnds: Handle,10
 Tala: Adi
@@ -292,7 +297,12 @@ S: ( s' n' d p- n d p m ) pa ( s' n' d p- n d p m ) pa ; ;</pre>
 Heading: "---"
 Heading: "[|*P:*|nAdalOluDai brahmAnandamandavE manasA|\
 |*A:*|svAdu phalaprada sapta svara rAga nicaya sahita|]",11</pre>
-    <p><code>Title: "song name"</code> sets the page title, which browsers can print in the page header. <code>Pagebreak</code> forces a new page when printing. <code>Orientation: Landscape</code> (or <code>Portrait</code>) sets the printed page orientation. <code>Margin: 15mm</code> <span class="ext">new</span> sets the space around the notation on every side of the printed page, in <code>mm</code>, <code>cm</code> or <code>in</code> (default 12mm, at most 60mm); the page on screen shows it to scale, so line breaks match the print. The original form <code>Orientation: Landscape,0.5in</code> still works.</p>
+    <p><code>Title: "song name"</code> sets the page title, which browsers can print in the page header. <code>Pagebreak</code> forces a new page when printing. <code>Orientation: Landscape</code> (or <code>Portrait</code>) sets the printed page orientation, and the page margins can follow it, in <code>mm</code>, <code>cm</code> or <code>in</code>:</p>
+<pre class="plain">Orientation: Portrait,15mm                 every side 15mm (as in the original)
+Orientation: Portrait,20mm,15mm            left 20mm, top 15mm; right and bottom the same
+Orientation: Portrait,20mm,15mm,12mm       right 12mm instead
+Orientation: Portrait,20mm,15mm,12mm,25mm  and bottom 25mm</pre>
+    <p>The order is left, top, right, bottom. The right margin is the same as the left and the bottom the same as the top unless you write them; a part can also name its side (<code>Orientation: Portrait, Bottom 25mm</code>). The default is 12mm on every side and the most is 60mm. The page on screen shows the margins to scale, so line breaks match the print. Assist on the Orientation line has a form with a small sketch of the page. The separate <code>Margin:</code> line of the last few versions still works for now, with a note to move it into <code>Orientation:</code>.</p>
 
     <h2 id="language">Language and LanguageFont</h2>
     <p><code>Language: English</code> (default), <code>Diacritics</code>, <code>Sanskrit</code>, <code>Telugu</code>, <code>Tamil</code>, <code>Kannada</code> or <code>Malayalam</code> sets the script for swaras, lyrics and headings. Lyrics and headings are typed in the Unified Transliteration Scheme:</p>
@@ -344,8 +354,8 @@ L: sa ri ga ma pa da ni sa sa ni da pa ma ga ri sa</pre>
     <p>Everything above follows the v1.5 manual. These extras are new; files that use them won't work on the old site.</p>
     <table class="t">
       <tr><th>Write</th><th>Meaning</th></tr>
-      <tr><td><code>Raga: mOhanam</code>, <code>Composer: …</code>, <code>Arohana: s r2 g3 p d2 s'</code>, <code>Avarohana: …</code></td><td>Song details, shown as a short list with the labels lined up (see <code>SongInfo</code> below for where they go); ārōhaṇam/avarōhaṇam are drawn as swaras, so <code>s'</code> and <code>n`</code> get their dots and <code>r2</code> its subscript. With an Indian-script <code>Language</code>, the labels and the raga and composer names are written in that script; the composer line is labelled as a composition, the way books in each language do: ರಚನೆ (Kannada), రచన (Telugu), இயற்றியவர் (Tamil), രചന (Malayalam), रचना (Devanagari). <b>Assist</b> on any of these lines opens a scale builder: start from a well-known raga, tap swaras (choose the upper or lower octave first for a dot), reverse the ārōhaṇam for the avarōhaṇam, and see a preview.</td></tr>
-      <tr><td><code>SongInfo: Composer Right, Raga Left TwoLines, Tala Left</code> <span class="ext">new</span></td><td>Where the song details go. Name a group (<code>Composer</code>, <code>Raga</code>, <code>Tala</code>) and its side: <code>Left</code>, <code>Center</code> (the default) or <code>Right</code>; leave out any group to keep it where it is. For the raga also choose its lines: <code>Lines</code> (raga, ārōhaṇam and avarōhaṇam each on its own line, the default), <code>TwoLines</code> (the raga, then the scale on the next line) or <code>OneLine</code>. Groups on the same side are stacked: composer first, then the raga, then the tala; on different sides they sit next to each other. <b>Assist</b> on the line shows it as a form.</td></tr>
+      <tr><td><code>Raga: mOhanam</code>, <code>Composer: …</code>, <code>Arohana: s r2 g3 p d2 s'</code>, <code>Avarohana: …</code></td><td>Song details, shown as a short list with the labels lined up (see <code>SongInfo</code> below for where they go); ārōhaṇam/avarōhaṇam are drawn as swaras, so <code>s'</code> and <code>n`</code> get their dots and <code>r2</code> its subscript. With an Indian-script <code>Language</code>, the labels and the raga and composer names are written in that script; the composer line is labelled as a composition, the way books in each language do: ರಚನೆ (Kannada), రచన (Telugu), இயற்றியவர் (Tamil), രചന (Malayalam), रचना (Devanagari). <b>Assist</b> on any of these lines opens a scale builder: search about 840 ragas <span class="ext">new</span> (all 72 melakartas and their janya ragas; any spelling works, e.g. <i>thodi</i> or <i>shankarabharanam</i>, or type a melakarta number to list its janyas) to fill in the name and scale, tap swaras (choose the upper or lower octave first for a dot), reverse the ārōhaṇam for the avarōhaṇam, and see a preview.</td></tr>
+      <tr><td><code>SongInfo: Composer Right, Raga Left TwoLines, Tala Left</code> <span class="ext">new</span></td><td>Where the song details go. Name a group (<code>Composer</code>, <code>Raga</code>, <code>Tala</code>) and its side: <code>Left</code>, <code>Center</code> (the default) or <code>Right</code>; leave out any group to keep it where it is. For the raga also choose its lines: <code>Lines</code> (raga, ārōhaṇam and avarōhaṇam each on its own line, the default), <code>TwoLines</code> (the raga, then the scale on the next line) or <code>OneLine</code>. Groups on the same side are stacked: composer first, then the raga, then the tala; on different sides they sit next to each other. <b>Assist</b> on the line shows it as a form. Add <code>Size 9</code> to set the text size of the song details, in points like a heading’s size (the usual size is about 10.5); <code>Size Default</code> goes back to it.</td></tr>
       <tr><td><code>Section: pallavi</code> &nbsp; <code>Text: …</code></td><td>Quick headings without quotes or attributes.</td></tr>
       <tr><td><code>r1 r2 g3 …</code></td><td>Swara variants shown with a subscript number.</td></tr>
       <tr><td><code>srgm</code></td><td>Plain swaras may be written joined; same as <code>s r g m</code>.</td></tr>

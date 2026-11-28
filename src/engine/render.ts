@@ -31,7 +31,7 @@ const SP_BASE = {
   anga: 0.85, // gap between angas without a marker (capu talas)
   label: 0.7, // gap after the sangati label
   cellMin: 0.3,
-  phrase: 0.8, // space per extra hyphen (p--, p---) when PhraseEnds sets no spacing
+  phrase: 0.8, // space per extra hyphen (p--, p---) unless PhraseEnds gives a spacing
 };
 type Spacing = typeof SP_BASE;
 /**
@@ -289,7 +289,7 @@ function layoutDoc(doc: NotationDoc, el: HTMLElement): Geometry {
             if (it) lyrEnd[li] = start + W(g.lyricKeys.get(it)!) + SP.lyric;
           });
           // p-- p---: each hyphen after the first adds a step of space after the swara and its lyrics
-          const extra = ev.phraseEnd ? ((ev.phraseLen || 1) - 1) * (phraseEm || SP.phrase) : 0;
+          const extra = ev.phraseEnd ? ((ev.phraseLen || 1) - 1) * ((st.phraseEnds.custom && phraseEm) || SP.phrase) : 0;
           if (extra > 0) x = Math.max(x, ...lyrEnd.filter((v) => v !== undefined)) + extra;
           natural = Math.max(natural, x, ...lyrEnd.filter((v) => v !== undefined));
         }
@@ -446,7 +446,9 @@ function renderMeta(b: MetaBlock): string {
     } else for (const it of scale) columns[layout.raga].push(row([it]));
   }
   for (const it of of('tala')) columns[layout.tala].push(row([it]));
-  return '<div class="cm-meta">' + (['left', 'center', 'right'] as MetaAlign[])
+  // Size: the same scale as a Heading's size, shrinking with narrow pages like the usual size does
+  const size = layout.size ? ' style="font-size:min(' + num(layout.size * 1.15) + 'pt,' + num(layout.size * 0.42) + 'cqi)"' : '';
+  return '<div class="cm-meta"' + size + '>' + (['left', 'center', 'right'] as MetaAlign[])
     .filter((side) => columns[side].length)
     .map((side) => '<div class="cm-meta-col cm-meta-' + side + '">' + columns[side].join('') + '</div>')
     .join('') + '</div>';
@@ -513,7 +515,7 @@ export function render(doc: NotationDoc, el: HTMLElement, options: { emptyText?:
     let html = '';
     for (const b of doc.blocks) {
       if (b.type === 'heading') html += renderHeading(b);
-      else if (b.type === 'space') html += '<div class="cm-space"></div>';
+      else if (b.type === 'space') html += '<div class="cm-space' + (b.songBreak ? ' cm-break' : '') + '"></div>';
       else if (b.type === 'pagebreak') html += '<div class="cm-pagebreak"></div>';
       else if (b.type === 'meta') html += renderMeta(b);
       else if (b.type === 'staff') html += renderStaff(b, geo, stretchFor(b));
