@@ -36,6 +36,7 @@ export const DIRECTIVES: DirectiveInfo[] = (
     ['Language', 'Language: English', 'Script for swaras and lyrics', 'script'],
     ['SmartLyricMode', 'SmartLyricMode', 'Lyrics skip pauses on their own', 'lines'],
     ['Section', 'Section: pallavi', 'A part of the song: pallavi, caraNam…', 'song'],
+    ['Text', 'Text: ""', 'A plain line of text, such as a note', 'song'],
     ['Gati', 'Gati: tisra', 'Change the gati (nadai)', 'rhythm'],
     ['AvartanamsPerLine', 'AvartanamsPerLine: 1', 'Tala cycles on each line', 'rhythm'],
     ['SpeedMarks', 'SpeedMarks: above', 'Speed lines above or below', 'rhythm'],
@@ -58,7 +59,7 @@ export const DIRECTIVES: DirectiveInfo[] = (
 
 /** The order directives are shown in within each Assist group. */
 export const GROUP_ORDER: string[] = [
-  'Title', 'Heading', 'Section', 'Raga', 'Arohana', 'Avarohana', 'Composer', 'SongInfo',
+  'Title', 'Heading', 'Section', 'Text', 'Raga', 'Arohana', 'Avarohana', 'Composer', 'SongInfo',
   'S', 'L', 'SmartLyricMode',
   'Tala', 'AvartanamsPerLine', 'DefaultSpeed', 'Gati', 'SpeedMarks', 'PhraseEnds',
   'Language', 'LanguageFont',
