@@ -107,6 +107,8 @@ function Editor({ initial }: { initial: Initial }) {
 
   const [text, setText] = useState(initial.text);
   const [doc, setDoc] = useState<NotationDoc>(() => parse(initial.text));
+  // the S: line being edited, so the preview can mark and follow it
+  const [editLine, setEditLine] = useState<number | null>(null);
   const [autoUpdate, setAutoUpdate] = useState(store.get(KEYS.auto) !== '0');
   const [splitY, setSplitY] = useState(() => parseFloat(store.get(KEYS.split) || '') || 52);
   const [splitX, setSplitX] = useState(() => parseFloat(store.get(KEYS.splitX) || '') || 42);
@@ -594,7 +596,7 @@ function Editor({ initial }: { initial: Initial }) {
         style={{ ['--split-x' as string]: splitX + '%', ['--split-y' as string]: splitY + '%' }}
       >
         <section className="preview-pane" data-tour="preview" aria-label="Notation preview">
-          <Preview zoomable doc={doc} landscape={doc.page.orientation === 'landscape'} onJumpToLine={(n) => { setView('text'); setTimeout(() => editor.current?.goToLine(n), 0); }} />
+          <Preview zoomable doc={doc} followLine={editLine} landscape={doc.page.orientation === 'landscape'} onJumpToLine={(n) => { setView('text'); setTimeout(() => editor.current?.goToLine(n), 0); }} />
         </section>
 
         <Splitter
@@ -620,6 +622,7 @@ function Editor({ initial }: { initial: Initial }) {
             onIssue={(w) => toast('Line ' + w.line + ': ' + w.message)}
             onInput={onInput}
             onShortcut={(cmd) => commands[cmd]()}
+            onCursorLine={setEditLine}
             onPasteConverted={({ start, original, converted, scriptName, languageWord }) => {
               const ed = editor.current!;
               const lang = lettersContext(ed.getValue(), ed.lineInfo()).lang;
