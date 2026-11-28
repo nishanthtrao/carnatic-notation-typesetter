@@ -68,6 +68,10 @@
 .cm-space {
   height: 0.6em;
 }
+/* SongBreak: a full blank line, so the parts of a song are clearly apart */
+.cm-space.cm-break {
+  height: 1.5em;
+}
 .cm-empty {
   color: var(--cm-muted);
   font-style: italic;

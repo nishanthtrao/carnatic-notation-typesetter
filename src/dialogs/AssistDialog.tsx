@@ -456,7 +456,11 @@ function SongInfoForm({ value, onClose, onApply, footer }: FormProps) {
   const [raga, setRaga] = useState(side(rw));
   const [lines, setLines] = useState(rw.includes('oneline') ? 'OneLine' : rw.includes('twolines') ? 'TwoLines' : 'Lines');
   const [tala, setTala] = useState(side(find(/^tala/)));
-  const apply = () => onApply('SongInfo: Composer ' + composer + ', Raga ' + raga + ' ' + lines + ', Tala ' + tala);
+  const sizeNow = Number((find(/^size$/)[1] || '').replace(/pt$/, ''));
+  const [size, setSize] = useState(sizeNow >= 6 && sizeNow <= 40 ? String(sizeNow) : '');
+  const sizeOk = !size.trim() || (Number(size) >= 6 && Number(size) <= 40);
+  const apply = () =>
+    sizeOk && onApply('SongInfo: Composer ' + composer + ', Raga ' + raga + ' ' + lines + ', Tala ' + tala + (size.trim() ? ', Size ' + Number(size) : ''));
   return (
     <Modal title="Song details" open onClose={onClose} footer={footer(apply)}>
       <div className="form-grid">
@@ -472,8 +476,11 @@ function SongInfoForm({ value, onClose, onApply, footer }: FormProps) {
         <Field id="a-si-tala" label="Tala">
           <Select id="a-si-tala" value={tala} onChange={setTala} options={SIDES} />
         </Field>
+        <Field id="a-si-size" label="Text size (pt)">
+          <input id="a-si-size" type="number" min="6" max="40" step="0.5" inputMode="decimal" placeholder="usual size" value={size} onChange={(e) => setSize(e.target.value)} aria-invalid={!sizeOk} />
+        </Field>
       </div>
-      <p className="hint">Where the Composer, Raga / Arohana / Avarohana and tala lines go. Those on the same side are stacked: composer first, then the raga, then the tala; on different sides they sit next to each other. The tala is shown only when “Show the tala on the page” is ticked for the Tala line.</p>
+      <p className="hint">Where the Composer, Raga / Arohana / Avarohana and tala lines go. Those on the same side are stacked: composer first, then the raga, then the tala; on different sides they sit next to each other. The tala is shown only when “Show the tala on the page” is ticked for the Tala line. The text size uses the same points as a Heading’s size; leave it empty for the usual size (about 10.5).</p>
     </Modal>
   );
 }

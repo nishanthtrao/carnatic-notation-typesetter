@@ -186,6 +186,8 @@ export interface MetaLayout {
   /** raga, ārōhaṇam, avarōhaṇam: each on its own line, raga then the scale, or all on one line */
   ragaLines: 'lines' | 'two' | 'one';
   tala: MetaAlign;
+  /** text size in points, on the same scale as Heading sizes; unset = the usual size */
+  size?: number;
 }
 
 export interface MetaBlock {
@@ -207,7 +209,8 @@ export interface MetaItem {
 export type Block =
   | StaffBlock
   | HeadingBlock
-  | { type: 'space' }
+  /** a blank line: Heading: "" (small), or SongBreak (a full line, so the break shows) */
+  | { type: 'space'; songBreak?: boolean }
   | { type: 'pagebreak' }
   | MetaBlock;
 

@@ -446,7 +446,9 @@ function renderMeta(b: MetaBlock): string {
     } else for (const it of scale) columns[layout.raga].push(row([it]));
   }
   for (const it of of('tala')) columns[layout.tala].push(row([it]));
-  return '<div class="cm-meta">' + (['left', 'center', 'right'] as MetaAlign[])
+  // Size: the same scale as a Heading's size, shrinking with narrow pages like the usual size does
+  const size = layout.size ? ' style="font-size:min(' + num(layout.size * 1.15) + 'pt,' + num(layout.size * 0.42) + 'cqi)"' : '';
+  return '<div class="cm-meta"' + size + '>' + (['left', 'center', 'right'] as MetaAlign[])
     .filter((side) => columns[side].length)
     .map((side) => '<div class="cm-meta-col cm-meta-' + side + '">' + columns[side].join('') + '</div>')
     .join('') + '</div>';
@@ -513,7 +515,7 @@ export function render(doc: NotationDoc, el: HTMLElement, options: { emptyText?:
     let html = '';
     for (const b of doc.blocks) {
       if (b.type === 'heading') html += renderHeading(b);
-      else if (b.type === 'space') html += '<div class="cm-space"></div>';
+      else if (b.type === 'space') html += '<div class="cm-space' + (b.songBreak ? ' cm-break' : '') + '"></div>';
       else if (b.type === 'pagebreak') html += '<div class="cm-pagebreak"></div>';
       else if (b.type === 'meta') html += renderMeta(b);
       else if (b.type === 'staff') html += renderStaff(b, geo, stretchFor(b));

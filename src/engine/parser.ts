@@ -214,7 +214,7 @@ export function parse(input: string): NotationDoc {
   };
 
   let seg: Segment | null = null;
-  // blank lines owed by SongBreak, drawn only if more notation follows (a heading has its own space)
+  // blank lines owed by SongBreak, drawn before whatever comes next (not at the very end, or before a page break)
   let gaps = 0;
   let lastSwaraLine: SwaraLine | null = null;
   let metaBlock: MetaBlock | null = null;
@@ -255,7 +255,7 @@ export function parse(input: string): NotationDoc {
       time: 0,
       groupCounter: 0,
     };
-    for (; gaps > 0; gaps--) doc.blocks.push({ type: 'space' });
+    for (; gaps > 0; gaps--) doc.blocks.push({ type: 'space', songBreak: true });
     doc.blocks.push(seg);
     metaBlock = null;
     return seg;
@@ -278,6 +278,7 @@ export function parse(input: string): NotationDoc {
 
   const pushBlock = (b: Block) => {
     closeSeg();
+    if (b.type !== 'pagebreak') for (; gaps > 0; gaps--) doc.blocks.push({ type: 'space', songBreak: true });
     gaps = 0;
     doc.blocks.push(b);
     if (b.type !== 'meta') metaBlock = null;
@@ -611,10 +612,9 @@ export function parse(input: string): NotationDoc {
         parsePrefs(value, st.headingPrefs);
         break;
       case 'songbreak': {
-        // ends the line, starts the tala afresh, and leaves a blank line before what follows
-        const open = seg as Segment | null;
-        if (open && open.events.length) gaps = 1;
-        else if (gaps) gaps++; // SongBreak twice: a bigger gap
+        // ends the line, starts the tala afresh, and leaves a blank line before what follows,
+        // a heading included; each further SongBreak adds another. Nothing before the first content.
+        if (doc.blocks.length) gaps++;
         closeSeg();
         break;
       }
@@ -671,6 +671,14 @@ export function parse(input: string): NotationDoc {
         for (const part of value.split(',')) {
           const words = part.trim().toLowerCase().split(/\s+/).filter(Boolean);
           if (!words.length) continue;
+          // Size 11: the size of the song details, like a Heading's size; Size Default goes back to the usual
+          if (words[0] === 'size') {
+            const n = words.length === 2 ? Number(words[1].replace(/pt$/, '')) : NaN;
+            if (words[1] === 'default' || words[1] === 'auto') delete next.size;
+            else if (n >= 6 && n <= 40) next.size = n;
+            else warn(no, 'SongInfo Size should be a number of points from 6 to 40, e.g. Size 11');
+            continue;
+          }
           const group = /^r[aā]gam?$/.test(words[0]) ? 'raga' : /^composer$/.test(words[0]) ? 'composer' : /^t[aā][lḷ]am?$/.test(words[0]) ? 'tala' : null;
           if (!group || words.length < 2) {
             bad = true;
@@ -684,7 +692,7 @@ export function parse(input: string): NotationDoc {
             else bad = true;
           }
         }
-        if (bad) warn(no, 'SongInfo should look like "SongInfo: Composer Right, Raga Left TwoLines, Tala Right" (Left, Center or Right; for the raga also Lines, TwoLines or OneLine)');
+        if (bad) warn(no, 'SongInfo should look like "SongInfo: Composer Right, Raga Left TwoLines, Tala Right" (Left, Center or Right; for the raga also Lines, TwoLines or OneLine; and Size 11 for the text size)');
         st.metaLayout = next;
         const open = metaBlock as MetaBlock | null;
         if (open) open.layout = { ...next };
