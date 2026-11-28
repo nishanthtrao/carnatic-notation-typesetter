@@ -47,12 +47,11 @@ export const DIRECTIVES: DirectiveInfo[] = (
     ['GamakaPrefs', 'GamakaPrefs: 10', 'Gamaka text size and colour', 'look'],
     ['LanguageFont', 'LanguageFont: All,Sans', 'Serif, Sans, Rounded or an installed font', 'script'],
     ['Title', 'Title: ""', 'File name and print header', 'song'],
-    ['SongBreak', 'SongBreak', 'Start a new line and tala cycle', 'layout'],
-    ['LineBreak', 'LineBreak', 'New line (manual tala mode)', 'layout'],
+    ['SongBreak', 'SongBreak', 'Blank line, then a new line and tala cycle', 'layout'],
+    ['LineBreak', 'LineBreak', 'New line here; the tala keeps counting', 'layout'],
     ['Pagebreak', 'Pagebreak', 'New page when printing', 'layout'],
-    ['Orientation', 'Orientation: Landscape', 'Portrait or landscape page', 'layout'],
+    ['Orientation', 'Orientation: Portrait,15mm', 'Portrait or landscape page, and its margins', 'layout'],
     ['SongInfo', 'SongInfo: Composer Center, Raga Center Lines, Tala Center', 'Where the composer, raga with its scale, and tala go: left, centre or right', 'song'],
-    ['Margin', 'Margin: 15mm', 'Space around the notation on the printed page (mm, cm or in)', 'layout'],
   ] as [string, string, string, GroupId][]
 ).map(([name, template, help, group]) => ({ name, template, help, group }));
 
@@ -62,7 +61,7 @@ export const GROUP_ORDER: string[] = [
   'S', 'L', 'SmartLyricMode',
   'Tala', 'AvartanamsPerLine', 'DefaultSpeed', 'Gati', 'SpeedMarks', 'PhraseEnds',
   'Language', 'LanguageFont',
-  'Layout', 'Spacing', 'Grouping', 'SongBreak', 'LineBreak', 'Pagebreak', 'Orientation', 'Margin',
+  'Layout', 'Spacing', 'Grouping', 'SongBreak', 'LineBreak', 'Pagebreak', 'Orientation',
   'SwaraPrefs', 'LyricPrefs', 'GamakaPrefs', 'HeadingPrefs',
 ];
 
@@ -95,8 +94,7 @@ const VALUE_COMPLETIONS: Record<string, () => string[]> = {
   gati: () => ['tisra', 'catusra', 'khanda', 'misra', 'sankirna'],
   speedmarks: () => ['above', 'below'],
   phraseends: () => ['Hide', 'Show', 'Handle', 'HandleThick'],
-  orientation: () => ['Portrait', 'Landscape'],
-  margin: () => ['10mm', '12mm', '15mm', '20mm', '0.5in', '1in'],
+  orientation: () => ['Portrait', 'Landscape', 'Portrait,15mm', 'Portrait,15mm,20mm', 'Landscape,0.5in'],
   spacing: () => ['Tight', 'Normal', 'Wide'],
   grouping: () => ['Off', 'On'],
   songinfo: () => ['Composer Right, Raga Left Lines, Tala Left', 'Composer Center, Raga Center TwoLines, Tala Center', 'Composer Right, Raga Left OneLine, Tala Right'],

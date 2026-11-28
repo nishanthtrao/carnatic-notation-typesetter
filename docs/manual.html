@@ -224,7 +224,12 @@ L: sR.Sh Tis dit yan da kA ra kA . mi ta kA mi ta pha la dA sa mA na gA tra Sa c
 LineBreak
 S: n p m ri- s' n p m ri- r' sa'- p sa'- m pa- r g m pa- s' , n p m
 L: pa ti nu tA pti ma ta ha ra nu rA ga rA ga rA ji ta ka tA sA _ ra hi ta</pre>
-    <p>A heading always ends the current notation line, just like <code>SongBreak</code>.</p>
+    <p><code>LineBreak</code> and <code>SongBreak</code> work in every mode, not only the manual ones <span class="ext">new</span>:</p>
+    <ul>
+      <li><code>LineBreak</code> starts a new line where it is written, and the tala keeps counting. In the middle of an avartanam, the next line finishes that avartanam; after that, lines hold <code>AvartanamsPerLine</code> cycles again.</li>
+      <li><code>SongBreak</code> ends the line, leaves a blank line, and starts the tala afresh, so there is no need for an empty <code>Heading: ""</code> to separate parts. Write it twice for a bigger gap. Before a heading it adds no gap, since the heading has its own space.</li>
+    </ul>
+    <p>A heading always ends the current notation line too.</p>
 
     <h2 id="layout">Layout and DefaultSpeed</h2>
     <table class="t">
@@ -291,7 +296,12 @@ S: ( s' n' d p- n d p m ) pa ( s' n' d p- n d p m ) pa ; ;</pre>
 Heading: "---"
 Heading: "[|*P:*|nAdalOluDai brahmAnandamandavE manasA|\
 |*A:*|svAdu phalaprada sapta svara rAga nicaya sahita|]",11</pre>
-    <p><code>Title: "song name"</code> sets the page title, which browsers can print in the page header. <code>Pagebreak</code> forces a new page when printing. <code>Orientation: Landscape</code> (or <code>Portrait</code>) sets the printed page orientation. <code>Margin: 15mm</code> <span class="ext">new</span> sets the space around the notation on every side of the printed page, in <code>mm</code>, <code>cm</code> or <code>in</code> (default 12mm, at most 60mm); the page on screen shows it to scale, so line breaks match the print. The original form <code>Orientation: Landscape,0.5in</code> still works.</p>
+    <p><code>Title: "song name"</code> sets the page title, which browsers can print in the page header. <code>Pagebreak</code> forces a new page when printing. <code>Orientation: Landscape</code> (or <code>Portrait</code>) sets the printed page orientation, and the page margins can follow it, in <code>mm</code>, <code>cm</code> or <code>in</code>:</p>
+<pre class="plain">Orientation: Portrait,15mm                 every side 15mm (as in the original)
+Orientation: Portrait,20mm,15mm            left 20mm, top 15mm; right and bottom the same
+Orientation: Portrait,20mm,15mm,12mm       right 12mm instead
+Orientation: Portrait,20mm,15mm,12mm,25mm  and bottom 25mm</pre>
+    <p>The order is left, top, right, bottom. The right margin is the same as the left and the bottom the same as the top unless you write them; a part can also name its side (<code>Orientation: Portrait, Bottom 25mm</code>). The default is 12mm on every side and the most is 60mm. The page on screen shows the margins to scale, so line breaks match the print. Assist on the Orientation line has a form with a small sketch of the page. The separate <code>Margin:</code> line of the last few versions still works for now, with a note to move it into <code>Orientation:</code>.</p>
 
     <h2 id="language">Language and LanguageFont</h2>
     <p><code>Language: English</code> (default), <code>Diacritics</code>, <code>Sanskrit</code>, <code>Telugu</code>, <code>Tamil</code>, <code>Kannada</code> or <code>Malayalam</code> sets the script for swaras, lyrics and headings. Lyrics and headings are typed in the Unified Transliteration Scheme:</p>

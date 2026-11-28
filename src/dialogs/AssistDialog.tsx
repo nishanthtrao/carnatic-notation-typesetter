@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { RagaPicker } from './RagaPicker';
 import type { Raga } from '../lib/ragas';
 import { Modal } from '../components/Modal';
-import { FONT_STYLES, normaliseLang, parse, parseFontStyle, parseGati, parseHeading, parseMargin, render, styleFamilies, swaraSample, SWARA_RE, transliterate, type FontStyle, type Lang } from '../engine';
+import { FONT_STYLES, normaliseLang, parse, parseFontStyle, parseGati, parseHeading, parseMargin, parseMargins, writeMargins, DEFAULT_MARGIN, render, styleFamilies, swaraSample, SWARA_RE, transliterate, type FontStyle, type Lang } from '../engine';
 import { Icon } from '../components/Icons';
 import { DIRECTIVE_GROUPS, DIRECTIVES, GROUP_ORDER, LANG_OPTIONS, LAYOUT_OPTIONS, talaOptions, type DirectiveInfo } from '../lib/directives';
 import { Check, Field, Select } from './common';
@@ -16,10 +16,10 @@ const PREFS = ['SwaraPrefs', 'LyricPrefs', 'HeadingPrefs', 'GamakaPrefs'] as con
 type PrefsName = (typeof PREFS)[number];
 export type FormName =
   | 'Tala' | 'Gati' | 'Layout' | 'DefaultSpeed' | 'Language' | 'LanguageFont' | 'Heading'
-  | 'SpeedMarks' | 'PhraseEnds' | 'Title' | 'Orientation' | 'Margin' | 'Spacing' | 'Grouping' | 'AvartanamsPerLine' | 'SongInfo' | 'Scale' | PrefsName;
+  | 'SpeedMarks' | 'PhraseEnds' | 'Title' | 'Orientation' | 'Spacing' | 'Grouping' | 'AvartanamsPerLine' | 'SongInfo' | 'Scale' | PrefsName;
 export const FORM_NAMES: FormName[] = [
   'Tala', 'Gati', 'Layout', 'DefaultSpeed', 'Language', 'LanguageFont', 'Heading',
-  'SpeedMarks', 'PhraseEnds', 'Title', 'Orientation', 'Margin', 'Spacing', 'Grouping', 'AvartanamsPerLine', 'SongInfo', 'Scale', ...PREFS,
+  'SpeedMarks', 'PhraseEnds', 'Title', 'Orientation', 'Spacing', 'Grouping', 'AvartanamsPerLine', 'SongInfo', 'Scale', ...PREFS,
 ];
 
 /** Raga, Arohana and Avarohana lines are edited together in the Scale form. */
@@ -179,24 +179,7 @@ function DirectiveForm({ name, value, onClose, onApply }: { name: FormName; valu
         options={[['above', 'Above the swaras (default)'], ['below', 'Below the swaras']]}
         hint="Speed lines group the faster swaras written in ( ). Applies from the next swara line." onClose={onClose} onApply={onApply} footer={footer} />
     );
-  if (name === 'Orientation') {
-    // keep a margin written the original way ("Orientation: Landscape,0.5in")
-    const extra = value.split(',').slice(1).join(',').trim();
-    return (
-      <SimpleForm title="Page orientation" label="Orientation" prefix="Orientation: " initial={/^land/i.test(value.trim()) ? 'Landscape' : 'Portrait'}
-        options={[['Portrait', 'Portrait (default)'], ['Landscape', 'Landscape']]}
-        hint="Used when printing or exporting a PDF. The page margin has its own line, Margin (next to Orientation in Assist)." onClose={onClose} onApply={(v) => onApply(extra ? v + ',' + extra : v)} footer={footer} />
-    );
-  }
-  if (name === 'Margin') {
-    const MARGINS: [string, string][] = [['6mm', '6 mm (narrow)'], ['10mm', '10 mm'], ['12mm', '12 mm (default)'], ['15mm', '15 mm'], ['20mm', '20 mm'], ['25mm', '25 mm'], ['0.5in', '½ inch'], ['0.75in', '¾ inch'], ['1in', '1 inch']];
-    const now = parseMargin(value)?.css;
-    if (now && !MARGINS.some(([v]) => v === now)) MARGINS.unshift([now, now]);
-    return (
-      <SimpleForm title="Page margin" label="Margin" prefix="Margin: " initial={now || '12mm'} options={MARGINS}
-        hint="The space around the notation on every side of the printed page; the page on screen shows it to scale. You can also type any size in mm, cm or in, e.g. Margin: 18mm." onClose={onClose} onApply={onApply} footer={footer} />
-    );
-  }
+  if (name === 'Orientation') return <OrientationForm value={value} onClose={onClose} onApply={onApply} footer={footer} />;
   if (name === 'AvartanamsPerLine') {
     const n = parseInt(value, 10);
     return (
@@ -282,6 +265,72 @@ function PhraseEndsForm({ value, onClose, onApply, footer }: FormProps) {
         </Field>
       </div>
       <p className="hint">A phrase end is a hyphen after a swara (<code>p-</code>), e.g. where to breathe. Extra space separates phrases; 0.45 inches is a good start for manual-mode layouts.</p>
+    </Modal>
+  );
+}
+
+const UNITS: [string, string][] = [['mm', 'mm'], ['cm', 'cm'], ['in', 'inches']];
+const PAGE_MM = { portrait: [210, 297], landscape: [297, 210] } as const;
+
+function OrientationForm({ value, onClose, onApply, footer }: FormProps) {
+  const parts = value.split(',');
+  const [orient, setOrient] = useState(/^\s*land/i.test(value) ? 'Landscape' : 'Portrait');
+  const read = parseMargins(parts.slice(1));
+  const now = 'margins' in read ? read.margins : { left: DEFAULT_MARGIN, top: DEFAULT_MARGIN, right: DEFAULT_MARGIN, bottom: DEFAULT_MARGIN };
+  const split = (css: string) => css.match(/^([\d.]+)(mm|cm|in)$/) || ['', '12', 'mm'];
+  const units = [...new Set([now.left, now.top, now.right, now.bottom].map((c) => split(c)[2]))];
+  const [unit, setUnit] = useState(units.length === 1 ? units[0] : 'mm');
+  const inUnit = (css: string) => {
+    const [, n, u] = split(css);
+    if (u === unit) return n;
+    const mm = parseMargin(css)?.mm ?? 12;
+    return String(+(mm / ({ mm: 1, cm: 10, in: 25.4 } as Record<string, number>)[unit]).toFixed(2));
+  };
+  const [v, setV] = useState({ left: inUnit(now.left), top: inUnit(now.top), right: inUnit(now.right), bottom: inUnit(now.bottom) });
+  const [separate, setSeparate] = useState(now.right !== now.left || now.bottom !== now.top);
+  const set = (side: keyof typeof v) => (x: string) => setV((o) => ({ ...o, [side]: x }));
+  const css = (n: string) => parseMargin(n.trim() + unit);
+  const sides = { left: v.left, top: v.top, right: separate ? v.right : v.left, bottom: separate ? v.bottom : v.top };
+  const parsed = Object.fromEntries(Object.entries(sides).map(([k, n]) => [k, css(n)]));
+  const bad = (k: string) => !parsed[k] || parsed[k]!.mm > 60;
+  const ok = !['left', 'top', 'right', 'bottom'].some(bad);
+  const apply = () => {
+    if (!ok) return;
+    const m = writeMargins({ left: parsed.left!.css, top: parsed.top!.css, right: parsed.right!.css, bottom: parsed.bottom!.css });
+    onApply('Orientation: ' + orient + (m ? ',' + m : ''));
+  };
+  const box = (side: keyof typeof v, label: string) => (
+    <Field id={'a-or-' + side} label={label}>
+      <input id={'a-or-' + side} type="number" min="0" max={unit === 'in' ? 2.4 : unit === 'cm' ? 6 : 60} step="any" inputMode="decimal"
+        value={v[side]} onChange={(e) => set(side)(e.target.value)} aria-invalid={bad(side)} />
+    </Field>
+  );
+  const [pw, ph] = PAGE_MM[orient === 'Landscape' ? 'landscape' : 'portrait'];
+  const pct = (k: string, of: number) => Math.min(40, ((parsed[k]?.mm ?? 0) / of) * 100) + '%';
+  return (
+    <Modal title="Page and margins" open onClose={onClose} footer={footer(apply)}>
+      <div className="orient-form">
+        <div className="form-grid">
+          <Field id="a-or" label="Orientation">
+            <Select id="a-or" value={orient} onChange={setOrient} options={[['Portrait', 'Portrait (default)'], ['Landscape', 'Landscape']]} />
+          </Field>
+          <Field id="a-or-unit" label="Margins in">
+            <Select id="a-or-unit" value={unit} onChange={setUnit} options={UNITS} />
+          </Field>
+          {box('left', separate ? 'Left' : 'Left and right')}
+          {box('top', separate ? 'Top' : 'Top and bottom')}
+          {separate && box('right', 'Right')}
+          {separate && box('bottom', 'Bottom')}
+          <span />
+          <div className="checks">
+            <Check checked={separate} onChange={setSeparate}>Set the right and bottom margins separately</Check>
+          </div>
+        </div>
+        <div className="page-sketch" style={{ aspectRatio: pw + ' / ' + ph }} aria-hidden>
+          <div style={{ top: pct('top', ph), right: pct('right', pw), bottom: pct('bottom', ph), left: pct('left', pw) }} />
+        </div>
+      </div>
+      <p className="hint">Margins are the space around the notation on the printed page; the page on screen shows them to scale. The right margin is the same as the left, and the bottom the same as the top, unless you set them separately. Up to 60 mm on any side.</p>
     </Modal>
   );
 }
