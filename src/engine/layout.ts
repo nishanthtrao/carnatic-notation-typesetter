@@ -47,9 +47,21 @@ function rowBounds(seg: Segment): number[] {
         }
       }
       for (let a = 0; a * A < total - EPS; a++) bounds.push(a * A + split, (a + 1) * A);
+      for (const t of seg.lineBreaks) if (t > EPS && t < total - EPS) bounds.push(t);
     } else {
-      for (let t = A * perRow; t < total - EPS; t += A * perRow) bounds.push(t);
-      bounds.push(Math.max(A * perRow, Math.ceil((total - EPS) / (A * perRow)) * A * perRow));
+      // A LineBreak starts a new line wherever it is written; the tala keeps counting.
+      // After it, the next line runs to the end of that avartanam (if the break was in
+      // the middle of one), and from there lines hold AvartanamsPerLine cycles again.
+      const step = A * perRow;
+      const starts = [0, ...seg.lineBreaks.filter((t) => t > EPS && t < total - EPS)];
+      starts.forEach((b, i) => {
+        const end = i + 1 < starts.length ? starts[i + 1] : total;
+        if (b > 0) bounds.push(b);
+        const cycle = Math.ceil((b - EPS) / A) * A; // the next avartanam boundary at or after the break
+        let t = cycle > b + EPS ? cycle : b + step;
+        for (; t < end - EPS; t += step) bounds.push(t);
+        if (i + 1 === starts.length) bounds.push(t); // the last line is drawn to its full width
+      });
     }
     bounds = uniqSorted(bounds);
     if (bounds.length < 2) bounds.push(A * perRow);

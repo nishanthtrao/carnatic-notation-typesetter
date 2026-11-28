@@ -213,6 +213,8 @@ export function parse(input: string): NotationDoc {
   };
 
   let seg: Segment | null = null;
+  // blank lines owed by SongBreak, drawn only if more notation follows (a heading has its own space)
+  let gaps = 0;
   let lastSwaraLine: SwaraLine | null = null;
   let metaBlock: MetaBlock | null = null;
   // "Tala: Adi,Show": the tala joins the song details, wherever they end up,
@@ -252,6 +254,7 @@ export function parse(input: string): NotationDoc {
       time: 0,
       groupCounter: 0,
     };
+    for (; gaps > 0; gaps--) doc.blocks.push({ type: 'space' });
     doc.blocks.push(seg);
     metaBlock = null;
     return seg;
@@ -274,6 +277,7 @@ export function parse(input: string): NotationDoc {
 
   const pushBlock = (b: Block) => {
     closeSeg();
+    gaps = 0;
     doc.blocks.push(b);
     if (b.type !== 'meta') metaBlock = null;
   };
@@ -602,13 +606,19 @@ export function parse(input: string): NotationDoc {
       case 'headingprefs':
         parsePrefs(value, st.headingPrefs);
         break;
-      case 'songbreak':
+      case 'songbreak': {
+        // ends the line, starts the tala afresh, and leaves a blank line before what follows
+        const open = seg as Segment | null;
+        if (open && open.events.length) gaps = 1;
+        else if (gaps) gaps++; // SongBreak twice: a bigger gap
         closeSeg();
         break;
+      }
       case 'linebreak': {
+        // a new line here; the tala keeps counting (Tala: Manual has no count, so it starts afresh)
         const open = seg as Segment | null;
-        if (open && open.tala && open.tala.manual === 1) open.lineBreaks.push(open.time);
-        else if (open && open.tala && open.tala.manual === 2) closeSeg();
+        if (open && open.tala && open.tala.manual === 2) closeSeg();
+        else if (open && open.events.length) open.lineBreaks.push(open.time);
         break;
       }
       case 'pagebreak':
