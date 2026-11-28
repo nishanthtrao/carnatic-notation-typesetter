@@ -88,6 +88,8 @@ const GAMAKA_SVG: Record<string, string> = {
 };
 
 const num = (v: number) => (Math.round(v * 1000) / 1000).toString();
+/** A bar as text: a double bar has its second stroke drawn close to the first, as in printed notation. */
+const barText = (kind: string) => (kind === '||' ? '|<span class="cm-dbar2">|</span>' : esc(kind));
 
 /** The seven swaras as printed in a language, e.g. for font previews. */
 export function swaraSample(lang: Lang): string {
@@ -366,7 +368,7 @@ function renderStaff(st: StaffBlock, geo: Geometry, stretch: number): string {
       html += '<div class="cm-inline-tala">';
       for (const mk of row.inline) {
         const ev = row.events.find((e) => e.t >= mk.t - EPS);
-        html += '<span class="cm-it" style="left:' + sx(ev ? E(ev).x : g.total) + '"><span>' + esc(mk.kind) + '</span></span>';
+        html += '<span class="cm-it" style="left:' + sx(ev ? E(ev).x : g.total) + '"><span>' + barText(mk.kind) + '</span></span>';
       }
       html += '</div>';
     }
@@ -385,8 +387,8 @@ function renderStaff(st: StaffBlock, geo: Geometry, stretch: number): string {
       const x1 = E(b).x + Math.max(E(b).w, 0.35);
       html += '<span class="cm-speed d' + Math.min(gr.depth, 4) + '" style="left:' + sx(x0) + ';width:' + num((x1 - x0) * stretch) + 'em"></span>';
     }
-    if (g.lead) html += '<span class="cm-bar" style="left:' + sx(g.lead.x) + ';width:' + num(g.lead.w * stretch) + 'em">' + row.leadMarker + '</span>';
-    for (const s of g.seps) html += '<span class="cm-bar" style="left:' + sx(s.x) + ';width:' + num(s.w * stretch) + 'em">' + s.kind + '</span>';
+    if (g.lead) html += '<span class="cm-bar" style="left:' + sx(g.lead.x) + ';width:' + num(g.lead.w * stretch) + 'em">' + barText(row.leadMarker || '') + '</span>';
+    for (const s of g.seps) html += '<span class="cm-bar" style="left:' + sx(s.x) + ';width:' + num(s.w * stretch) + 'em">' + barText(s.kind) + '</span>';
     html += '</div>';
 
     for (const line of row.lyricLines) {
