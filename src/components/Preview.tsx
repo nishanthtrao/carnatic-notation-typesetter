@@ -28,7 +28,7 @@ const marginVars = (page: NotationDoc['page']) => {
   return { '--pm-top': m.top, '--pm-right': m.right, '--pm-bottom': m.bottom, '--pm-left': m.left };
 };
 
-export function Preview({ doc, onJumpToLine, landscape, zoomable }: { doc: NotationDoc; onJumpToLine?: (line: number) => void; landscape?: boolean; zoomable?: boolean }) {
+export function Preview({ doc, onJumpToLine, landscape, zoomable, followLine = null }: { doc: NotationDoc; onJumpToLine?: (line: number) => void; landscape?: boolean; zoomable?: boolean; followLine?: number | null }) {
   const sheet = useRef<HTMLDivElement>(null);
   const paper = useRef<HTMLDivElement>(null);
   const box = useRef<HTMLDivElement>(null);
@@ -62,13 +62,46 @@ export function Preview({ doc, onJumpToLine, landscape, zoomable }: { doc: Notat
     if (el) keepPlace(() => (handle.current = render(doc, el, { emptyText: 'Type your notation below, or open an example.' })));
   }, [doc]);
 
+  // Mark the rows typeset from the S: line being edited, and bring them into
+  // view when the cursor moves to another line (not on every keystroke).
+  const follow = useRef(followLine);
+  follow.current = followLine;
+  const followed = useRef<number | null>(null);
+  const applyFollow = (scroll: boolean) => {
+    const el = sheet.current;
+    if (!el) return;
+    for (const r of el.querySelectorAll('.cm-row.cm-current')) r.classList.remove('cm-current');
+    const n = follow.current;
+    if (!n) return;
+    const rows = [...el.querySelectorAll<HTMLElement>('.cm-row[data-from]')].filter((r) => +r.dataset.from! <= n && n <= +r.dataset.to!);
+    for (const r of rows) r.classList.add('cm-current');
+    const sc = scroller.current;
+    if (!scroll || !rows.length || !sc || !sc.offsetParent) return; // the preview is hidden (phones, Text view)
+    const first = rows[0].getBoundingClientRect();
+    const last = rows[rows.length - 1].getBoundingClientRect();
+    const view = sc.getBoundingClientRect();
+    const margin = 24;
+    if (first.top < view.top + margin) sc.scrollBy({ top: first.top - view.top - margin, behavior: 'smooth' });
+    else if (last.bottom > view.bottom - margin) sc.scrollBy({ top: Math.min(last.bottom - view.bottom + margin, first.top - view.top - margin), behavior: 'smooth' });
+  };
+  useLayoutEffect(() => {
+    applyFollow(followLine !== followed.current);
+    followed.current = followLine;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [doc, followLine]);
+
   useEffect(() => {
     const el = sheet.current;
     if (!el) return;
     let raf = 0;
     const refit = () => {
       cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => keepPlace(() => handle.current?.refit()));
+      raf = requestAnimationFrame(() =>
+        keepPlace(() => {
+          handle.current?.refit();
+          applyFollow(false);
+        }),
+      );
     };
     const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(refit) : null;
     ro?.observe(el);
@@ -76,7 +109,14 @@ export function Preview({ doc, onJumpToLine, landscape, zoomable }: { doc: Notat
     let fontTimer = 0;
     const relayout = () => {
       clearTimeout(fontTimer);
-      fontTimer = window.setTimeout(() => keepPlace(() => handle.current?.refit(true)), 50);
+      fontTimer = window.setTimeout(
+        () =>
+          keepPlace(() => {
+            handle.current?.refit(true);
+            applyFollow(false);
+          }),
+        50,
+      );
     };
     document.fonts?.ready.then(relayout);
     document.fonts?.addEventListener?.('loadingdone', relayout);
@@ -186,10 +226,13 @@ export function Preview({ doc, onJumpToLine, landscape, zoomable }: { doc: Notat
               onClick={(e) => {
                 const st = (e.target as HTMLElement).closest<HTMLElement>('.cm-staff[data-line]');
                 if (!st || window.getSelection()?.toString()) return;
-                onJumpToLine?.(+st.dataset.line!);
-                st.classList.remove('flash');
-                void st.offsetWidth;
-                st.classList.add('flash');
+                // the row's own S: line when known, else the first line of its block
+                const row = (e.target as HTMLElement).closest<HTMLElement>('.cm-row[data-from]');
+                onJumpToLine?.(+(row?.dataset.from ?? st.dataset.line!));
+                const lit = row ?? st;
+                lit.classList.remove('flash');
+                void lit.offsetWidth;
+                lit.classList.add('flash');
               }}
             />
           </div>

@@ -361,7 +361,10 @@ function renderStaff(st: StaffBlock, geo: Geometry, stretch: number): string {
     // (speed lines above, gamakas); otherwise they keep a band of their own.
     const roomAbove = !hasGamaka && (st.speedMarks === 'below' || !row.groups.length);
     const cls = (hasGamaka ? ' has-gamaka' : '') + (row.inline.length ? ' has-inline' + (roomAbove ? ' it-tight' : '') : '');
-    html += '<div class="cm-row' + cls + '" style="width:' + sx(g.total) + '">';
+    // the S: lines this row came from, so the editor and the preview can point at each other
+    const lines = row.events.map((ev) => ev.line).filter((n): n is number => !!n);
+    const from = lines.length ? ' data-from="' + Math.min(...lines) + '" data-to="' + Math.max(...lines) + '"' : '';
+    html += '<div class="cm-row' + cls + '"' + from + ' style="width:' + sx(g.total) + '">';
     if (row.label) html += '<span class="cm-label">' + esc(row.label) + '</span>';
 
     if (row.inline.length) {
