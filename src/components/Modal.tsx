@@ -5,13 +5,15 @@ interface ModalProps {
   open: boolean;
   onClose: () => void;
   children: ReactNode;
-  /** footer buttons; a Close button is shown when omitted */
+  /** footer buttons; when omitted, a single Done (or Cancel) button */
   footer?: ReactNode;
+  /** Done for something to look at or use; Cancel for a chooser that does nothing unless you pick */
+  dismiss?: 'done' | 'cancel';
   wide?: boolean;
 }
 
 /** Accessible modal built on the native <dialog> element. */
-export function Modal({ title, open, onClose, children, footer, wide }: ModalProps) {
+export function Modal({ title, open, onClose, children, footer, dismiss = 'done', wide }: ModalProps) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const d = ref.current;
@@ -38,11 +40,16 @@ export function Modal({ title, open, onClose, children, footer, wide }: ModalPro
           <h2>{title}</h2>
           <div className="dlg-body">{children}</div>
           <menu>
-            {footer ?? (
-              <button type="button" onClick={onClose}>
-                Close
-              </button>
-            )}
+            {footer ??
+              (dismiss === 'cancel' ? (
+                <button type="button" onClick={onClose}>
+                  Cancel
+                </button>
+              ) : (
+                <button type="button" className="primary" onClick={onClose}>
+                  Done
+                </button>
+              ))}
           </menu>
         </div>
       )}

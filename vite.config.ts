@@ -67,7 +67,7 @@ function pdfjsFiles(): Plugin {
 // with the list of files to keep. The optional Sans/Rounded fonts are left out
 // (cached when a sheet first uses them), and so is the PDF reader (about
 // 2.5 MB, fetched only when a PDF is added); everything else is about 1 MB.
-const OPTIONAL = /\/(anek|baloo|nunito)-[^/]*\.woff2$|\/pdfjs\/|\/pdf(\.worker)?(\.min)?-[^/]*\.m?js$/;
+const OPTIONAL = /\/(anek|baloo|nunito|kalam|gurajada|navilu|chilanka|kavivanar)-[^/]*\.woff2$|\/pdfjs\/|\/pdf(\.worker)?(\.min)?-[^/]*\.m?js$/;
 function serviceWorker(): Plugin {
   let outDir = 'dist';
   return {

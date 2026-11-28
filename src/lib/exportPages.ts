@@ -113,9 +113,9 @@ export async function pageImages(doc: NotationDoc, onPage?: (n: number, of: numb
   const mm = pageMm(doc.page);
   const W = Math.round(mm.width * PX_PER_MM);
   const H = Math.round(mm.height * PX_PER_MM);
-  const M = Math.round(mm.margin * PX_PER_MM);
-  const contentW = W - 2 * M;
-  const contentH = H - 2 * M;
+  const [ML, MT, MR, MB] = (['left', 'top', 'right', 'bottom'] as const).map((side) => Math.round(mm.margin[side] * PX_PER_MM));
+  const contentW = W - ML - MR;
+  const contentH = H - MT - MB;
 
   // lay the whole song out once, at the page's content width, out of sight
   const host = document.createElement('div');
@@ -185,7 +185,7 @@ export async function pageImages(doc: NotationDoc, onPage?: (n: number, of: numb
     for (let i = 0; i < pages.length; i++) {
       onPage?.(i + 1, pages.length);
       const pageEl = document.createElement('div');
-      pageEl.style.cssText = `width:${W}px;height:${H}px;padding:${M}px;box-sizing:border-box;background:#fff;overflow:hidden;color-scheme:light;`;
+      pageEl.style.cssText = `width:${W}px;height:${H}px;padding:${MT}px ${MR}px ${MB}px ${ML}px;box-sizing:border-box;background:#fff;overflow:hidden;color-scheme:light;`;
       const copy = sheet.cloneNode(false) as HTMLElement;
       copy.style.width = contentW + 'px';
       copy.style.background = '#fff';

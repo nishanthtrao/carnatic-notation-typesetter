@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
+import { RagaPicker } from './RagaPicker';
+import type { Raga } from '../lib/ragas';
 import { Modal } from '../components/Modal';
-import { FONT_STYLES, normaliseLang, parse, parseFontStyle, parseGati, parseHeading, parseMargin, render, styleFamilies, swaraSample, SWARA_RE, transliterate, type FontStyle, type Lang } from '../engine';
+import { FONT_STYLES, normaliseLang, parse, parseFontStyle, parseGati, parseHeading, parseMargin, parseMargins, writeMargins, DEFAULT_MARGIN, render, styleFamilies, swaraSample, SWARA_RE, transliterate, type FontStyle, type Lang } from '../engine';
 import { Icon } from '../components/Icons';
 import { DIRECTIVE_GROUPS, DIRECTIVES, GROUP_ORDER, LANG_OPTIONS, LAYOUT_OPTIONS, talaOptions, type DirectiveInfo } from '../lib/directives';
-import { Check, Field, Select } from './common';
+import { Check, Chevron, Field, Select } from './common';
 
 export type AssistMode =
   | { kind: 'pick' }
@@ -13,11 +15,11 @@ export type AssistMode =
 const PREFS = ['SwaraPrefs', 'LyricPrefs', 'HeadingPrefs', 'GamakaPrefs'] as const;
 type PrefsName = (typeof PREFS)[number];
 export type FormName =
-  | 'Tala' | 'Gati' | 'Layout' | 'DefaultSpeed' | 'Language' | 'LanguageFont' | 'Heading'
-  | 'SpeedMarks' | 'PhraseEnds' | 'Title' | 'Orientation' | 'Margin' | 'Spacing' | 'Grouping' | 'AvartanamsPerLine' | 'SongInfo' | 'Scale' | PrefsName;
+  | 'Tala' | 'Gati' | 'Layout' | 'DefaultSpeed' | 'Language' | 'LanguageFont' | 'Heading' | 'Section' | 'Text'
+  | 'SpeedMarks' | 'PhraseEnds' | 'Title' | 'Orientation' | 'Spacing' | 'Grouping' | 'AvartanamsPerLine' | 'SongInfo' | 'Scale' | PrefsName;
 export const FORM_NAMES: FormName[] = [
-  'Tala', 'Gati', 'Layout', 'DefaultSpeed', 'Language', 'LanguageFont', 'Heading',
-  'SpeedMarks', 'PhraseEnds', 'Title', 'Orientation', 'Margin', 'Spacing', 'Grouping', 'AvartanamsPerLine', 'SongInfo', 'Scale', ...PREFS,
+  'Tala', 'Gati', 'Layout', 'DefaultSpeed', 'Language', 'LanguageFont', 'Heading', 'Section', 'Text',
+  'SpeedMarks', 'PhraseEnds', 'Title', 'Orientation', 'Spacing', 'Grouping', 'AvartanamsPerLine', 'SongInfo', 'Scale', ...PREFS,
 ];
 
 /** Raga, Arohana and Avarohana lines are edited together in the Scale form. */
@@ -56,9 +58,11 @@ function SyntaxHelp() {
       <p className="syn-lead">Separate swaras with spaces.</p>
       <ul className="syn-list">
         <Ex code={<code>s r g m p d n</code>}>Short swaras: one mātra each</Ex>
-        <Ex code={<><code>sa ri ga</code> or <code>S R G</code></>}>Long (dīrgha) swaras: two mātras each</Ex>
-        <Ex code={<code>r1 g3 m2</code>}>Swara variant, shown as a small number</Ex>
-        <Ex code={<><code>s'</code> &nbsp;<code>p`</code></>}>Upper octave (dot above), lower octave (dot below). Double it for two octaves: <code>s''</code></Ex>
+        <Ex code={<code>sA rI gA mA pA dA nI</code>}>
+          Long (dīrgha) swaras: two mātras each. The capital vowel makes them easy to spot; <code>sa ri ga</code> and <code>S R G</code> work too
+        </Ex>
+        <Ex code={<><code>r1 g3 m2</code> &nbsp;<code>rI2</code></>}>Swara variant, shown as a small number; long swaras take one too</Ex>
+        <Ex code={<><code>s'</code> &nbsp;<code>p`</code> &nbsp;<code>sA'</code></>}>Upper octave (dot above), lower octave (dot below), for short and long swaras. Double it for two octaves: <code>s''</code></Ex>
         <Ex code={<><code>,</code> &nbsp;<code>;</code></>}>Pause of one mātra, or two</Ex>
         <Ex code={<code>( s r g m )</code>}>Twice as fast. Brackets inside brackets go faster still</Ex>
         <Ex code={<><code>_</code> &nbsp;<code>__</code></>}>Empty space, one or two mātras</Ex>
@@ -108,26 +112,27 @@ export function AssistDialog({ mode, onClose, onApply, onChooseForm, currentLine
     };
     const byOrder = (a: DirectiveInfo, b: DirectiveInfo) => GROUP_ORDER.indexOf(a.name) - GROUP_ORDER.indexOf(b.name);
     return (
-      <Modal title="Add a directive" open onClose={onClose} wide>
+      <Modal title="Add a directive" open onClose={onClose} dismiss="cancel" wide>
         <div className="pick-groups">
           {DIRECTIVE_GROUPS.map((g) => (
             <section key={g.id} className="pick-group" aria-labelledby={'pg-' + g.id}>
-              <h3 id={'pg-' + g.id}>
-                {g.title} <span>{g.about}</span>
-              </h3>
-              <div className="pick-list">
+              <h3 id={'pg-' + g.id}>{g.title}</h3>
+              <ul className="list-group" role="list">
                 {DIRECTIVES.filter((d) => d.group === g.id)
                   .sort(byOrder)
                   .map((d) => (
-                    <button key={d.name} type="button" onClick={() => choose(d)}>
-                      <b>
-                        {d.name}
-                        {formFor(d.name) && <i className="pick-form" title="Opens a form">…</i>}
-                      </b>
-                      <span>{d.help}</span>
-                    </button>
+                    <li key={d.name}>
+                      <button type="button" className="list-row" onClick={() => choose(d)} title={formFor(d.name) ? 'Opens a form' : 'Adds the line'}>
+                        <span className="list-text">
+                          <b>{d.name}</b>
+                          <span>{d.help}</span>
+                        </span>
+                        {formFor(d.name) && <Chevron />}
+                      </button>
+                    </li>
                   ))}
-              </div>
+              </ul>
+              <p className="list-footer">{g.about}</p>
             </section>
           ))}
         </div>
@@ -152,7 +157,7 @@ function DirectiveForm({ name, value, onClose, onApply }: { name: FormName; valu
   );
 
   if (name === 'Tala') return <TalaForm value={value} onClose={onClose} onApply={onApply} footer={footer} />;
-  if (name === 'Heading') return <HeadingForm value={value} onClose={onClose} onApply={onApply} footer={footer} />;
+  if (name === 'Heading' || name === 'Section' || name === 'Text') return <HeadingForm kind={name} value={value} onClose={onClose} onApply={onApply} footer={footer} />;
   if (name === 'LanguageFont') return <LanguageFontForm value={value} onClose={onClose} onApply={onApply} footer={footer} />;
   if (name === 'Language') return <LanguageForm value={value} onClose={onClose} onApply={onApply} footer={footer} />;
   if (name === 'Gati') {
@@ -177,24 +182,7 @@ function DirectiveForm({ name, value, onClose, onApply }: { name: FormName; valu
         options={[['above', 'Above the swaras (default)'], ['below', 'Below the swaras']]}
         hint="Speed lines group the faster swaras written in ( ). Applies from the next swara line." onClose={onClose} onApply={onApply} footer={footer} />
     );
-  if (name === 'Orientation') {
-    // keep a margin written the original way ("Orientation: Landscape,0.5in")
-    const extra = value.split(',').slice(1).join(',').trim();
-    return (
-      <SimpleForm title="Page orientation" label="Orientation" prefix="Orientation: " initial={/^land/i.test(value.trim()) ? 'Landscape' : 'Portrait'}
-        options={[['Portrait', 'Portrait (default)'], ['Landscape', 'Landscape']]}
-        hint="Used when printing or exporting a PDF. The page margin has its own line, Margin (next to Orientation in Assist)." onClose={onClose} onApply={(v) => onApply(extra ? v + ',' + extra : v)} footer={footer} />
-    );
-  }
-  if (name === 'Margin') {
-    const MARGINS: [string, string][] = [['6mm', '6 mm (narrow)'], ['10mm', '10 mm'], ['12mm', '12 mm (default)'], ['15mm', '15 mm'], ['20mm', '20 mm'], ['25mm', '25 mm'], ['0.5in', '½ inch'], ['0.75in', '¾ inch'], ['1in', '1 inch']];
-    const now = parseMargin(value)?.css;
-    if (now && !MARGINS.some(([v]) => v === now)) MARGINS.unshift([now, now]);
-    return (
-      <SimpleForm title="Page margin" label="Margin" prefix="Margin: " initial={now || '12mm'} options={MARGINS}
-        hint="The space around the notation on every side of the printed page; the page on screen shows it to scale. You can also type any size in mm, cm or in, e.g. Margin: 18mm." onClose={onClose} onApply={onApply} footer={footer} />
-    );
-  }
+  if (name === 'Orientation') return <OrientationForm value={value} onClose={onClose} onApply={onApply} footer={footer} />;
   if (name === 'AvartanamsPerLine') {
     const n = parseInt(value, 10);
     return (
@@ -274,12 +262,78 @@ function PhraseEndsForm({ value, onClose, onApply, footer }: FormProps) {
         </Field>
         <Field id="a-pe-space" label="Extra space">
           <div className="inline-fields">
-            <input id="a-pe-space" type="number" min="0" step="any" inputMode="decimal" placeholder="none" value={space} onChange={(e) => setSpace(e.target.value)} aria-invalid={!ok} />
+            <input id="a-pe-space" type="number" min="0" step="any" inputMode="decimal" placeholder="5 (default)" value={space} onChange={(e) => setSpace(e.target.value)} aria-invalid={!ok} />
             <Select id="a-pe-unit" value={unit} onChange={setUnit} options={[['px', 'pixels'], ['in', 'inches']]} />
           </div>
         </Field>
       </div>
-      <p className="hint">A phrase end is a hyphen after a swara (<code>p-</code>), e.g. where to breathe. Extra space separates phrases; 0.45 inches is a good start for manual-mode layouts.</p>
+      <p className="hint">A phrase end is a hyphen after a swara (<code>p-</code>), e.g. where to breathe. A phrase end leaves 5 pixels of space and splits a speed line unless you set another amount; 0 means no space, and 0.45 inches is a good start for manual-mode layouts.</p>
+    </Modal>
+  );
+}
+
+const UNITS: [string, string][] = [['mm', 'mm'], ['cm', 'cm'], ['in', 'inches']];
+const PAGE_MM = { portrait: [210, 297], landscape: [297, 210] } as const;
+
+function OrientationForm({ value, onClose, onApply, footer }: FormProps) {
+  const parts = value.split(',');
+  const [orient, setOrient] = useState(/^\s*land/i.test(value) ? 'Landscape' : 'Portrait');
+  const read = parseMargins(parts.slice(1));
+  const now = 'margins' in read ? read.margins : { left: DEFAULT_MARGIN, top: DEFAULT_MARGIN, right: DEFAULT_MARGIN, bottom: DEFAULT_MARGIN };
+  const split = (css: string) => css.match(/^([\d.]+)(mm|cm|in)$/) || ['', '12', 'mm'];
+  const units = [...new Set([now.left, now.top, now.right, now.bottom].map((c) => split(c)[2]))];
+  const [unit, setUnit] = useState(units.length === 1 ? units[0] : 'mm');
+  const inUnit = (css: string) => {
+    const [, n, u] = split(css);
+    if (u === unit) return n;
+    const mm = parseMargin(css)?.mm ?? 12;
+    return String(+(mm / ({ mm: 1, cm: 10, in: 25.4 } as Record<string, number>)[unit]).toFixed(2));
+  };
+  const [v, setV] = useState({ left: inUnit(now.left), top: inUnit(now.top), right: inUnit(now.right), bottom: inUnit(now.bottom) });
+  const [separate, setSeparate] = useState(now.right !== now.left || now.bottom !== now.top);
+  const set = (side: keyof typeof v) => (x: string) => setV((o) => ({ ...o, [side]: x }));
+  const css = (n: string) => parseMargin(n.trim() + unit);
+  const sides = { left: v.left, top: v.top, right: separate ? v.right : v.left, bottom: separate ? v.bottom : v.top };
+  const parsed = Object.fromEntries(Object.entries(sides).map(([k, n]) => [k, css(n)]));
+  const bad = (k: string) => !parsed[k] || parsed[k]!.mm > 60;
+  const ok = !['left', 'top', 'right', 'bottom'].some(bad);
+  const apply = () => {
+    if (!ok) return;
+    const m = writeMargins({ left: parsed.left!.css, top: parsed.top!.css, right: parsed.right!.css, bottom: parsed.bottom!.css });
+    onApply('Orientation: ' + orient + (m ? ',' + m : ''));
+  };
+  const box = (side: keyof typeof v, label: string) => (
+    <Field id={'a-or-' + side} label={label}>
+      <input id={'a-or-' + side} type="number" min="0" max={unit === 'in' ? 2.4 : unit === 'cm' ? 6 : 60} step="any" inputMode="decimal"
+        value={v[side]} onChange={(e) => set(side)(e.target.value)} aria-invalid={bad(side)} />
+    </Field>
+  );
+  const [pw, ph] = PAGE_MM[orient === 'Landscape' ? 'landscape' : 'portrait'];
+  const pct = (k: string, of: number) => Math.min(40, ((parsed[k]?.mm ?? 0) / of) * 100) + '%';
+  return (
+    <Modal title="Page and margins" open onClose={onClose} footer={footer(apply)}>
+      <div className="orient-form">
+        <div className="form-grid">
+          <Field id="a-or" label="Orientation">
+            <Select id="a-or" value={orient} onChange={setOrient} options={[['Portrait', 'Portrait (default)'], ['Landscape', 'Landscape']]} />
+          </Field>
+          <Field id="a-or-unit" label="Margins in">
+            <Select id="a-or-unit" value={unit} onChange={setUnit} options={UNITS} />
+          </Field>
+          {box('left', separate ? 'Left' : 'Left and right')}
+          {box('top', separate ? 'Top' : 'Top and bottom')}
+          {separate && box('right', 'Right')}
+          {separate && box('bottom', 'Bottom')}
+          <span />
+          <div className="checks">
+            <Check checked={separate} onChange={setSeparate}>Set the right and bottom margins separately</Check>
+          </div>
+        </div>
+        <div className="page-sketch" style={{ aspectRatio: pw + ' / ' + ph }} aria-hidden>
+          <div style={{ top: pct('top', ph), right: pct('right', pw), bottom: pct('bottom', ph), left: pct('left', pw) }} />
+        </div>
+      </div>
+      <p className="hint">Margins are the space around the notation on the printed page; the page on screen shows them to scale. The right margin is the same as the left, and the bottom the same as the top, unless you set them separately. Up to 60 mm on any side.</p>
     </Modal>
   );
 }
@@ -401,8 +455,14 @@ function SongInfoForm({ value, onClose, onApply, footer }: FormProps) {
   const [composer, setComposer] = useState(side(find(/^composer/)));
   const [raga, setRaga] = useState(side(rw));
   const [lines, setLines] = useState(rw.includes('oneline') ? 'OneLine' : rw.includes('twolines') ? 'TwoLines' : 'Lines');
+  const [short, setShort] = useState(rw.includes('short') || parts.some((w) => w.length === 1 && w[0] === 'short'));
   const [tala, setTala] = useState(side(find(/^tala/)));
-  const apply = () => onApply('SongInfo: Composer ' + composer + ', Raga ' + raga + ' ' + lines + ', Tala ' + tala);
+  const sizeNow = Number((find(/^size$/)[1] || '').replace(/pt$/, ''));
+  const [size, setSize] = useState(sizeNow >= 6 && sizeNow <= 40 ? String(sizeNow) : '');
+  const sizeOk = !size.trim() || (Number(size) >= 6 && Number(size) <= 40);
+  const apply = () =>
+    sizeOk &&
+    onApply('SongInfo: Composer ' + composer + ', Raga ' + raga + ' ' + lines + (short ? ' Short' : '') + ', Tala ' + tala + (size.trim() ? ', Size ' + Number(size) : ''));
   return (
     <Modal title="Song details" open onClose={onClose} footer={footer(apply)}>
       <div className="form-grid">
@@ -415,11 +475,20 @@ function SongInfoForm({ value, onClose, onApply, footer }: FormProps) {
         <Field id="a-si-lines" label="Raga lines">
           <Select id="a-si-lines" value={lines} onChange={setLines} options={RAGA_LINES} />
         </Field>
+        <span />
+        <div className="checks">
+          <Check checked={short} onChange={setShort}>Short scale labels (Ar / Av, or <span className="kn-sample">ಆ / ಅ</span>)</Check>
+        </div>
         <Field id="a-si-tala" label="Tala">
           <Select id="a-si-tala" value={tala} onChange={setTala} options={SIDES} />
         </Field>
+        <Field id="a-si-size" label="Text size (pt)">
+          <input id="a-si-size" type="number" min="6" max="40" step="0.5" inputMode="decimal" placeholder="Default: 10.5" value={size} onChange={(e) => setSize(e.target.value)} aria-invalid={!sizeOk} />
+        </Field>
       </div>
-      <p className="hint">Where the Composer, Raga / Arohana / Avarohana and tala lines go. Those on the same side are stacked: composer first, then the raga, then the tala; on different sides they sit next to each other. The tala is shown only when “Show the tala on the page” is ticked for the Tala line.</p>
+      <p className="hint">Details on the same side stack in this order: composer, raga and scale, tala.</p>
+      <p className="hint">The tala appears only when “Show the tala on the page” is ticked on the Tala line.</p>
+      <p className="hint">Text size uses the same points as headings, from 6 to 40.</p>
     </Modal>
   );
 }
@@ -446,7 +515,7 @@ function TalaForm({ value, onClose, onApply, footer }: FormProps) {
           <Select id="a-tala" value={tala} onChange={setTala} options={options} />
         </Field>
         <span />
-        <div className="checks">
+        <div className="checks stacked">
           <Check checked={manual} onChange={setManual}>Manual line breaks</Check>
           <Check checked={inline} onChange={setInline}>Inline tala markers</Check>
           <Check checked={show} onChange={setShow}>Show the tala on the page</Check>
@@ -577,7 +646,14 @@ function LanguageFontForm({ value, onClose, onApply, footer }: FormProps) {
   );
 }
 
-function HeadingForm({ value, onClose, onApply, footer }: FormProps) {
+const HEADING_KINDS = {
+  Heading: { title: 'Heading', empty: 'leave empty for a blank line', note: '' },
+  Section: { title: 'Section', empty: 'e.g. pallavi', note: 'A section is always bold, with a little space above. ' },
+  Text: { title: 'Text line', empty: 'e.g. (repeat pallavi)', note: 'Heading sizes and colours (HeadingPrefs) do not change a text line. ' },
+};
+
+function HeadingForm({ kind = 'Heading', value, onClose, onApply, footer }: FormProps & { kind?: keyof typeof HEADING_KINDS }) {
+  const K = HEADING_KINDS[kind];
   const h = parseHeading(value || '""');
   const langName = h.lang ? (h.lang.lang === 'iast' ? 'Diacritics' : h.lang.lang === 'devanagari' ? 'Sanskrit' : h.lang.lang.charAt(0).toUpperCase() + h.lang.lang.slice(1)) : '';
   const [v, setV] = useState({ text: h.text, size: h.size ? String(h.size) : '', align: h.align || '', lang: langName, bold: h.bold, italic: h.italic, underline: h.underline });
@@ -586,18 +662,18 @@ function HeadingForm({ value, onClose, onApply, footer }: FormProps) {
     const attrs: string[] = [];
     if (h.font) attrs.push(h.font);
     if (v.size) attrs.push(v.size);
-    if (v.bold) attrs.push('bold');
+    if (v.bold && kind !== 'Section') attrs.push('bold');
     if (v.italic) attrs.push('italic');
     if (v.underline) attrs.push('underline');
     if (v.align) attrs.push(v.align);
     if (v.lang) attrs.push(v.lang.toLowerCase());
-    onApply('Heading: "' + v.text.replace(/"/g, "'") + '"' + (attrs.length ? ',' + attrs.join(',') : ''));
+    onApply(kind + ': "' + v.text.replace(/"/g, "'") + '"' + (attrs.length ? ',' + attrs.join(',') : ''));
   };
   return (
-    <Modal title="Heading" open onClose={onClose} footer={footer(apply)}>
+    <Modal title={K.title} open onClose={onClose} footer={footer(apply)}>
       <div className="form-grid">
         <Field id="a-ht" label="Text">
-          <input id="a-ht" type="text" value={v.text} placeholder="leave empty for a blank line" onChange={(e) => set('text')(e.target.value)} autoFocus />
+          <input id="a-ht" type="text" value={v.text} placeholder={K.empty} onChange={(e) => set('text')(e.target.value)} autoFocus />
         </Field>
         <Field id="a-hs" label="Size (pt)">
           <input id="a-hs" type="number" min={6} max={40} value={v.size} placeholder="default" onChange={(e) => set('size')(e.target.value)} />
@@ -610,34 +686,23 @@ function HeadingForm({ value, onClose, onApply, footer }: FormProps) {
         </Field>
         <span />
         <div className="checks">
-          <Check checked={v.bold} onChange={set('bold')}>Bold</Check>
+          {kind === 'Section' ? (
+            <label>
+              <input type="checkbox" checked disabled /> Bold
+            </label>
+          ) : (
+            <Check checked={v.bold} onChange={set('bold')}>Bold</Check>
+          )}
           <Check checked={v.italic} onChange={set('italic')}>Italic</Check>
           <Check checked={v.underline} onChange={set('underline')}>Underline</Check>
         </div>
       </div>
-      <p className="hint">Inside the text: <code>*bold*</code>, <code>_italic_</code>, <code>[br]</code> for a new line, <code>---</code> for a rule.</p>
+      <p className="hint">{K.note}Inside the text: <code>*bold*</code>, <code>_italic_</code>, <code>[br]</code> for a new line, <code>---</code> for a rule.</p>
     </Modal>
   );
 }
 
 // ---- Scale: raga name, ārōhaṇam and avarōhaṇam --------------------------------------
-
-/** Well-known ragas to start from: [label, name as typed, ārōhaṇam, avarōhaṇam]. */
-const RAGAS: [string, string, string, string][] = [
-  ['Ābhōgi', 'AbhOgi', "s r2 g2 m1 d2 s'", "s' d2 m1 g2 r2 s"],
-  ['Bilahari', 'bilahari', "s r2 g3 p d2 s'", "s' n3 d2 p m1 g3 r2 s"],
-  ['Haṃsadhvani', 'haMsadhvani', "s r2 g3 p n3 s'", "s' n3 p g3 r2 s"],
-  ['Harikāmbhōji', 'harikAmbhOji', "s r2 g3 m1 p d2 n2 s'", "s' n2 d2 p m1 g3 r2 s"],
-  ['Hindōḷam', 'hindOLam', "s g2 m1 d1 n2 s'", "s' n2 d1 m1 g2 s"],
-  ['Kalyāṇi', 'kalyANi', "s r2 g3 m2 p d2 n3 s'", "s' n3 d2 p m2 g3 r2 s"],
-  ['Kānaḍa', 'kAnaDa', "s r2 g2 m1 d2 n2 s'", "s' n2 p m1 g2 m1 r2 s"],
-  ['Kharaharapriya', 'kharaharapriya', "s r2 g2 m1 p d2 n2 s'", "s' n2 d2 p m1 g2 r2 s"],
-  ['Madhyamāvati', 'madhyamAvati', "s r2 m1 p n2 s'", "s' n2 p m1 r2 s"],
-  ['Māyāmāḷavagauḷa', 'mAyAmALavagauLa', "s r1 g3 m1 p d1 n3 s'", "s' n3 d1 p m1 g3 r1 s"],
-  ['Mōhanam', 'mOhanam', "s r2 g3 p d2 s'", "s' d2 p g3 r2 s"],
-  ['Śaṅkarābharaṇam', 'SaMkarAbharaNam', "s r2 g3 m1 p d2 n3 s'", "s' n3 d2 p m1 g3 r2 s"],
-  ['Tōḍi', 'tODi', "s r1 g2 m1 p d1 n2 s'", "s' n2 d1 p m1 g2 r1 s"],
-];
 
 /** Keypad: each group is one swara and its variants. */
 const KEYPAD: string[][] = [['s'], ['r1', 'r2', 'r3'], ['g1', 'g2', 'g3'], ['m1', 'm2'], ['p'], ['d1', 'd2', 'd3'], ['n1', 'n2', 'n3']];
@@ -665,7 +730,6 @@ function ScaleForm({ value, line, context, onClose, onApply }: { value: string; 
   const [ava, setAva] = useState(find(/^\s*avarohana(m)?\s*:/i));
   const [target, setTarget] = useState<'aro' | 'ava'>(/^\s*avarohana/i.test(line) ? 'ava' : 'aro');
   const [octave, setOctave] = useState<Octave>('middle');
-  const [preset, setPreset] = useState('');
   const aroRef = useRef<HTMLInputElement>(null);
   const avaRef = useRef<HTMLInputElement>(null);
   // start in the line the cursor was on (after the dialog has placed its own focus)
@@ -690,13 +754,10 @@ function ScaleForm({ value, line, context, onClose, onApply }: { value: string; 
     setAva(aro.trim().split(/\s+/).filter(Boolean).reverse().join(' '));
     setTarget('ava');
   };
-  const choosePreset = (label: string) => {
-    setPreset(label);
-    const r = RAGAS.find(([l]) => l === label);
-    if (!r) return;
-    setRaga(r[1]);
-    setAro(r[2]);
-    setAva(r[3]);
+  const choosePreset = (r: Raga) => {
+    setRaga(r.typed);
+    setAro(r.aro);
+    setAva(r.ava);
   };
 
   return (
@@ -713,8 +774,8 @@ function ScaleForm({ value, line, context, onClose, onApply }: { value: string; 
       }
     >
       <div className="form-grid">
-        <Field id="a-sc-preset" label="Start from">
-          <Select id="a-sc-preset" value={preset} onChange={choosePreset} options={[['', 'a raga…'] as [string, string]].concat(RAGAS.map(([l]): [string, string] => [l, l]))} />
+        <Field id="a-sc-preset" label="Find a raga">
+          <RagaPicker onPick={choosePreset} />
         </Field>
         <Field id="a-sc-raga" label="Raga name">
           <input id="a-sc-raga" type="text" value={raga} placeholder="optional, e.g. kAnaDa" onChange={(e) => setRaga(e.target.value)} />

@@ -31,7 +31,7 @@ const SP_BASE = {
   anga: 0.85, // gap between angas without a marker (capu talas)
   label: 0.7, // gap after the sangati label
   cellMin: 0.3,
-  phrase: 0.8, // space per extra hyphen (p--, p---) when PhraseEnds sets no spacing
+  phrase: 0.8, // space per extra hyphen (p--, p---) unless PhraseEnds gives a spacing
 };
 type Spacing = typeof SP_BASE;
 /**
@@ -88,6 +88,8 @@ const GAMAKA_SVG: Record<string, string> = {
 };
 
 const num = (v: number) => (Math.round(v * 1000) / 1000).toString();
+/** A bar as text: a double bar has its second stroke drawn close to the first, as in printed notation. */
+const barText = (kind: string) => (kind === '||' ? '|<span class="cm-dbar2">|</span>' : esc(kind));
 
 /** The seven swaras as printed in a language, e.g. for font previews. */
 export function swaraSample(lang: Lang): string {
@@ -289,7 +291,7 @@ function layoutDoc(doc: NotationDoc, el: HTMLElement): Geometry {
             if (it) lyrEnd[li] = start + W(g.lyricKeys.get(it)!) + SP.lyric;
           });
           // p-- p---: each hyphen after the first adds a step of space after the swara and its lyrics
-          const extra = ev.phraseEnd ? ((ev.phraseLen || 1) - 1) * (phraseEm || SP.phrase) : 0;
+          const extra = ev.phraseEnd ? ((ev.phraseLen || 1) - 1) * ((st.phraseEnds.custom && phraseEm) || SP.phrase) : 0;
           if (extra > 0) x = Math.max(x, ...lyrEnd.filter((v) => v !== undefined)) + extra;
           natural = Math.max(natural, x, ...lyrEnd.filter((v) => v !== undefined));
         }
@@ -366,7 +368,7 @@ function renderStaff(st: StaffBlock, geo: Geometry, stretch: number): string {
       html += '<div class="cm-inline-tala">';
       for (const mk of row.inline) {
         const ev = row.events.find((e) => e.t >= mk.t - EPS);
-        html += '<span class="cm-it" style="left:' + sx(ev ? E(ev).x : g.total) + '"><span>' + esc(mk.kind) + '</span></span>';
+        html += '<span class="cm-it" style="left:' + sx(ev ? E(ev).x : g.total) + '"><span>' + barText(mk.kind) + '</span></span>';
       }
       html += '</div>';
     }
@@ -385,8 +387,8 @@ function renderStaff(st: StaffBlock, geo: Geometry, stretch: number): string {
       const x1 = E(b).x + Math.max(E(b).w, 0.35);
       html += '<span class="cm-speed d' + Math.min(gr.depth, 4) + '" style="left:' + sx(x0) + ';width:' + num((x1 - x0) * stretch) + 'em"></span>';
     }
-    if (g.lead) html += '<span class="cm-bar" style="left:' + sx(g.lead.x) + ';width:' + num(g.lead.w * stretch) + 'em">' + row.leadMarker + '</span>';
-    for (const s of g.seps) html += '<span class="cm-bar" style="left:' + sx(s.x) + ';width:' + num(s.w * stretch) + 'em">' + s.kind + '</span>';
+    if (g.lead) html += '<span class="cm-bar" style="left:' + sx(g.lead.x) + ';width:' + num(g.lead.w * stretch) + 'em">' + barText(row.leadMarker || '') + '</span>';
+    for (const s of g.seps) html += '<span class="cm-bar" style="left:' + sx(s.x) + ';width:' + num(s.w * stretch) + 'em">' + barText(s.kind) + '</span>';
     html += '</div>';
 
     for (const line of row.lyricLines) {
@@ -425,9 +427,13 @@ function renderMeta(b: MetaBlock): string {
   const layout = { ...DEFAULT_LAYOUT, ...(b.layout || {}) };
   const items = b.items.filter((it) => it.value !== '');
   // a value never breaks inside; a long line breaks only between the label-and-value pieces
+  // each label and name is marked with its script, so a LanguageFont choice applies to it
+  const langCls = (it: MetaItem) => ' cm-lang-' + (it.lang?.lang || 'english');
   const value = (it: MetaItem) =>
-    '<span class="cm-meta-nw">' + (it.swaras && it.swaras.length ? inlineSwaras(it.swaras, it.lang) : esc(it.text ?? it.value)) + '</span>';
-  const label = (it: MetaItem) => '<span class="cm-meta-k">' + esc(it.label) + '</span>';
+    it.swaras && it.swaras.length
+      ? '<span class="cm-meta-nw">' + inlineSwaras(it.swaras, it.lang) + '</span>'
+      : '<span class="cm-meta-nw' + langCls(it) + '">' + esc(it.text ?? it.value) + '</span>';
+  const label = (it: MetaItem) => '<span class="cm-meta-k' + langCls(it) + '">' + esc(layout.short && it.short ? it.short : it.label) + '</span>';
   // one row: the first item's label in the label column, any others run on after its value
   const row = (group: MetaItem[]) =>
     label(group[0]) + '<span class="cm-meta-v">' + value(group[0]) +
@@ -446,7 +452,9 @@ function renderMeta(b: MetaBlock): string {
     } else for (const it of scale) columns[layout.raga].push(row([it]));
   }
   for (const it of of('tala')) columns[layout.tala].push(row([it]));
-  return '<div class="cm-meta">' + (['left', 'center', 'right'] as MetaAlign[])
+  // Size: the same scale as a Heading's size, shrinking with narrow pages like the usual size does
+  const size = layout.size ? ' style="font-size:min(' + num(layout.size * 1.15) + 'pt,' + num(layout.size * 0.42) + 'cqi)"' : '';
+  return '<div class="cm-meta"' + size + '>' + (['left', 'center', 'right'] as MetaAlign[])
     .filter((side) => columns[side].length)
     .map((side) => '<div class="cm-meta-col cm-meta-' + side + '">' + columns[side].join('') + '</div>')
     .join('') + '</div>';
@@ -513,7 +521,7 @@ export function render(doc: NotationDoc, el: HTMLElement, options: { emptyText?:
     let html = '';
     for (const b of doc.blocks) {
       if (b.type === 'heading') html += renderHeading(b);
-      else if (b.type === 'space') html += '<div class="cm-space"></div>';
+      else if (b.type === 'space') html += '<div class="cm-space' + (b.songBreak ? ' cm-break' : '') + '"></div>';
       else if (b.type === 'pagebreak') html += '<div class="cm-pagebreak"></div>';
       else if (b.type === 'meta') html += renderMeta(b);
       else if (b.type === 'staff') html += renderStaff(b, geo, stretchFor(b));

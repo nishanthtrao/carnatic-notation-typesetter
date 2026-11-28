@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { buildPdf } from '../src/lib/pdfWriter';
-import { pageMm } from '../src/engine';
+import { pageMm, parse } from '../src/engine';
 
 // a 1×1 JPEG
 const JPEG = Uint8Array.from(atob('/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA='), (c) => c.charCodeAt(0));
@@ -23,10 +23,17 @@ describe('PDF of page images', () => {
 });
 
 describe('page size for the export', () => {
-  test('A4 portrait by default, with the song margin', () => {
-    expect(pageMm({ orientation: 'portrait' } as never)).toEqual({ width: 210, height: 297, margin: 12 });
+  const all = (n: number) => ({ left: n, top: n, right: n, bottom: n });
+  test('A4 portrait by default, with the usual margins', () => {
+    expect(pageMm(parse('S: s').page)).toEqual({ width: 210, height: 297, margin: all(12) });
   });
-  test('landscape swaps the sides', () => {
-    expect(pageMm({ orientation: 'landscape', margin: '0.5in' } as never)).toEqual({ width: 297, height: 210, margin: 12.7 });
+  test('landscape swaps the sides; one margin is every side', () => {
+    const m = pageMm(parse('Orientation: Landscape,0.5in\nS: s').page);
+    expect(m.width).toBe(297);
+    expect(m.height).toBe(210);
+    for (const v of Object.values(m.margin)) expect(v).toBeCloseTo(12.7, 5);
+  });
+  test('each side of the page gets its own margin', () => {
+    expect(pageMm(parse('Orientation: Portrait,30mm,10mm,15mm,40mm\nS: s').page).margin).toEqual({ left: 30, top: 10, right: 15, bottom: 40 });
   });
 });

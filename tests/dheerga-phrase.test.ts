@@ -63,7 +63,17 @@ describe('several hyphens after a phrase end', () => {
     const doc = parse('Tala: Adi\nS: ( s r g m-- p d n s ) | s , | , , ||');
     const row = (doc.blocks.find((b) => b.type === 'staff') as StaffBlock).rows[0];
     expect(row.groups.filter((g) => g.depth === 1)).toHaveLength(2);
-    const plain = parse('Tala: Adi\nS: ( s r g m- p d n s ) | s , | , , ||');
-    expect((plain.blocks.find((b) => b.type === 'staff') as StaffBlock).rows[0].groups.filter((g) => g.depth === 1)).toHaveLength(1);
+  });
+
+  test('a single hyphen leaves a 5px gap and splits the speed line by default', () => {
+    const groups = (text: string) => (parse(text).blocks.find((b) => b.type === 'staff') as StaffBlock).rows[0].groups.filter((g) => g.depth === 1);
+    const plain = 'Tala: Adi\nS: ( s r g m- p d n s ) | s , | , , ||';
+    expect(groups(plain)).toHaveLength(2);
+    expect(parse(plain).blocks.find((b) => b.type === 'staff')).toMatchObject({ phraseEnds: { style: 'hide', space: 5 } });
+    expect(groups('Tala: Adi\nSpeedMarks: Below\nS: ( s r g m- p d n s ) | s , | , , ||')).toHaveLength(2);
+    // PhraseEnds: Hide,0 is the old way: no gap, one speed line
+    expect(groups('PhraseEnds: Hide,0\n' + plain)).toHaveLength(1);
+    // a style without a number keeps the 5px gap
+    expect(parse('PhraseEnds: Show\n' + plain).blocks.find((b) => b.type === 'staff')).toMatchObject({ phraseEnds: { style: 'show', space: 5 } });
   });
 });

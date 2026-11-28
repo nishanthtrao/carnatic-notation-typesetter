@@ -10,10 +10,11 @@
  */
 import { formatText, parseHeading, SAFE_COLOR, splitAttrs } from './heading';
 import { layoutSegment, type Segment } from './layout';
-import { parseMargin } from './page';
+import { parseMargin, parseMargins } from './page';
 import { GATIS, isTalaError, parseGati, parseTala } from './talas';
 import { LANGS, normaliseLang, parseLangSpec, transliterate } from './translit';
 import type { Block, JatiName, Lang, LangSpec, MetaBlock, MetaItem, MetaKind, MetaLayout, NotationDoc, NoteEvent, PhraseEnds, Prefs, Tala } from './types';
+import { PHRASE_GAP } from './types';
 
 /** Spacing: Tight and Wide, as a share of the usual spacing. Wide is the spacing of versions before "Spacing" existed. */
 export const SPACING = { tight: 0.7, wide: 1.4 };
@@ -43,6 +44,14 @@ const META_NATIVE: Partial<Record<Lang, Record<'raga' | 'aro' | 'ava' | 'compose
   tamil: { raga: 'ராகம்', aro: 'ஆரோகணம்', ava: 'அவரோகணம்', composer: 'இயற்றியவர்', tala: 'தாளம்' },
   malayalam: { raga: 'രാഗം', aro: 'ആരോഹണം', ava: 'അവരോഹണം', composer: 'രചന', tala: 'താളം' },
   devanagari: { raga: 'राग', aro: 'आरोहण', ava: 'अवरोहण', composer: 'रचना', tala: 'ताल' },
+};
+/** Short labels for the scale (SongInfo … Short): Ar / Av in roman letters, the long and short a in a script. */
+const SCALE_SHORT: Partial<Record<Lang, { aro: string; ava: string }>> = {
+  kannada: { aro: 'ಆ', ava: 'ಅ' },
+  telugu: { aro: 'ఆ', ava: 'అ' },
+  tamil: { aro: 'ஆ', ava: 'அ' },
+  malayalam: { aro: 'ആ', ava: 'അ' },
+  devanagari: { aro: 'आ', ava: 'अ' },
 };
 const META_KIND: Record<string, MetaKind> = {
   tala: 'tala', raga: 'raga', ragam: 'raga', arohana: 'aro', arohanam: 'aro', avarohana: 'ava', avarohanam: 'ava', composer: 'composer',
@@ -181,10 +190,10 @@ interface SwaraLine {
 export function parse(input: string): NotationDoc {
   const warnings: NotationDoc['warnings'] = [];
   const warn = (line: number, message: string) => warnings.push({ line, message });
-  const setMargin = (text: string, line: number) => {
-    const m = parseMargin(text);
-    if (m && m.mm <= 60) doc.page.margin = m.css;
-    else warn(line, m ? 'That margin is too wide for the page; use 60mm (about 2.4in) or less' : 'A margin needs a number and a unit, e.g. 15mm, 1.5cm or 0.5in');
+  const setMargins = (parts: string[], line: number) => {
+    const r = parseMargins(parts);
+    if ('error' in r) warn(line, r.error);
+    else doc.page.margins = r.margins;
   };
   const doc: NotationDoc = { title: '', page: { orientation: 'portrait', size: 'A4' }, langFonts: {}, blocks: [], warnings };
 
@@ -202,7 +211,7 @@ export function parse(input: string): NotationDoc {
     songGati: 'catusra',
     lang: { lang: 'english', opts: {} },
     speedMarks: 'above',
-    phraseEnds: { style: 'hide', space: 0 },
+    phraseEnds: { style: 'hide', space: PHRASE_GAP },
     smartLyric: false,
     perRow: null,
     metaLayout: { ...DEFAULT_META_LAYOUT },
@@ -213,6 +222,8 @@ export function parse(input: string): NotationDoc {
   };
 
   let seg: Segment | null = null;
+  // blank lines owed by SongBreak, drawn before whatever comes next (not at the very end, or before a page break)
+  let gaps = 0;
   let lastSwaraLine: SwaraLine | null = null;
   let metaBlock: MetaBlock | null = null;
   // "Tala: Adi,Show": the tala joins the song details, wherever they end up,
@@ -220,7 +231,7 @@ export function parse(input: string): NotationDoc {
   let pendingTala: string | null = null;
   const talaItem = (name: string): MetaItem => {
     const native = META_NATIVE[st.lang.lang];
-    const item: MetaItem = { label: native ? native.tala : META_LABELS.tala, kind: 'tala', value: name };
+    const item: MetaItem = { label: native ? native.tala : META_LABELS.tala, kind: 'tala', value: name, lang: st.lang };
     if (st.lang.lang !== 'english') item.text = transliterate(name.replace(/[A-Za-z]+/g, (w) => TALA_WORDS[w.toLowerCase()] || w), st.lang);
     return item;
   };
@@ -252,6 +263,7 @@ export function parse(input: string): NotationDoc {
       time: 0,
       groupCounter: 0,
     };
+    for (; gaps > 0; gaps--) doc.blocks.push({ type: 'space', songBreak: true });
     doc.blocks.push(seg);
     metaBlock = null;
     return seg;
@@ -274,6 +286,8 @@ export function parse(input: string): NotationDoc {
 
   const pushBlock = (b: Block) => {
     closeSeg();
+    if (b.type !== 'pagebreak') for (; gaps > 0; gaps--) doc.blocks.push({ type: 'space', songBreak: true });
+    gaps = 0;
     doc.blocks.push(b);
     if (b.type !== 'meta') metaBlock = null;
   };
@@ -288,11 +302,14 @@ export function parse(input: string): NotationDoc {
         pendingTala = null;
       }
     }
-    const item: MetaItem = { label: META_LABELS[key] || key, kind: META_KIND[key], value: val };
+    // lang: the script of the label and the name, so LanguageFont reaches the song details too
+    const item: MetaItem = { label: META_LABELS[key] || key, kind: META_KIND[key], value: val, lang: st.lang };
     // In an Indian script the labels are written in that script, and names
     // (raga, composer) are transliterated like headings.
     const native = META_NATIVE[st.lang.lang];
     if (native && META_KIND[key]) item.label = native[META_KIND[key]];
+    const kind = META_KIND[key];
+    if (kind === 'aro' || kind === 'ava') item.short = (SCALE_SHORT[st.lang.lang] || { aro: 'Ar', ava: 'Av' })[kind];
     if (st.lang.lang !== 'english' && !SWARA_META.has(key)) item.text = transliterate(val, st.lang);
     if (SWARA_META.has(key)) {
       item.swaras = [];
@@ -300,7 +317,6 @@ export function parse(input: string): NotationDoc {
         const m = typeof t === 'string' ? t.match(SWARA_RE) : null;
         if (m) item.swaras.push({ kind: 'swara', t: 0, dur: 0, path: [], lyrics: [], ...swaraInfo(m) });
       }
-      item.lang = st.lang;
     }
     metaBlock.items.push(item);
   };
@@ -443,24 +459,32 @@ export function parse(input: string): NotationDoc {
       case 'l':
         handleLyrics(value, no);
         break;
-      case 'heading': {
+      case 'heading':
+      case 'section':
+      case 'text': {
+        // Section: a heading for a part of the song (pallavi, caraNam…): bold and on the left
+        // unless told otherwise, with a little more space above. Otherwise the same as Heading.
+        // Text: a plain line (a note); the same options, but HeadingPrefs leave it alone.
         const h = parseHeading(value);
+        const section = name === 'section';
+        const plain = name === 'text';
         if (h.text === '') {
-          pushBlock({ type: 'space' });
+          if (name === 'heading') pushBlock({ type: 'space' });
           break;
         }
         const lang = h.lang || (st.lang.lang !== 'english' ? st.lang : null);
         pushBlock({
           type: 'heading',
           html: formatText(h.text, lang),
-          size: h.size || st.headingPrefs.size || null,
-          color: h.color || st.headingPrefs.color || null,
-          bold: h.bold,
+          size: h.size || (plain ? null : st.headingPrefs.size) || null,
+          color: h.color || (plain ? null : st.headingPrefs.color) || null,
+          bold: h.bold || section,
           italic: h.italic,
           underline: h.underline,
           align: h.align || 'left',
           font: h.font,
           lang: (lang && lang.lang) || 'english',
+          ...(section ? { section: true } : {}),
         });
         break;
       }
@@ -560,13 +584,16 @@ export function parse(input: string): NotationDoc {
           warn(no, 'PhraseEnds style must be Hide, Show, Handle or HandleThick');
           break;
         }
-        let space = 0;
+        let space = PHRASE_GAP;
+        let custom = false;
         if (parts[1]) {
           const sm = parts[1].match(/^(\d+(?:\.\d+)?)\s*(in|px)?$/i);
-          if (sm) space = parseFloat(sm[1]) * (sm[2] && sm[2].toLowerCase() === 'in' ? 96 : 1);
-          else warn(no, 'PhraseEnds spacing should be a number of pixels or e.g. 0.15in');
+          if (sm) {
+            space = parseFloat(sm[1]) * (sm[2] && sm[2].toLowerCase() === 'in' ? 96 : 1);
+            custom = true;
+          } else warn(no, 'PhraseEnds spacing should be a number of pixels or e.g. 0.15in');
         }
-        st.phraseEnds = { style, space };
+        st.phraseEnds = { style, space, custom };
         closeSeg();
         break;
       }
@@ -584,7 +611,7 @@ export function parse(input: string): NotationDoc {
         const parts = splitAttrs(value);
         const all = /^all$/i.test((parts[0] || '').trim());
         const lang = all ? null : normaliseLang(parts[0]);
-        if ((!all && !lang) || !parts[1]) warn(no, 'LanguageFont should look like "LanguageFont: Tamil,Rounded" (styles: Serif, Sans, Rounded; or an installed font name)');
+        if ((!all && !lang) || !parts[1]) warn(no, 'LanguageFont should look like "LanguageFont: Tamil,Rounded" (styles: Serif, Sans, Rounded, Handwritten; or an installed font name)');
         else if (all) for (const l of Object.keys(LANGS) as Lang[]) doc.langFonts[l] = parts.slice(1).join(',');
         else doc.langFonts[lang!] = parts.slice(1).join(',');
         break;
@@ -602,13 +629,18 @@ export function parse(input: string): NotationDoc {
       case 'headingprefs':
         parsePrefs(value, st.headingPrefs);
         break;
-      case 'songbreak':
+      case 'songbreak': {
+        // ends the line, starts the tala afresh, and leaves a blank line before what follows,
+        // a heading included; each further SongBreak adds another. Nothing before the first content.
+        if (doc.blocks.length) gaps++;
         closeSeg();
         break;
+      }
       case 'linebreak': {
+        // a new line here; the tala keeps counting (Tala: Manual has no count, so it starts afresh)
         const open = seg as Segment | null;
-        if (open && open.tala && open.tala.manual === 1) open.lineBreaks.push(open.time);
-        else if (open && open.tala && open.tala.manual === 2) closeSeg();
+        if (open && open.tala && open.tala.manual === 2) closeSeg();
+        else if (open && open.events.length) open.lineBreaks.push(open.time);
         break;
       }
       case 'pagebreak':
@@ -619,14 +651,18 @@ export function parse(input: string): NotationDoc {
         if (v.startsWith('land')) doc.page.orientation = 'landscape';
         else if (v.startsWith('port')) doc.page.orientation = 'portrait';
         else warn(no, 'Orientation should be Portrait or Landscape');
-        // the original form: "Orientation: Landscape,0.5in"
-        const extra = value.split(',').slice(1).join(',').trim();
-        if (extra) setMargin(extra, no);
+        // then the margins: left, top, right, bottom ("Orientation: Landscape,0.5in" is every side)
+        const parts = value.split(',').slice(1);
+        if (parts.some((p) => p.trim())) setMargins(parts, no);
         break;
       }
-      case 'margin':
-        setMargin(value, no);
+      case 'margin': {
+        // Margin: was a separate line for a while; it now belongs to Orientation
+        const m = parseMargin(value);
+        if (m && m.mm <= 60) doc.page.margins = { left: m.css, top: m.css, right: m.css, bottom: m.css };
+        warn(no, 'Margin: is now part of Orientation: write Orientation: ' + (doc.page.orientation === 'landscape' ? 'Landscape' : 'Portrait') + ',' + (m ? m.css : '15mm') + ' instead');
         break;
+      }
       // ---- extensions (not in v1.5) ----------------------------------------
       case 'pagesize': {
         const v = value.trim().toUpperCase();
@@ -653,6 +689,19 @@ export function parse(input: string): NotationDoc {
         for (const part of value.split(',')) {
           const words = part.trim().toLowerCase().split(/\s+/).filter(Boolean);
           if (!words.length) continue;
+          // Size 11: the size of the song details, like a Heading's size; Size Default goes back to the usual
+          if (words[0] === 'size') {
+            const n = words.length === 2 ? Number(words[1].replace(/pt$/, '')) : NaN;
+            if (words[1] === 'default' || words[1] === 'auto') delete next.size;
+            else if (n >= 6 && n <= 40) next.size = n;
+            else warn(no, 'SongInfo Size should be a number of points from 6 to 40, e.g. Size 11');
+            continue;
+          }
+          // Short (on its own or with the raga): Ar / Av for the scale's labels; Long goes back
+          if (words.length === 1 && (words[0] === 'short' || words[0] === 'long')) {
+            next.short = words[0] === 'short';
+            continue;
+          }
           const group = /^r[aā]gam?$/.test(words[0]) ? 'raga' : /^composer$/.test(words[0]) ? 'composer' : /^t[aā][lḷ]am?$/.test(words[0]) ? 'tala' : null;
           if (!group || words.length < 2) {
             bad = true;
@@ -663,21 +712,16 @@ export function parse(input: string): NotationDoc {
             else if (group === 'raga' && w === 'lines') next.ragaLines = 'lines';
             else if (group === 'raga' && w === 'twolines') next.ragaLines = 'two';
             else if (group === 'raga' && w === 'oneline') next.ragaLines = 'one';
+            else if (group === 'raga' && (w === 'short' || w === 'long')) next.short = w === 'short';
             else bad = true;
           }
         }
-        if (bad) warn(no, 'SongInfo should look like "SongInfo: Composer Right, Raga Left TwoLines, Tala Right" (Left, Center or Right; for the raga also Lines, TwoLines or OneLine)');
+        if (bad) warn(no, 'SongInfo should look like "SongInfo: Composer Right, Raga Left TwoLines, Tala Right" (Left, Center or Right; for the raga also Lines, TwoLines or OneLine, and Short for Ar / Av; and Size 11 for the text size)');
         st.metaLayout = next;
         const open = metaBlock as MetaBlock | null;
         if (open) open.layout = { ...next };
         break;
       }
-      case 'section':
-        pushBlock({ type: 'heading', html: formatText(value.replace(/^"([\s\S]*)"$/, '$1'), null), bold: true, italic: true, align: 'left', section: true, lang: 'english' });
-        break;
-      case 'text':
-        pushBlock({ type: 'heading', html: formatText(value.replace(/^"([\s\S]*)"$/, '$1'), st.lang.lang !== 'english' ? st.lang : null), align: 'left', lang: st.lang.lang });
-        break;
       case 'raga':
       case 'ragam':
       case 'composer':

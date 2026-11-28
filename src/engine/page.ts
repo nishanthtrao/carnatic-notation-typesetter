@@ -25,22 +25,71 @@ export function parseMargin(text: string): { css: string; mm: number } | null {
   return { css: n + unit, mm: n * MM[unit] };
 }
 
-/** Page width, height and margin in millimetres, orientation applied. */
-export function pageMm(page: NotationDoc['page']): { width: number; height: number; margin: number } {
-  const [w, h] = SIZES[page.size] || SIZES.A4;
-  const landscape = page.orientation === 'landscape';
-  return { width: landscape ? h : w, height: landscape ? w : h, margin: parseMargin(page.margin || DEFAULT_MARGIN)?.mm ?? 12 };
+export type Side = 'left' | 'top' | 'right' | 'bottom';
+/** The four page margins as CSS lengths. */
+export type Margins = Record<Side, string>;
+/** Positional margins after the orientation come in this order. */
+export const SIDE_ORDER: Side[] = ['left', 'top', 'right', 'bottom'];
+const MAX_MM = 60;
+
+/**
+ * Reads the margins written after the orientation: "Orientation: Portrait, left,
+ * top, right, bottom". The right margin is the left one unless given, and the
+ * bottom the top one; a single value is every side (the original form,
+ * "Orientation: Landscape,0.5in"). A part may also name its side ("Top 20mm").
+ */
+export function parseMargins(parts: string[]): { margins: Margins } | { error: string } {
+  const got: Partial<Margins> = {};
+  let pos = 0;
+  for (const raw of parts.map((p) => p.trim()).filter(Boolean)) {
+    const named = raw.match(/^(left|top|right|bottom)\b\s*[:=]?\s*(.*)$/i);
+    const side = named ? (named[1].toLowerCase() as Side) : SIDE_ORDER[pos++];
+    if (!side) return { error: 'Orientation takes at most four margins after it: left, top, right, bottom' };
+    const m = parseMargin(named ? named[2] : raw);
+    if (!m) return { error: 'A margin needs a number and a unit, e.g. 15mm, 1.5cm or 0.5in' };
+    if (m.mm > MAX_MM) return { error: 'That margin is too wide for the page; use 60mm (about 2.4in) or less' };
+    got[side] = m.css;
+  }
+  const only = Object.keys(got).length === 1 && got.left ? got.left : null;
+  const left = got.left ?? DEFAULT_MARGIN;
+  const top = got.top ?? only ?? DEFAULT_MARGIN;
+  return { margins: { left, top, right: got.right ?? left, bottom: got.bottom ?? top } };
 }
 
-/** The page's margin as a share of its width (what the screen page uses as padding). */
-export function marginShare(page: NotationDoc['page']): number {
+/** The shortest Orientation: margin list that gives these margins ('' for the default). */
+export function writeMargins(m: Margins): string {
+  if (m.right === m.left && m.bottom === m.top) {
+    if (m.left !== m.top) return m.left + ',' + m.top;
+    return m.left === DEFAULT_MARGIN ? '' : m.left;
+  }
+  if (m.bottom === m.top) return [m.left, m.top, m.right].join(',');
+  return [m.left, m.top, m.right, m.bottom].join(',');
+}
+
+const pageMargins = (page: NotationDoc['page']): Margins =>
+  page.margins || { left: DEFAULT_MARGIN, top: DEFAULT_MARGIN, right: DEFAULT_MARGIN, bottom: DEFAULT_MARGIN };
+
+/** Page width and height, and each margin, in millimetres, orientation applied (for PDF pages). */
+export function pageMm(page: NotationDoc['page']): { width: number; height: number; margin: Record<Side, number> } {
+  const [w, h] = SIZES[page.size] || SIZES.A4;
+  const landscape = page.orientation === 'landscape';
+  const m = pageMargins(page);
+  const mm = (side: Side) => parseMargin(m[side])?.mm ?? 12;
+  return { width: landscape ? h : w, height: landscape ? w : h, margin: { left: mm('left'), top: mm('top'), right: mm('right'), bottom: mm('bottom') } };
+}
+
+/** Each margin as a share of the page's width (what the screen page uses as padding). */
+export function marginShare(page: NotationDoc['page']): Record<Side, number> {
   const [w, h] = SIZES[page.size] || SIZES.A4;
   const width = page.orientation === 'landscape' ? h : w;
-  const mm = parseMargin(page.margin || DEFAULT_MARGIN)?.mm ?? 12;
-  return mm / width;
+  const m = pageMargins(page);
+  const share = (side: Side) => (parseMargin(m[side])?.mm ?? 12) / width;
+  return { left: share('left'), top: share('top'), right: share('right'), bottom: share('bottom') };
 }
 
 /** The @page rule for printing. */
 export function pageRule(page: NotationDoc['page']): string {
-  return '@page { size: ' + (page.size || 'A4') + ' ' + page.orientation + '; margin: ' + (page.margin || DEFAULT_MARGIN) + '; }';
+  const m = pageMargins(page);
+  const margin = m.top === m.bottom && m.left === m.right ? (m.top === m.left ? m.top : m.top + ' ' + m.left) : [m.top, m.right, m.bottom, m.left].join(' ');
+  return '@page { size: ' + (page.size || 'A4') + ' ' + page.orientation + '; margin: ' + margin + '; }';
 }

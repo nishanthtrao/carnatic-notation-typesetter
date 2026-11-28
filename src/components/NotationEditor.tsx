@@ -3,6 +3,7 @@ import { toggleLineComments } from '../lib/comments';
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import { highlight } from '../lib/highlight';
 import { complete } from '../lib/directives';
+import { tipAt, type DirectiveTip } from '../lib/directive-tips';
 
 export interface LineInfo {
   start: number;
@@ -126,6 +127,72 @@ export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationE
   useEffect(() => {
     paintNumbers();
   }, [issues]);
+
+  // A one-glance explanation of a directive: shown when the mouse rests on
+  // its name, or when a finger taps the name (phones have no hover).
+  const tipBox = useRef<HTMLDivElement>(null);
+  const tipTimer = useRef(0);
+  const tipShown = useRef('');
+  const metrics = () => {
+    const el = ta.current!;
+    const cs = getComputedStyle(el);
+    const ctx = document.createElement('canvas').getContext('2d');
+    if (ctx) ctx.font = cs.fontSize + ' ' + cs.fontFamily;
+    return {
+      lh: parseFloat(cs.lineHeight) || 20,
+      cw: ctx?.measureText('0').width || parseFloat(cs.fontSize) * 0.6,
+      pt: parseFloat(cs.paddingTop) || 0,
+      pl: parseFloat(cs.paddingLeft) || 0,
+    };
+  };
+  const hideTip = () => {
+    clearTimeout(tipTimer.current);
+    tipShown.current = '';
+    if (tipBox.current) tipBox.current.hidden = true;
+  };
+  const showTip = (tip: DirectiveTip, line: number) => {
+    const el = ta.current;
+    const box = tipBox.current;
+    if (!el || !box) return;
+    const key = line + ':' + tip.name;
+    if (tipShown.current === key && !box.hidden) return;
+    tipShown.current = key;
+    const { lh, cw, pt, pl } = metrics();
+    box.replaceChildren(Object.assign(document.createElement('strong'), { textContent: tip.name }), ' ' + tip.text);
+    box.hidden = false;
+    const area = box.parentElement!;
+    let left = pl + tip.from * cw - el.scrollLeft;
+    left = Math.max(4, Math.min(left, area.clientWidth - box.offsetWidth - 8));
+    let top = pt + (line + 1) * lh - el.scrollTop + 2;
+    if (top + box.offsetHeight > area.clientHeight - 4) top = pt + line * lh - el.scrollTop - box.offsetHeight - 2;
+    box.style.left = left + 'px';
+    box.style.top = Math.max(2, top) + 'px';
+  };
+  /** The tip for the directive name under a point on the screen, if any. */
+  const tipUnder = (x: number, y: number): [DirectiveTip, number] | null => {
+    const el = ta.current!;
+    const r = el.getBoundingClientRect();
+    const { lh, cw, pt, pl } = metrics();
+    const dy = y - r.top - pt + el.scrollTop;
+    const dx = x - r.left - pl + el.scrollLeft;
+    if (dy < 0 || dx < 0) return null;
+    const line = Math.floor(dy / lh);
+    const text = el.value.split('\n')[line];
+    const tip = text === undefined ? null : tipAt(text, Math.floor(dx / cw));
+    return tip && dx < tip.to * cw ? [tip, line] : null;
+  };
+  /** After a tap: the tip for the name the caret landed in. */
+  const tipAtCaret = () => {
+    const el = ta.current;
+    if (!el || el.selectionStart !== el.selectionEnd) return hideTip();
+    const li = lineInfo();
+    const tip = tipAt(li.text, li.col);
+    if (!tip) return hideTip();
+    showTip(tip, li.index);
+    clearTimeout(tipTimer.current);
+    tipTimer.current = window.setTimeout(hideTip, 6000);
+  };
+  useEffect(() => () => clearTimeout(tipTimer.current), []);
 
   const lineInfo = (): LineInfo => {
     const el = ta.current!;
@@ -258,13 +325,35 @@ export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationE
         wrap="off"
         aria-label="Notation input"
         onInput={(e) => {
+          hideTip();
           paint();
           onInput(e.currentTarget.value);
         }}
-        onScroll={sync}
+        onScroll={() => {
+          sync();
+          hideTip();
+        }}
         onSelect={markCurrent}
         onKeyUp={markCurrent}
-        onPointerUp={markCurrent}
+        onPointerUp={(e) => {
+          markCurrent();
+          if (e.pointerType !== 'mouse') window.setTimeout(tipAtCaret, 50);
+        }}
+        onPointerMove={(e) => {
+          if (e.pointerType !== 'mouse') return;
+          const hit = tipUnder(e.clientX, e.clientY);
+          if (!hit) return hideTip();
+          const key = hit[1] + ':' + hit[0].name;
+          if (key === tipShown.current) return;
+          clearTimeout(tipTimer.current);
+          // show at once when moving from one name to the next; after a short rest otherwise
+          if (tipBox.current && !tipBox.current.hidden) showTip(...hit);
+          else tipTimer.current = window.setTimeout(() => showTip(...hit), 450);
+        }}
+        onPointerLeave={hideTip}
+        onBlur={(e) => {
+          if (e.relatedTarget) hideTip();
+        }}
         onPaste={(e) => {
           const original = e.clipboardData.getData('text/plain');
           if (!original || !hasIndic(original)) return; // ordinary paste
@@ -279,6 +368,7 @@ export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationE
           onPasteConverted?.({ start, original, converted: c.text, scriptName: c.scriptName, languageWord: c.languageWord });
         }}
         onKeyDown={(e) => {
+          hideTip();
           if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
             e.preventDefault();
             onShortcut('update');
@@ -303,6 +393,7 @@ export const NotationEditor = forwardRef<EditorHandle, Props>(function NotationE
           }
         }}
       />
+      <div ref={tipBox} className="directive-tip" role="tooltip" hidden />
       </div>
       </div>
     </>
