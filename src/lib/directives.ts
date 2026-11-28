@@ -97,7 +97,7 @@ const VALUE_COMPLETIONS: Record<string, () => string[]> = {
   orientation: () => ['Portrait', 'Landscape', 'Portrait,15mm', 'Portrait,15mm,20mm', 'Landscape,0.5in'],
   spacing: () => ['Tight', 'Normal', 'Wide'],
   grouping: () => ['Off', 'On'],
-  songinfo: () => ['Composer Right, Raga Left Lines, Tala Left', 'Composer Center, Raga Center TwoLines, Tala Center', 'Composer Right, Raga Left OneLine, Tala Right'],
+  songinfo: () => ['Composer Right, Raga Left Lines, Tala Left', 'Composer Center, Raga Center TwoLines, Tala Center', 'Composer Right, Raga Left OneLine, Tala Right', 'Composer Left, Raga Left Lines, Tala Left, Size 10'],
   avartanamsperline: () => ['1', '2', '3', '4', 'Default'],
   defaultspeed: () => ['0', '1', '2'],
   languagefont: () => ['All', ...LANG_OPTIONS.map(([v]) => v)],

@@ -446,7 +446,9 @@ function renderMeta(b: MetaBlock): string {
     } else for (const it of scale) columns[layout.raga].push(row([it]));
   }
   for (const it of of('tala')) columns[layout.tala].push(row([it]));
-  return '<div class="cm-meta">' + (['left', 'center', 'right'] as MetaAlign[])
+  // Size: the same scale as a Heading's size, shrinking with narrow pages like the usual size does
+  const size = layout.size ? ' style="font-size:min(' + num(layout.size * 1.15) + 'pt,' + num(layout.size * 0.42) + 'cqi)"' : '';
+  return '<div class="cm-meta"' + size + '>' + (['left', 'center', 'right'] as MetaAlign[])
     .filter((side) => columns[side].length)
     .map((side) => '<div class="cm-meta-col cm-meta-' + side + '">' + columns[side].join('') + '</div>')
     .join('') + '</div>';

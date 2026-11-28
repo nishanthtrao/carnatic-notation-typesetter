@@ -671,6 +671,14 @@ export function parse(input: string): NotationDoc {
         for (const part of value.split(',')) {
           const words = part.trim().toLowerCase().split(/\s+/).filter(Boolean);
           if (!words.length) continue;
+          // Size 11: the size of the song details, like a Heading's size; Size Default goes back to the usual
+          if (words[0] === 'size') {
+            const n = words.length === 2 ? Number(words[1].replace(/pt$/, '')) : NaN;
+            if (words[1] === 'default' || words[1] === 'auto') delete next.size;
+            else if (n >= 6 && n <= 40) next.size = n;
+            else warn(no, 'SongInfo Size should be a number of points from 6 to 40, e.g. Size 11');
+            continue;
+          }
           const group = /^r[aā]gam?$/.test(words[0]) ? 'raga' : /^composer$/.test(words[0]) ? 'composer' : /^t[aā][lḷ]am?$/.test(words[0]) ? 'tala' : null;
           if (!group || words.length < 2) {
             bad = true;
@@ -684,7 +692,7 @@ export function parse(input: string): NotationDoc {
             else bad = true;
           }
         }
-        if (bad) warn(no, 'SongInfo should look like "SongInfo: Composer Right, Raga Left TwoLines, Tala Right" (Left, Center or Right; for the raga also Lines, TwoLines or OneLine)');
+        if (bad) warn(no, 'SongInfo should look like "SongInfo: Composer Right, Raga Left TwoLines, Tala Right" (Left, Center or Right; for the raga also Lines, TwoLines or OneLine; and Size 11 for the text size)');
         st.metaLayout = next;
         const open = metaBlock as MetaBlock | null;
         if (open) open.layout = { ...next };
