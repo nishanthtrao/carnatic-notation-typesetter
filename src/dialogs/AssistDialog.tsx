@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { RagaPicker } from './RagaPicker';
+import type { Raga } from '../lib/ragas';
 import { Modal } from '../components/Modal';
 import { FONT_STYLES, normaliseLang, parse, parseFontStyle, parseGati, parseHeading, parseMargin, parseMargins, writeMargins, DEFAULT_MARGIN, render, styleFamilies, swaraSample, SWARA_RE, transliterate, type FontStyle, type Lang } from '../engine';
 import { Icon } from '../components/Icons';
@@ -671,23 +673,6 @@ function HeadingForm({ value, onClose, onApply, footer }: FormProps) {
 
 // ---- Scale: raga name, ārōhaṇam and avarōhaṇam --------------------------------------
 
-/** Well-known ragas to start from: [label, name as typed, ārōhaṇam, avarōhaṇam]. */
-const RAGAS: [string, string, string, string][] = [
-  ['Ābhōgi', 'AbhOgi', "s r2 g2 m1 d2 s'", "s' d2 m1 g2 r2 s"],
-  ['Bilahari', 'bilahari', "s r2 g3 p d2 s'", "s' n3 d2 p m1 g3 r2 s"],
-  ['Haṃsadhvani', 'haMsadhvani', "s r2 g3 p n3 s'", "s' n3 p g3 r2 s"],
-  ['Harikāmbhōji', 'harikAmbhOji', "s r2 g3 m1 p d2 n2 s'", "s' n2 d2 p m1 g3 r2 s"],
-  ['Hindōḷam', 'hindOLam', "s g2 m1 d1 n2 s'", "s' n2 d1 m1 g2 s"],
-  ['Kalyāṇi', 'kalyANi', "s r2 g3 m2 p d2 n3 s'", "s' n3 d2 p m2 g3 r2 s"],
-  ['Kānaḍa', 'kAnaDa', "s r2 g2 m1 d2 n2 s'", "s' n2 p m1 g2 m1 r2 s"],
-  ['Kharaharapriya', 'kharaharapriya', "s r2 g2 m1 p d2 n2 s'", "s' n2 d2 p m1 g2 r2 s"],
-  ['Madhyamāvati', 'madhyamAvati', "s r2 m1 p n2 s'", "s' n2 p m1 r2 s"],
-  ['Māyāmāḷavagauḷa', 'mAyAmALavagauLa', "s r1 g3 m1 p d1 n3 s'", "s' n3 d1 p m1 g3 r1 s"],
-  ['Mōhanam', 'mOhanam', "s r2 g3 p d2 s'", "s' d2 p g3 r2 s"],
-  ['Śaṅkarābharaṇam', 'SaMkarAbharaNam', "s r2 g3 m1 p d2 n3 s'", "s' n3 d2 p m1 g3 r2 s"],
-  ['Tōḍi', 'tODi', "s r1 g2 m1 p d1 n2 s'", "s' n2 d1 p m1 g2 r1 s"],
-];
-
 /** Keypad: each group is one swara and its variants. */
 const KEYPAD: string[][] = [['s'], ['r1', 'r2', 'r3'], ['g1', 'g2', 'g3'], ['m1', 'm2'], ['p'], ['d1', 'd2', 'd3'], ['n1', 'n2', 'n3']];
 type Octave = 'lower' | 'middle' | 'upper';
@@ -714,7 +699,6 @@ function ScaleForm({ value, line, context, onClose, onApply }: { value: string; 
   const [ava, setAva] = useState(find(/^\s*avarohana(m)?\s*:/i));
   const [target, setTarget] = useState<'aro' | 'ava'>(/^\s*avarohana/i.test(line) ? 'ava' : 'aro');
   const [octave, setOctave] = useState<Octave>('middle');
-  const [preset, setPreset] = useState('');
   const aroRef = useRef<HTMLInputElement>(null);
   const avaRef = useRef<HTMLInputElement>(null);
   // start in the line the cursor was on (after the dialog has placed its own focus)
@@ -739,13 +723,10 @@ function ScaleForm({ value, line, context, onClose, onApply }: { value: string; 
     setAva(aro.trim().split(/\s+/).filter(Boolean).reverse().join(' '));
     setTarget('ava');
   };
-  const choosePreset = (label: string) => {
-    setPreset(label);
-    const r = RAGAS.find(([l]) => l === label);
-    if (!r) return;
-    setRaga(r[1]);
-    setAro(r[2]);
-    setAva(r[3]);
+  const choosePreset = (r: Raga) => {
+    setRaga(r.typed);
+    setAro(r.aro);
+    setAva(r.ava);
   };
 
   return (
@@ -762,8 +743,8 @@ function ScaleForm({ value, line, context, onClose, onApply }: { value: string; 
       }
     >
       <div className="form-grid">
-        <Field id="a-sc-preset" label="Start from">
-          <Select id="a-sc-preset" value={preset} onChange={choosePreset} options={[['', 'a raga…'] as [string, string]].concat(RAGAS.map(([l]): [string, string] => [l, l]))} />
+        <Field id="a-sc-preset" label="Find a raga">
+          <RagaPicker onPick={choosePreset} />
         </Field>
         <Field id="a-sc-raga" label="Raga name">
           <input id="a-sc-raga" type="text" value={raga} placeholder="optional, e.g. kAnaDa" onChange={(e) => setRaga(e.target.value)} />
