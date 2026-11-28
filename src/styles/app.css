@@ -597,6 +597,7 @@ select optgroup {
 .form-grid input:focus-visible, .form-grid select:focus-visible, .form-grid textarea:focus-visible { outline: 3px solid var(--focus); outline-offset: 0; }
 .checks { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
 .checks label { display: inline-flex; gap: 6px; align-items: center; }
+.checks.stacked { flex-direction: column; align-items: flex-start; gap: 7px; }
 .checks input[type='checkbox'] { accent-color: var(--accent); width: 15px; height: 15px; }
 .hint { color: var(--label-2); font-size: 12.5px; margin: 10px 0 0; }
 .hint code, .dlg code { font: 12px var(--mono); background: var(--fill); padding: 1px 4px; border-radius: 4px; }
@@ -607,19 +608,6 @@ select optgroup {
 .err-text { color: #d70015; font-size: 13px; }
 @media (prefers-color-scheme: dark) { .err-text { color: #ff6961; } }
 
-.pick-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
-.pick-list button {
-  text-align: left;
-  padding: 10px 12px;
-  border: 0;
-  border-radius: var(--radius);
-  background: var(--surface);
-  box-shadow: 0 0 0 0.5px var(--separator);
-  font-size: 13px;
-}
-.pick-list button:hover { box-shadow: 0 0 0 2px var(--accent); }
-.pick-list button b { display: block; font: 600 13px var(--font); color: var(--label); }
-.pick-list button span { color: var(--label-2); font-size: 12px; }
 .share-url, .mono-box, .dlg .mono-box {
   width: 100%;
   padding: 8px 10px;
@@ -855,13 +843,15 @@ select optgroup {
 .letters-top select,
 .letters-top input {
   min-width: 0;
-  padding: 7px 10px;
-  border: 1px solid var(--separator);
-  border-radius: 8px;
-  background: var(--surface);
+  padding: 6px 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--fill);
   color: var(--label);
-  font: inherit;
+  font: 13px var(--font);
 }
+.letters-top select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--label-2) 50%), linear-gradient(135deg, var(--label-2) 50%, transparent 50%); background-position: calc(100% - 15px) 50%, calc(100% - 10px) 50%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 28px; }
+.letters-top select:focus-visible, .letters-top input:focus-visible { outline: 3px solid var(--focus); outline-offset: 0; }
 .lt-glyph,
 .vr-glyph {
   font-family: 'Noto Serif', 'Noto Serif Devanagari', 'Noto Serif Telugu', 'Noto Serif Kannada', 'Noto Serif Malayalam', 'Noto Serif Tamil', serif;
@@ -903,7 +893,7 @@ select optgroup {
 .letter-group { display: grid; gap: 4px; align-content: start; }
 .letter {
   display: grid;
-  grid-template-columns: 2.6em 1fr;
+  grid-template-columns: minmax(2.6em, max-content) 1fr;
   gap: 10px;
   align-items: center;
   padding: 6px 8px;
@@ -998,12 +988,47 @@ select optgroup {
 .hint.error { color: var(--accent); }
 
 /* Assist: directives grouped by purpose */
-.pick-groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px 18px; align-items: start; }
-.pick-group h3 { margin: 0 0 7px; font: 600 13px var(--font); color: var(--label); }
-.pick-group h3 span { display: block; margin-top: 1px; font-weight: 400; font-size: 12px; color: var(--label-2); }
-.pick-group .pick-list { grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: 6px; }
-.pick-group .pick-list button { padding: 8px 10px; }
-.pick-form { font-style: normal; color: var(--label-3); margin-left: 1px; }
+/* Grouped lists, as in System Settings: equal rows in a rounded inset group,
+   hairline separators that start at the text, a chevron where a row opens a form */
+.list-group {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: 0 0 0 0.5px var(--separator);
+  overflow: hidden;
+}
+.list-group li { position: relative; }
+.list-group li + li::before { content: ''; position: absolute; z-index: 1; top: 0; left: 14px; right: 0; height: 0.5px; background: var(--separator); pointer-events: none; }
+.list-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 7px 12px 7px 14px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--label);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.list-row:hover { background: var(--fill); }
+.list-row:active { background: var(--fill-2); }
+.list-row:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; border-radius: var(--radius-sm); }
+.list-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.list-text b { font: 500 13px/1.3 var(--font); color: var(--label); }
+.list-text span { font-size: 12px; line-height: 1.3; color: var(--label-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.list-chevron { flex: none; width: 7px; height: 12px; color: var(--label-3); }
+.list-footer { margin: 6px 14px 0; font-size: 11.5px; line-height: 1.35; color: var(--label-2); }
+
+/* Assist: all the directives, in two balanced columns of groups */
+.pick-groups { columns: 3 240px; column-gap: 20px; }
+.pick-group { break-inside: avoid; margin: 0 0 18px; }
+.pick-group h3 { margin: 0 14px 6px; font: 600 11.5px/1.3 var(--font); color: var(--label-2); text-transform: uppercase; letter-spacing: 0.04em; }
 .pick-syntax { margin-top: 16px; border-top: 0.5px solid var(--separator); padding-top: 10px; }
 .pick-syntax summary { cursor: pointer; font-size: 13px; font-weight: 500; color: var(--accent); }
 .pick-syntax[open] summary { margin-bottom: 4px; }
@@ -1058,8 +1083,6 @@ select optgroup {
   color: light-dark(#1a1a1a, #f2f2f7);
   box-shadow: 0 0 0 0.5px var(--separator);
 }
-.history-empty { padding: 10px 0 4px; }
-.history-empty p { margin: 0 0 6px; }
 .history-note { margin-top: 12px; }
 .dlg menu button.danger { background: #ff3b30; color: #fff; font-weight: 600; }
 .dlg menu button.danger:hover { background: #d70015; }
@@ -1264,3 +1287,9 @@ select optgroup {
   .orient-form { flex-direction: column-reverse; align-items: center; }
   .orient-form .form-grid { width: 100%; }
 }
+
+/* Empty states: a quiet symbol, a short title and one line of explanation, centred */
+.empty-state { display: grid; justify-items: center; gap: 6px; padding: 18px 12px 8px; text-align: center; }
+.empty-state .ico { width: 34px; height: 34px; color: var(--label-3); margin-bottom: 4px; }
+.empty-state h3 { margin: 0; font: 600 15px/1.3 var(--font-display); color: var(--label); }
+.empty-state p { margin: 0; max-width: 34em; font-size: 13px; line-height: 1.45; color: var(--label-2); }

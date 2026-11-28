@@ -28,3 +28,12 @@ export function Check({ checked, onChange, children }: { checked: boolean; onCha
     </label>
   );
 }
+
+/** The › at the end of a list row that opens something further. */
+export function Chevron() {
+  return (
+    <svg className="list-chevron" viewBox="0 0 8 13" aria-hidden="true">
+      <path d="M1.5 1.5 6.5 6.5 1.5 11.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
