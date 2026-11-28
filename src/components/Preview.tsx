@@ -22,6 +22,12 @@ interface Anchor {
  * the DOM. Zooming scales the page as drawn (the layout stays the same, the
  * way it will print); printing ignores it.
  */
+/** The page margins drawn to scale on the screen page. */
+const marginVars = (page: NotationDoc['page']) => {
+  const m = marginShare(page);
+  return { '--pm-top': m.top, '--pm-right': m.right, '--pm-bottom': m.bottom, '--pm-left': m.left };
+};
+
 export function Preview({ doc, onJumpToLine, landscape, zoomable, followLine = null }: { doc: NotationDoc; onJumpToLine?: (line: number) => void; landscape?: boolean; zoomable?: boolean; followLine?: number | null }) {
   const sheet = useRef<HTMLDivElement>(null);
   const paper = useRef<HTMLDivElement>(null);
@@ -38,8 +44,22 @@ export function Preview({ doc, onJumpToLine, landscape, zoomable, followLine = n
   const zoomRef = useRef(zoom);
   zoomRef.current = zoom;
 
+  // Redrawing empties the page for a moment to measure the text, which would let the
+  // browser clamp the scroll position to the top. Put it back before anything is painted.
+  const keepPlace = (redraw: () => void) => {
+    const sc = scroller.current;
+    const top = sc?.scrollTop ?? 0;
+    const left = sc?.scrollLeft ?? 0;
+    redraw();
+    if (sc && (sc.scrollTop !== top || sc.scrollLeft !== left)) {
+      sc.scrollTop = top;
+      sc.scrollLeft = left;
+    }
+  };
+
   useLayoutEffect(() => {
-    if (sheet.current) handle.current = render(doc, sheet.current, { emptyText: 'Type your notation below, or open an example.' });
+    const el = sheet.current;
+    if (el) keepPlace(() => (handle.current = render(doc, el, { emptyText: 'Type your notation below, or open an example.' })));
   }, [doc]);
 
   // Mark the rows typeset from the S: line being edited, and bring them into
@@ -76,10 +96,12 @@ export function Preview({ doc, onJumpToLine, landscape, zoomable, followLine = n
     let raf = 0;
     const refit = () => {
       cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        handle.current?.refit();
-        applyFollow(false);
-      });
+      raf = requestAnimationFrame(() =>
+        keepPlace(() => {
+          handle.current?.refit();
+          applyFollow(false);
+        }),
+      );
     };
     const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(refit) : null;
     ro?.observe(el);
@@ -87,10 +109,14 @@ export function Preview({ doc, onJumpToLine, landscape, zoomable, followLine = n
     let fontTimer = 0;
     const relayout = () => {
       clearTimeout(fontTimer);
-      fontTimer = window.setTimeout(() => {
-        handle.current?.refit(true);
-        applyFollow(false);
-      }, 50);
+      fontTimer = window.setTimeout(
+        () =>
+          keepPlace(() => {
+            handle.current?.refit(true);
+            applyFollow(false);
+          }),
+        50,
+      );
     };
     document.fonts?.ready.then(relayout);
     document.fonts?.addEventListener?.('loadingdone', relayout);
@@ -192,7 +218,7 @@ export function Preview({ doc, onJumpToLine, landscape, zoomable, followLine = n
             ref={paper}
             className={'paper' + (landscape ? ' landscape' : '') + (fit || !ready ? '' : ' zoomed')}
             // the page margin, as a share of the page's width, so the screen shows the margin it prints with
-            style={{ '--page-margin': marginShare(doc.page), ...(fit || !ready ? {} : { width: size.w, transform: `scale(${zoom})` }) } as CSSProperties}
+            style={{ ...marginVars(doc.page), ...(fit || !ready ? {} : { width: size.w, transform: `scale(${zoom})` }) } as CSSProperties}
           >
             <div
               ref={sheet}

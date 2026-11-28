@@ -4,6 +4,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Modal } from '../components/Modal';
+import { Icon } from '../components/Icons';
 import { parse, render } from '../engine';
 import { clearHistory, EVERY_MINUTES, loadHistory, MAX_VERSIONS, type Snapshot } from '../lib/history';
 
@@ -62,7 +63,7 @@ export function HistoryDialog({ open, onClose, current, onRestore }: { open: boo
       title="Version history"
       open={open}
       onClose={onClose}
-      wide
+      wide={list.length > 0}
       footer={
         <>
           {list.length > 0 &&
@@ -84,8 +85,8 @@ export function HistoryDialog({ open, onClose, current, onRestore }: { open: boo
               </button>
             ))}
           <span className="spacer" />
-          <button type="button" onClick={onClose}>
-            Close
+          <button type="button" className={list.length ? undefined : 'primary'} onClick={onClose}>
+            Done
           </button>
           {list.length > 0 && (
             <button type="button" className="primary" disabled={!sel || sel.text === current} onClick={() => sel && onRestore(sel)}>
@@ -96,11 +97,10 @@ export function HistoryDialog({ open, onClose, current, onRestore }: { open: boo
       }
     >
       {list.length === 0 ? (
-        <div className="history-empty">
+        <div className="empty-state">
+          <Icon name="history" />
+          <h3>No Earlier Versions</h3>
           <p>
-            <b>No earlier versions yet.</b>
-          </p>
-          <p className="hint">
             As you work, a version is kept every {EVERY_MINUTES} minutes, each time you save, and before anything replaces the notation (opening a file, an example or a new song). They stay
             in this browser only.
           </p>

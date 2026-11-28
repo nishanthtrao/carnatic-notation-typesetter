@@ -7,16 +7,16 @@ import { detectScript, fromScript, SWARA_TEXT } from '../engine';
 
 const INDIC = /[ऀ-ൿ]/;
 
-// swara syllables in every script -> s r g m p d n (long forms -> sa ri …)
+// swara syllables in every script -> s r g m p d n (long forms -> sA rI gA …, the vowel in capitals so they stand out)
 const SWARA_BACK = new Map<string, string>();
 for (const table of Object.values(SWARA_TEXT)) {
   for (const [k, [short, long]] of Object.entries(table)) {
     SWARA_BACK.set(short, k);
-    SWARA_BACK.set(long, k === 'r' || k === 'n' ? k + 'i' : k + 'a');
+    SWARA_BACK.set(long, k === 'r' || k === 'n' ? k + 'I' : k + 'A');
   }
 }
 // other spellings seen in notation books
-for (const [g, k] of Object.entries({ 'द': 'd', 'दा': 'da', 'ధ': 'd', 'ಧ': 'd', 'ദ': 'd', 'ச': 's', 'சா': 'sa', 'ஸ': 's' })) SWARA_BACK.set(g, k);
+for (const [g, k] of Object.entries({ 'द': 'd', 'दा': 'dA', 'ధ': 'd', 'ಧ': 'd', 'ദ': 'd', 'ச': 's', 'சா': 'sA', 'ஸ': 's' })) SWARA_BACK.set(g, k);
 
 const SCRIPT_NAMES: Record<string, string> = {
   devanagari: 'Sanskrit (Devanagari)',

@@ -3,6 +3,12 @@ Copyright 2022 The Noto Project Authors (https://github.com/notofonts/malayalam)
 
 Anek fonts (Sans style): Copyright 2021 The Anek Project Authors (https://github.com/EkType/Anek)
 Baloo 2, Baloo Tammudu 2, Baloo Tamma 2, Baloo Chettan 2, Baloo Thambi 2 (Rounded style): Copyright 2019 The Baloo 2 Project Authors (https://github.com/EkType/Baloo2)
+Handwritten style:
+Kalam: Copyright (c) 2014 Indian Type Foundry (info@indiantypefoundry.com)
+Gurajada: Copyright (c) 2012 Silicon Andhra (fonts.siliconandhra.org)
+Navilu: Copyright (C) 2011-2012, Aravinda VK (http://aravindavk.in); Copyright (C) 2005-2010, Indian Institute of Science, Bangalore
+Chilanka: Copyright 2020 The Chilanka Project Authors (https://gitlab.com/smc/fonts/chilanka)
+Kavivanar: Copyright (c) 2015, Tharique Azeez (http://thariqueazeez.com)
 Nunito (Rounded style, Latin): Copyright 2014 The Nunito Project Authors (https://github.com/googlefonts/nunito)
 
 All of these fonts are licensed under the SIL Open Font License, Version 1.1.

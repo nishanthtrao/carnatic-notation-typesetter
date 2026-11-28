@@ -132,8 +132,14 @@ export interface Prefs {
 
 export interface PhraseEnds {
   style: 'hide' | 'show' | 'handle' | 'handlethick';
+  /** pixels of space after a phrase end (5 unless PhraseEnds gives a number) */
   space: number;
+  /** the space was written in PhraseEnds:, so p-- p--- step by it too */
+  custom?: boolean;
 }
+
+/** A phrase end leaves this much space (px) unless PhraseEnds says otherwise. */
+export const PHRASE_GAP = 5;
 
 export interface StaffBlock {
   type: 'staff';
@@ -182,6 +188,10 @@ export interface MetaLayout {
   /** raga, ārōhaṇam, avarōhaṇam: each on its own line, raga then the scale, or all on one line */
   ragaLines: 'lines' | 'two' | 'one';
   tala: MetaAlign;
+  /** text size in points, on the same scale as Heading sizes; unset = the usual size */
+  size?: number;
+  /** ārōhaṇam and avarōhaṇam labelled short: Ar / Av, or the long and short a of the script */
+  short?: boolean;
 }
 
 export interface MetaBlock {
@@ -196,6 +206,8 @@ export interface MetaItem {
   value: string;
   /** the value as shown (transliterated), when it differs from value */
   text?: string;
+  /** a short label (Ar / Av, or ಆ / ಅ in an Indian script), for SongInfo … Short */
+  short?: string;
   swaras?: NoteEvent[];
   lang?: LangSpec;
 }
@@ -203,7 +215,8 @@ export interface MetaItem {
 export type Block =
   | StaffBlock
   | HeadingBlock
-  | { type: 'space' }
+  /** a blank line: Heading: "" (small), or SongBreak (a full line, so the break shows) */
+  | { type: 'space'; songBreak?: boolean }
   | { type: 'pagebreak' }
   | MetaBlock;
 
@@ -214,7 +227,7 @@ export interface Warning {
 
 export interface NotationDoc {
   title: string;
-  page: { orientation: 'portrait' | 'landscape'; size: string; margin?: string };
+  page: { orientation: 'portrait' | 'landscape'; size: string; margins?: import('./page').Margins };
   langFonts: Partial<Record<Lang, string>>;
   blocks: Block[];
   warnings: Warning[];
