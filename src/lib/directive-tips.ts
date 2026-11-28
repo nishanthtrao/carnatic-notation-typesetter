@@ -25,7 +25,7 @@ const TIPS: Record<string, string> = {
   SpeedMarks: 'Draws the speed lines of ( ) groups above or below the swaras.',
   PhraseEnds: 'How phrase ends (p-) look: Hide (default), Show, Handle or HandleThick. A number after the comma sets the gap; it is 5 unless given, and 0 removes it.',
   Language: 'The script the page is printed in: English, Diacritics, Sanskrit, Telugu, Kannada, Malayalam or Tamil. You still type in roman letters.',
-  LanguageFont: 'The lettering for a script, or All: Serif, Sans, Rounded, or a font installed on this device. LanguageFont: Tamil,Rounded',
+  LanguageFont: 'The lettering for a script, or All: Serif, Sans, Rounded, Handwritten, or a font installed on this device. LanguageFont: Tamil,Rounded',
   Layout: 'The usual speed and spacing for the kind of song: krithi, varnam or gitam. Add ,compact or ,fullwidth.',
   Spacing: 'Room between the swaras from here on: Tight, Normal, Wide, or a percentage from 40 to 250.',
   Grouping: 'On leaves small gaps between the beats inside a bar (useful for capu talas, gitams and varnams); Off closes them.',

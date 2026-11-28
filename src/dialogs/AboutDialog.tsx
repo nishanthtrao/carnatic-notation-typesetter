@@ -67,7 +67,7 @@ export function AboutDialog({ open, onClose }: { open: boolean; onClose: () => v
         </section>
 
         <p className="about-small">
-          Free software under the GNU General Public License, version 2. Fonts: Noto Serif, Anek, Nunito and Baloo (SIL Open Font License).
+          Free software under the GNU General Public License, version 2. Fonts: Noto Serif, Anek, Nunito, Baloo, Kalam, Gurajada, Akaya Kanadaka, Chilanka and Kavivanar (SIL Open Font License).
         </p>
       </div>
     </Modal>

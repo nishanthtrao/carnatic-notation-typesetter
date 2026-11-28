@@ -242,6 +242,19 @@ test('LanguageFont: bundled styles and All', () => {
   expect(parser.parse('LanguageFont: Klingon,Sans\n').warnings).toHaveLength(1);
 });
 
+test('LanguageFont: the Handwritten style in every script', () => {
+  const d = parser.parse('LanguageFont: All,Handwritten\nS: s r g m ||\n');
+  expect(d.warnings).toHaveLength(0);
+  expect(d.langFonts.kannada).toBe('Handwritten');
+  expect(parseFontStyle('Handwriting')).toBe('handwritten');
+  expect(styleFamilies('handwritten', 'english')).toBe("'Kalam'");
+  expect(styleFamilies('handwritten', 'devanagari')).toBe("'Kalam'");
+  expect(styleFamilies('handwritten', 'telugu')).toBe("'Gurajada', 'Kalam'");
+  expect(styleFamilies('handwritten', 'kannada')).toBe("'Akaya Kanadaka', 'Kalam'");
+  expect(styleFamilies('handwritten', 'malayalam')).toBe("'Chilanka', 'Kalam'");
+  expect(styleFamilies('handwritten', 'tamil')).toBe("'Kavivanar', 'Kalam'");
+});
+
 test('comments: # % // lines and <!-- --> blocks', () => {
   const d = parser.parse('# a\n% b\n// c\n<!-- one line -->\nS: s r g m ||\n<!--\nS: this is not parsed\nL: nor this\n-->\nS: p d n s\' ||\nTala: Bogus\n');
   expect(d.blocks.filter((b) => b.type === 'staff')).toHaveLength(1);

@@ -611,7 +611,7 @@ export function parse(input: string): NotationDoc {
         const parts = splitAttrs(value);
         const all = /^all$/i.test((parts[0] || '').trim());
         const lang = all ? null : normaliseLang(parts[0]);
-        if ((!all && !lang) || !parts[1]) warn(no, 'LanguageFont should look like "LanguageFont: Tamil,Rounded" (styles: Serif, Sans, Rounded; or an installed font name)');
+        if ((!all && !lang) || !parts[1]) warn(no, 'LanguageFont should look like "LanguageFont: Tamil,Rounded" (styles: Serif, Sans, Rounded, Handwritten; or an installed font name)');
         else if (all) for (const l of Object.keys(LANGS) as Lang[]) doc.langFonts[l] = parts.slice(1).join(',');
         else doc.langFonts[lang!] = parts.slice(1).join(',');
         break;

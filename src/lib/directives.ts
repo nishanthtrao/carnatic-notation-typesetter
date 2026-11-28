@@ -47,7 +47,7 @@ export const DIRECTIVES: DirectiveInfo[] = (
     ['LyricPrefs', 'LyricPrefs: 12', 'Lyric size and colour', 'look'],
     ['HeadingPrefs', 'HeadingPrefs: 12', 'Heading size and colour', 'look'],
     ['GamakaPrefs', 'GamakaPrefs: 10', 'Gamaka text size and colour', 'look'],
-    ['LanguageFont', 'LanguageFont: All,Sans', 'Serif, Sans, Rounded or your own', 'script'],
+    ['LanguageFont', 'LanguageFont: All,Sans', 'Serif, Sans, Rounded, Handwritten…', 'script'],
     ['Title', 'Title: ""', 'File name and print header', 'song'],
     ['SongBreak', 'SongBreak', 'Blank line, then a fresh tala cycle', 'layout'],
     ['LineBreak', 'LineBreak', 'New line; the tala keeps counting', 'layout'],
