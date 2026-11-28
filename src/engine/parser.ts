@@ -14,6 +14,7 @@ import { parseMargin, parseMargins } from './page';
 import { GATIS, isTalaError, parseGati, parseTala } from './talas';
 import { LANGS, normaliseLang, parseLangSpec, transliterate } from './translit';
 import type { Block, JatiName, Lang, LangSpec, MetaBlock, MetaItem, MetaKind, MetaLayout, NotationDoc, NoteEvent, PhraseEnds, Prefs, Tala } from './types';
+import { PHRASE_GAP } from './types';
 
 /** Spacing: Tight and Wide, as a share of the usual spacing. Wide is the spacing of versions before "Spacing" existed. */
 export const SPACING = { tight: 0.7, wide: 1.4 };
@@ -202,7 +203,7 @@ export function parse(input: string): NotationDoc {
     songGati: 'catusra',
     lang: { lang: 'english', opts: {} },
     speedMarks: 'above',
-    phraseEnds: { style: 'hide', space: 0 },
+    phraseEnds: { style: 'hide', space: PHRASE_GAP },
     smartLyric: false,
     perRow: null,
     metaLayout: { ...DEFAULT_META_LAYOUT },
@@ -564,13 +565,16 @@ export function parse(input: string): NotationDoc {
           warn(no, 'PhraseEnds style must be Hide, Show, Handle or HandleThick');
           break;
         }
-        let space = 0;
+        let space = PHRASE_GAP;
+        let custom = false;
         if (parts[1]) {
           const sm = parts[1].match(/^(\d+(?:\.\d+)?)\s*(in|px)?$/i);
-          if (sm) space = parseFloat(sm[1]) * (sm[2] && sm[2].toLowerCase() === 'in' ? 96 : 1);
-          else warn(no, 'PhraseEnds spacing should be a number of pixels or e.g. 0.15in');
+          if (sm) {
+            space = parseFloat(sm[1]) * (sm[2] && sm[2].toLowerCase() === 'in' ? 96 : 1);
+            custom = true;
+          } else warn(no, 'PhraseEnds spacing should be a number of pixels or e.g. 0.15in');
         }
-        st.phraseEnds = { style, space };
+        st.phraseEnds = { style, space, custom };
         closeSeg();
         break;
       }
