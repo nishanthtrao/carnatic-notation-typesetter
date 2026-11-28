@@ -130,8 +130,14 @@ export interface Prefs {
 
 export interface PhraseEnds {
   style: 'hide' | 'show' | 'handle' | 'handlethick';
+  /** pixels of space after a phrase end (5 unless PhraseEnds gives a number) */
   space: number;
+  /** the space was written in PhraseEnds:, so p-- p--- step by it too */
+  custom?: boolean;
 }
+
+/** A phrase end leaves this much space (px) unless PhraseEnds says otherwise. */
+export const PHRASE_GAP = 5;
 
 export interface StaffBlock {
   type: 'staff';

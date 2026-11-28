@@ -259,12 +259,12 @@ function PhraseEndsForm({ value, onClose, onApply, footer }: FormProps) {
         </Field>
         <Field id="a-pe-space" label="Extra space">
           <div className="inline-fields">
-            <input id="a-pe-space" type="number" min="0" step="any" inputMode="decimal" placeholder="none" value={space} onChange={(e) => setSpace(e.target.value)} aria-invalid={!ok} />
+            <input id="a-pe-space" type="number" min="0" step="any" inputMode="decimal" placeholder="5 (default)" value={space} onChange={(e) => setSpace(e.target.value)} aria-invalid={!ok} />
             <Select id="a-pe-unit" value={unit} onChange={setUnit} options={[['px', 'pixels'], ['in', 'inches']]} />
           </div>
         </Field>
       </div>
-      <p className="hint">A phrase end is a hyphen after a swara (<code>p-</code>), e.g. where to breathe. Extra space separates phrases; 0.45 inches is a good start for manual-mode layouts.</p>
+      <p className="hint">A phrase end is a hyphen after a swara (<code>p-</code>), e.g. where to breathe. A phrase end leaves 5 pixels of space and splits a speed line unless you set another amount; 0 means no space, and 0.45 inches is a good start for manual-mode layouts.</p>
     </Modal>
   );
 }
