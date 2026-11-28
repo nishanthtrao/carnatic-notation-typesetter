@@ -427,7 +427,7 @@ function renderMeta(b: MetaBlock): string {
   // a value never breaks inside; a long line breaks only between the label-and-value pieces
   const value = (it: MetaItem) =>
     '<span class="cm-meta-nw">' + (it.swaras && it.swaras.length ? inlineSwaras(it.swaras, it.lang) : esc(it.text ?? it.value)) + '</span>';
-  const label = (it: MetaItem) => '<span class="cm-meta-k">' + esc(it.label) + '</span>';
+  const label = (it: MetaItem) => '<span class="cm-meta-k">' + esc(layout.short && it.short ? it.short : it.label) + '</span>';
   // one row: the first item's label in the label column, any others run on after its value
   const row = (group: MetaItem[]) =>
     label(group[0]) + '<span class="cm-meta-v">' + value(group[0]) +

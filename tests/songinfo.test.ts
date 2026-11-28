@@ -104,3 +104,34 @@ describe('SongInfo Size', () => {
     }
   });
 });
+
+describe('SongInfo Short: Ar / Av for the scale', () => {
+  const labels = (text: string) => {
+    const el = document.createElement('div');
+    render(parse(text), el);
+    return [...el.querySelectorAll('.cm-meta-k')].map((k) => k.textContent);
+  };
+  test('in English: Ar and Av; the raga, composer and tala keep their labels', () => {
+    for (const info of ['SongInfo: Raga Left Short', 'SongInfo: Short']) {
+      const l = labels(SONG.replace('%s', info));
+      expect(l).toEqual(expect.arrayContaining(['Composer', 'Rāgam', 'Ar', 'Av', 'Tālam']));
+      expect(l).not.toContain('Ārōhaṇam');
+    }
+  });
+  test('in an Indian script: the long and the short a', () => {
+    const cases: [string, string, string, string][] = [
+      ['Kannada', 'SongInfo: Raga Left Lines Short', 'ಆ', 'ಅ'],
+      ['Tamil', 'SongInfo: Short', 'ஆ', 'அ'],
+      ['Sanskrit', 'SongInfo: Short', 'आ', 'अ'],
+    ];
+    for (const [lang, info, aro, ava] of cases) {
+      const l = labels('Language: ' + lang + '\n' + SONG.replace('%s', info));
+      expect(l).toEqual(expect.arrayContaining([aro, ava]));
+      expect(l).toHaveLength(5);
+    }
+  });
+  test('Long, or no Short, keeps the full labels', () => {
+    expect(labels(SONG.replace('%s', 'SongInfo: Short\nSongInfo: Raga Left Long'))).toEqual(expect.arrayContaining(['Ārōhaṇam', 'Avarōhaṇam']));
+    expect(labels(SONG.replace('%s', ''))).toEqual(expect.arrayContaining(['Ārōhaṇam', 'Avarōhaṇam']));
+  });
+});
