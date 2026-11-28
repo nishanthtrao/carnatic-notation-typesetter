@@ -188,6 +188,8 @@ export interface MetaLayout {
   tala: MetaAlign;
   /** text size in points, on the same scale as Heading sizes; unset = the usual size */
   size?: number;
+  /** ārōhaṇam and avarōhaṇam labelled short: Ar / Av, or the long and short a of the script */
+  short?: boolean;
 }
 
 export interface MetaBlock {
@@ -202,6 +204,8 @@ export interface MetaItem {
   value: string;
   /** the value as shown (transliterated), when it differs from value */
   text?: string;
+  /** a short label (Ar / Av, or ಆ / ಅ in an Indian script), for SongInfo … Short */
+  short?: string;
   swaras?: NoteEvent[];
   lang?: LangSpec;
 }

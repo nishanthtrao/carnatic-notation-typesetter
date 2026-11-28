@@ -455,12 +455,14 @@ function SongInfoForm({ value, onClose, onApply, footer }: FormProps) {
   const [composer, setComposer] = useState(side(find(/^composer/)));
   const [raga, setRaga] = useState(side(rw));
   const [lines, setLines] = useState(rw.includes('oneline') ? 'OneLine' : rw.includes('twolines') ? 'TwoLines' : 'Lines');
+  const [short, setShort] = useState(rw.includes('short') || parts.some((w) => w.length === 1 && w[0] === 'short'));
   const [tala, setTala] = useState(side(find(/^tala/)));
   const sizeNow = Number((find(/^size$/)[1] || '').replace(/pt$/, ''));
   const [size, setSize] = useState(sizeNow >= 6 && sizeNow <= 40 ? String(sizeNow) : '');
   const sizeOk = !size.trim() || (Number(size) >= 6 && Number(size) <= 40);
   const apply = () =>
-    sizeOk && onApply('SongInfo: Composer ' + composer + ', Raga ' + raga + ' ' + lines + ', Tala ' + tala + (size.trim() ? ', Size ' + Number(size) : ''));
+    sizeOk &&
+    onApply('SongInfo: Composer ' + composer + ', Raga ' + raga + ' ' + lines + (short ? ' Short' : '') + ', Tala ' + tala + (size.trim() ? ', Size ' + Number(size) : ''));
   return (
     <Modal title="Song details" open onClose={onClose} footer={footer(apply)}>
       <div className="form-grid">
@@ -476,6 +478,10 @@ function SongInfoForm({ value, onClose, onApply, footer }: FormProps) {
         <Field id="a-si-tala" label="Tala">
           <Select id="a-si-tala" value={tala} onChange={setTala} options={SIDES} />
         </Field>
+        <span />
+        <div className="checks">
+          <Check checked={short} onChange={setShort}>Short labels for the scale (Ar / Av, or ಆ / ಅ)</Check>
+        </div>
         <Field id="a-si-size" label="Text size (pt)">
           <input id="a-si-size" type="number" min="6" max="40" step="0.5" inputMode="decimal" placeholder="usual size" value={size} onChange={(e) => setSize(e.target.value)} aria-invalid={!sizeOk} />
         </Field>

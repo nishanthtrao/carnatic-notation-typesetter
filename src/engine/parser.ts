@@ -45,6 +45,14 @@ const META_NATIVE: Partial<Record<Lang, Record<'raga' | 'aro' | 'ava' | 'compose
   malayalam: { raga: 'രാഗം', aro: 'ആരോഹണം', ava: 'അവരോഹണം', composer: 'രചന', tala: 'താളം' },
   devanagari: { raga: 'राग', aro: 'आरोहण', ava: 'अवरोहण', composer: 'रचना', tala: 'ताल' },
 };
+/** Short labels for the scale (SongInfo … Short): Ar / Av in roman letters, the long and short a in a script. */
+const SCALE_SHORT: Partial<Record<Lang, { aro: string; ava: string }>> = {
+  kannada: { aro: 'ಆ', ava: 'ಅ' },
+  telugu: { aro: 'ఆ', ava: 'అ' },
+  tamil: { aro: 'ஆ', ava: 'அ' },
+  malayalam: { aro: 'ആ', ava: 'അ' },
+  devanagari: { aro: 'आ', ava: 'अ' },
+};
 const META_KIND: Record<string, MetaKind> = {
   tala: 'tala', raga: 'raga', ragam: 'raga', arohana: 'aro', arohanam: 'aro', avarohana: 'ava', avarohanam: 'ava', composer: 'composer',
 };
@@ -299,6 +307,8 @@ export function parse(input: string): NotationDoc {
     // (raga, composer) are transliterated like headings.
     const native = META_NATIVE[st.lang.lang];
     if (native && META_KIND[key]) item.label = native[META_KIND[key]];
+    const kind = META_KIND[key];
+    if (kind === 'aro' || kind === 'ava') item.short = (SCALE_SHORT[st.lang.lang] || { aro: 'Ar', ava: 'Av' })[kind];
     if (st.lang.lang !== 'english' && !SWARA_META.has(key)) item.text = transliterate(val, st.lang);
     if (SWARA_META.has(key)) {
       item.swaras = [];
@@ -687,6 +697,11 @@ export function parse(input: string): NotationDoc {
             else warn(no, 'SongInfo Size should be a number of points from 6 to 40, e.g. Size 11');
             continue;
           }
+          // Short (on its own or with the raga): Ar / Av for the scale's labels; Long goes back
+          if (words.length === 1 && (words[0] === 'short' || words[0] === 'long')) {
+            next.short = words[0] === 'short';
+            continue;
+          }
           const group = /^r[aā]gam?$/.test(words[0]) ? 'raga' : /^composer$/.test(words[0]) ? 'composer' : /^t[aā][lḷ]am?$/.test(words[0]) ? 'tala' : null;
           if (!group || words.length < 2) {
             bad = true;
@@ -697,10 +712,11 @@ export function parse(input: string): NotationDoc {
             else if (group === 'raga' && w === 'lines') next.ragaLines = 'lines';
             else if (group === 'raga' && w === 'twolines') next.ragaLines = 'two';
             else if (group === 'raga' && w === 'oneline') next.ragaLines = 'one';
+            else if (group === 'raga' && (w === 'short' || w === 'long')) next.short = w === 'short';
             else bad = true;
           }
         }
-        if (bad) warn(no, 'SongInfo should look like "SongInfo: Composer Right, Raga Left TwoLines, Tala Right" (Left, Center or Right; for the raga also Lines, TwoLines or OneLine; and Size 11 for the text size)');
+        if (bad) warn(no, 'SongInfo should look like "SongInfo: Composer Right, Raga Left TwoLines, Tala Right" (Left, Center or Right; for the raga also Lines, TwoLines or OneLine, and Short for Ar / Av; and Size 11 for the text size)');
         st.metaLayout = next;
         const open = metaBlock as MetaBlock | null;
         if (open) open.layout = { ...next };
