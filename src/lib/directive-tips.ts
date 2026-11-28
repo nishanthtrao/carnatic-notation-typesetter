@@ -8,6 +8,7 @@ import { DIRECTIVES } from './directives';
 const TIPS: Record<string, string> = {
   Title: 'Names the saved file and the print header. To print the song’s name on the page, use Heading.',
   Heading: 'A line of text: the song’s name, a section name such as pallavi, or a caption. After the quotes: bold, italic, left, center, right, a size (14), english to keep roman letters. Heading: "" leaves a blank line.',
+  Section: 'A heading for a part of the song: Section: pallavi. Bold and on the left, with a little space above, in the Language script; takes the same options as Heading (size, italic, center…).',
   Raga: 'The raga’s name, printed with the song details in the Language script. Write it after Language.',
   Arohana: "The scale going up, as swaras: s r2 g3 m1 p d2 n3 s'. Printed under the raga.",
   Avarohana: "The scale coming down, as swaras: s' n3 d2 p m1 g3 r2 s. Printed under the raga.",
